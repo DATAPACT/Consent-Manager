@@ -4,18 +4,18 @@
 
 - Download and install [Node.js](https://nodejs.org/en)
 
-## Installation
+## Setup and run
 
 1. **Clone the project:**
 
 ```bash
-  git clone <repository-url>
+  git clone https://github.com/EU-UPCAST/upconsent.git
 ```
 
 2. **Navigate into the project directory:**
 
 ```bash
-  cd <project-directory>
+  cd upconsent
 ```
 
 3. **Install the required libraries**
@@ -24,11 +24,15 @@
   npm install
 ```
 
+> **Note:** Mac users: If you face permission errors, you might need **sudo npm install**.
+
 4. **Start the development server:**
 
 ```bash
   npm run dev
 ```
+
+> **Note:** Mac users: If you face permission errors, you might need **sudo npm run dev**.
 
 5. **Open the project in your browser:**
 
