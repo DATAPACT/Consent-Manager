@@ -12,7 +12,7 @@
   git clone <repository-url>
 ```
 
-2. **Clone the project:**
+2. **Navigate into the project directory:**
 
 ```bash
   cd <project-directory>
