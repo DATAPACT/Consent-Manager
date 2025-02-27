@@ -7,15 +7,29 @@
 ## Installation
 
 1. **Clone the project:**
-   ```bash
-   git clone <repository-url>
-   ```
+
+```bash
+  git clone <repository-url>
+```
+
 2. **Clone the project:**
-   cd <project-directory>
+
+```bash
+  cd <project-directory>
+```
+
 3. **Install the required libraries**
-   npm install
+
+```bash
+  npm install
+```
+
 4. **Start the development server:**
-   npm run dev
+
+```bash
+  npm run dev
+```
+
 5. **Open the project in your browser:**
 
 - Once the server starts, a localhost URL (usually http://localhost:3000) will be shown in the terminal.
