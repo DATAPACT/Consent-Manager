@@ -3,15 +3,29 @@ import styles from "../../css/Navbar.module.css";
 
 // libraries
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+type Role = "requester" | "owner" | null;
 
 function Navbar() {
+  const [role, setRole] = useState<Role>(null);
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    if (role === "requester") {
+      navigate("/requesterLogin");
+    } else if (role === "owner") {
+      navigate("/ownerLogin");
+    }
+  };
+
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid">
-          <a className="navbar-brand" href="#">
+          <Link className="navbar-brand" to="/">
             Consent Manager
-          </a>
+          </Link>
           <button
             className="navbar-toggler"
             type="button"
@@ -91,7 +105,9 @@ function Navbar() {
                           className="form-check-input"
                           type="radio"
                           name="flexRadioDefault"
-                          id="flexRadioDefault1"
+                          id="requester"
+                          value="requester"
+                          onChange={() => setRole("requester")}
                         />
                         <h6>Data requester</h6>
                         <p>
@@ -104,14 +120,19 @@ function Navbar() {
                         <input
                           className="form-check-input"
                           type="radio"
-                          name="flexRadioDefault"
-                          id="flexRadioDefault2"
+                          id="owner"
+                          value="owner"
+                          onChange={() => setRole("owner")}
                         />
                         <h6>Data owner</h6>
                         <p>Grant, deny, or revoke consents for data access.</p>
                       </div>
                     </div>
-                    <button type="button" className="btn btn-primary mt-3">
+                    <button
+                      type="button"
+                      className="btn btn-primary mt-3"
+                      onClick={handleSignIn}
+                    >
                       Sign in
                     </button>
                   </li>
