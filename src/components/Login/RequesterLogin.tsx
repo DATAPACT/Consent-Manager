@@ -1,5 +1,6 @@
 // components
 import Navbar from "../Navbar/Navbar";
+import Footer from "../Footer/Footer";
 
 // libraries
 import { Link } from "react-router-dom";
@@ -49,6 +50,10 @@ function RequesterLogin() {
           </div>
         </form>
       </div>
+      <br />
+      <br />
+      <br />
+      <Footer />
     </>
   );
 }
