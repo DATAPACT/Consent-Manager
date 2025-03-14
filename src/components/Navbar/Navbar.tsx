@@ -1,6 +1,9 @@
 // css
 import styles from "../../css/Navbar.module.css";
 
+// libraries
+import { Link } from "react-router-dom";
+
 function Navbar() {
   return (
     <>
@@ -81,20 +84,36 @@ function Navbar() {
                   className={`${styles.signinbox} dropdown-menu dropdown-menu-end`}
                   aria-labelledby="signinDropdown"
                 >
-                  <li className="p-3">
+                  <li className="p-4">
                     <div className="p-3 border rounded">
-                      <h6>Data requester</h6>
-                      <p>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      </p>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="flexRadioDefault"
+                          id="flexRadioDefault1"
+                        />
+                        <h6>Data requester</h6>
+                        <p>
+                          Request access to user data based on provided consent.
+                        </p>
+                      </div>
                     </div>
-
                     <div className="p-3 border rounded mt-3">
-                      <h6>Data owner</h6>
-                      <p>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      </p>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="flexRadioDefault"
+                          id="flexRadioDefault2"
+                        />
+                        <h6>Data owner</h6>
+                        <p>Grant, deny, or revoke consents for data access.</p>
+                      </div>
                     </div>
+                    <button type="button" className="btn btn-primary mt-3">
+                      Sign in
+                    </button>
                   </li>
                 </ul>
               </li>
