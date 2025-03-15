@@ -3,22 +3,8 @@ import styles from "../../css/Navbar.module.css";
 
 // libraries
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-type Role = "requester" | "owner" | null;
 
 function Navbar() {
-  const [role, setRole] = useState<Role>(null);
-  const navigate = useNavigate();
-
-  const handleSignIn = () => {
-    if (role === "requester") {
-      navigate("/requesterLogin");
-    } else if (role === "owner") {
-      navigate("/ownerLogin");
-    }
-  };
-
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
