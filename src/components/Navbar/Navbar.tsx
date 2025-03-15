@@ -99,42 +99,30 @@ function Navbar() {
                   aria-labelledby="signinDropdown"
                 >
                   <li className="p-4">
-                    <div className="p-3 border rounded">
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="flexRadioDefault"
-                          id="requester"
-                          value="requester"
-                          onChange={() => setRole("requester")}
-                        />
+                    <small className="text-muted">
+                      <strong>SIGN IN</strong>
+                    </small>
+                    <hr />
+                    <Link
+                      className="text-decoration-none text-dark"
+                      to="/requesterLogin"
+                    >
+                      <div className="p-3 border rounded">
                         <h6>Data requester</h6>
                         <p>
                           Request access to user data based on provided consent.
                         </p>
                       </div>
-                    </div>
-                    <div className="p-3 border rounded mt-3">
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          id="owner"
-                          value="owner"
-                          onChange={() => setRole("owner")}
-                        />
+                    </Link>
+                    <Link
+                      className="text-decoration-none text-dark"
+                      to="/ownerLogin"
+                    >
+                      <div className="p-3 border rounded mt-3">
                         <h6>Data owner</h6>
                         <p>Grant, deny, or revoke consents for data access.</p>
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn btn-primary mt-3"
-                      onClick={handleSignIn}
-                    >
-                      Sign in
-                    </button>
+                    </Link>
                   </li>
                 </ul>
               </li>
