@@ -1,0 +1,23 @@
+.dashboard {
+  margin-top: 5%;
+}
+
+.primaryButton {
+  background-color: #262626;
+  color: white;
+  padding-inline: 20px;
+  padding-block: 10px;
+  font-weight: 300;
+}
+
+.primaryButton:hover {
+  background-color: #3b3b3b;
+  color: white;
+  font-weight: 300;
+}
+
+@media only screen and (max-width: 600px) {
+  .dashboard {
+    width: 100% !important;
+  }
+}

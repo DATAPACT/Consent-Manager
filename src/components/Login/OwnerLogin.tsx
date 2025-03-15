@@ -38,9 +38,9 @@ function OwnerLogin() {
 
           <div className="d-flex mt-4">
             <div className="me-auto">
-              <button type="submit" className="btn btn-primary">
+              <Link className="btn btn-primary" to="/ownerBase/ownerDashboard">
                 Log in
-              </button>
+              </Link>
             </div>
 
             <div className="align-self-center">
