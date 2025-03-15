@@ -33,7 +33,7 @@ function OwnerDashboard() {
                   className={`${styles.primaryButton} btn rounded-pill`}
                   to="/"
                 >
-                  View requests
+                  Manage
                 </Link>
               </div>
             </div>
@@ -54,7 +54,7 @@ function OwnerDashboard() {
                   className={`${styles.primaryButton} btn rounded-pill`}
                   to="/"
                 >
-                  View requests
+                  View
                 </Link>
               </div>
             </div>
@@ -75,7 +75,7 @@ function OwnerDashboard() {
                   className={`${styles.primaryButton} btn rounded-pill`}
                   to="/"
                 >
-                  View requests
+                  View
                 </Link>
               </div>
             </div>
