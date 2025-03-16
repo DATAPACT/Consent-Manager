@@ -22,5 +22,7 @@
 }
 
 .formInput {
-  padding: 12px;
+  border-width: 1px;
+  border-color: #262626;
+  border-radius: 0;
 }

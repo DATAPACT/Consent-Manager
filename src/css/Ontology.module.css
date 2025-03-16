@@ -34,21 +34,28 @@
 }
 
 .secondaryButton {
-  background-color: white;
-  border-width: 1px;
-  border-color: #262626;
-  padding-inline: 20px;
-  padding-block: 10px;
-  font-weight: 300;
+  background-color: #dee0e2;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
 }
 
 .secondaryButton:hover {
-  background-color: white;
+  background-color: #c8c8c8;
+  font-weight: 400;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.formInput {
   border-width: 1px;
   border-color: #262626;
-  font-weight: 300;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-  transition: box-shadow 0.2s ease-in-out;
+  border-radius: 0;
+}
+
+.formLabel {
+  font-weight: 500;
 }
 
 @media only screen and (max-width: 600px) {

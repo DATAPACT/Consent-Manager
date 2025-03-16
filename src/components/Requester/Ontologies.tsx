@@ -139,10 +139,13 @@ function Ontologies() {
               </p>
               <form>
                 <div className="mb-3">
-                  <label className="form-label">Ontology name</label>
+                  <label className={`${styles.formLabel} form-label`}>
+                    Ontology name
+                  </label>
+
                   <input
                     type="text"
-                    className="form-control"
+                    className={`${styles.formInput} form-control`}
                     id="exampleInputEmail1"
                     aria-describedby="emailHelp"
                     required
@@ -150,11 +153,13 @@ function Ontologies() {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Ontology file</label>
+                  <label className={`${styles.formLabel} form-label`}>
+                    Ontology file
+                  </label>
                   <div className="input-group">
                     <input
                       type="file"
-                      className="form-control"
+                      className={`${styles.formInput} form-control`}
                       id="inputGroupFile01"
                       required
                     />
@@ -168,15 +173,12 @@ function Ontologies() {
             <div className="modal-footer">
               <button
                 type="button"
-                className={`${styles.secondaryButton} btn rounded-pill`}
+                className={`${styles.secondaryButton} btn`}
                 data-bs-dismiss="modal"
               >
                 Close
               </button>
-              <button
-                type="button"
-                className={`${styles.primaryButton} btn rounded-pill`}
-              >
+              <button type="button" className={`${styles.primaryButton} btn`}>
                 Upload
               </button>
             </div>
@@ -184,7 +186,7 @@ function Ontologies() {
         </div>
       </div>
 
-      {/* deelte ontology modal */}
+      {/* delete ontology modal */}
       <div
         className="modal fade"
         id="deleteOntologyModal"
@@ -213,15 +215,12 @@ function Ontologies() {
             <div className="modal-footer">
               <button
                 type="button"
-                className={`${styles.secondaryButton} btn rounded-pill`}
+                className={`${styles.secondaryButton} btn`}
                 data-bs-dismiss="modal"
               >
                 Close
               </button>
-              <button
-                type="button"
-                className={`${styles.dangerButton} btn rounded-pill`}
-              >
+              <button type="button" className={`${styles.primaryButton} btn`}>
                 Delete
               </button>
             </div>
@@ -256,10 +255,12 @@ function Ontologies() {
               </p>
               <form>
                 <div className="mb-3">
-                  <label className="form-label">Ontology name</label>
+                  <label className={`${styles.formLabel} form-label`}>
+                    Ontology name
+                  </label>
                   <input
                     type="text"
-                    className="form-control"
+                    className={`${styles.formInput} form-control`}
                     id="exampleInputEmail1"
                     aria-describedby="emailHelp"
                     defaultValue={"Ontology 1"}
@@ -268,11 +269,13 @@ function Ontologies() {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Ontology file</label>
+                  <label className={`${styles.formLabel} form-label`}>
+                    Ontology file
+                  </label>
                   <div className="input-group">
                     <input
                       type="file"
-                      className="form-control"
+                      className={`${styles.formInput} form-control`}
                       id="inputGroupFile01"
                       required
                     />
@@ -286,15 +289,12 @@ function Ontologies() {
             <div className="modal-footer">
               <button
                 type="button"
-                className={`${styles.secondaryButton} btn rounded-pill`}
+                className={`${styles.secondaryButton} btn`}
                 data-bs-dismiss="modal"
               >
                 Close
               </button>
-              <button
-                type="button"
-                className={`${styles.primaryButton} btn rounded-pill`}
-              >
+              <button type="button" className={`${styles.primaryButton} btn`}>
                 Upload
               </button>
             </div>
