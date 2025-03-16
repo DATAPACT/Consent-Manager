@@ -31,7 +31,7 @@ function RequesterDashboard() {
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn rounded-pill`}
-                  to="/"
+                  to="/requesterBase/ontologies"
                 >
                   Manage
                 </Link>

@@ -9,10 +9,11 @@ import "./css/index.css";
 import Home from "./components/Home/Home";
 import OwnerLogin from "./components/Login/OwnerLogin";
 import RequesterLogin from "./components/Login/RequesterLogin";
-import OwnerBase from "./components/Owner/ownerBase";
+import OwnerBase from "./components/Owner/OwnerBase";
 import OwnerDashboard from "./components/Owner/OwnerDashboard";
 import RequesterBase from "./components/Requester/RequesterBase";
 import RequesterDashboard from "./components/Requester/RequesterDashboard";
+import Ontologies from "./components/Requester/Ontologies";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -28,6 +29,7 @@ createRoot(document.getElementById("root")!).render(
         {/* requester */}
         <Route path="/requesterBase" element={<RequesterBase />}>
           <Route path="requesterDashboard" element={<RequesterDashboard />} />
+          <Route path="ontologies" element={<Ontologies />} />
         </Route>
       </Routes>
     </Router>
