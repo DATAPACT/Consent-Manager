@@ -1,0 +1,26 @@
+.dashboard {
+  margin-top: 4%;
+}
+
+.formLabel {
+  font-weight: 500;
+}
+
+.primaryButton {
+  background-color: #262626;
+  color: white;
+  padding-inline: 20px;
+  padding-block: 10px;
+  font-weight: 300;
+}
+
+.primaryButton:hover {
+  background-color: #262626;
+  color: white;
+  font-weight: 300;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.2s ease-in-out;
+}
+.formInput {
+  padding: 12px;
+}

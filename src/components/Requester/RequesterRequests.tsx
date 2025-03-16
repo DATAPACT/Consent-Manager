@@ -28,13 +28,12 @@ function RequesterRequests() {
             </p>
           </div>
           <div className="align-self-center">
-            <button
+            <Link
               className={`${styles.primaryButton} btn rounded-pill`}
-              data-bs-toggle="modal"
-              data-bs-target="#uploadOntologyModal"
+              to="/requesterBase/createRequest"
             >
               Create request
-            </button>
+            </Link>
           </div>
         </div>
 
