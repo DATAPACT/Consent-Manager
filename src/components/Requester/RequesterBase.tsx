@@ -1,5 +1,5 @@
 // components
-import Navbar from "../Navbar/Navbar";
+import RequesterNavbar from "../UerNavbar/RequesterNavbar";
 
 // libraries
 import { Outlet } from "react-router-dom";
@@ -7,7 +7,7 @@ import { Outlet } from "react-router-dom";
 function RequesterBase() {
   return (
     <>
-      <Navbar />
+      <RequesterNavbar />
       <Outlet />
     </>
   );

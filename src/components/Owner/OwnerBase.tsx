@@ -1,5 +1,5 @@
 // components
-import Navbar from "../Navbar/Navbar";
+import OwnerNavbar from "../UerNavbar/OwnerNavbar";
 
 // libraries
 import { Outlet } from "react-router-dom";
@@ -7,7 +7,7 @@ import { Outlet } from "react-router-dom";
 function OwnerBase() {
   return (
     <>
-      <Navbar />
+      <OwnerNavbar />
       <Outlet />
     </>
   );
