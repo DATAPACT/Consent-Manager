@@ -114,7 +114,7 @@ function CreateRequest() {
               required
             />
           </div>
-          <button className={`${styles.primaryButton} btn rounded-pill mt-4`}>
+          <button className={`${styles.primaryButton} btn mt-3`}>
             Create request
           </button>
         </form>

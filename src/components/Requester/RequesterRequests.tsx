@@ -29,7 +29,7 @@ function RequesterRequests() {
           </div>
           <div className="align-self-center">
             <Link
-              className={`${styles.primaryButton} btn rounded-pill`}
+              className={`${styles.primaryButton} btn`}
               to="/requesterBase/createRequest"
             >
               Create request

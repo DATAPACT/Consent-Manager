@@ -30,7 +30,7 @@ function RequesterDashboard() {
                   expand your data structure and maintain control.
                 </p>
                 <Link
-                  className={`${styles.primaryButton} btn rounded-pill`}
+                  className={`${styles.primaryButton} btn`}
                   to="/requesterBase/ontologies"
                 >
                   Manage
@@ -50,7 +50,7 @@ function RequesterDashboard() {
                   access request to manage data permissions effectively.
                 </p>
                 <Link
-                  className={`${styles.primaryButton} btn rounded-pill`}
+                  className={`${styles.primaryButton} btn`}
                   to="/requesterBase/requesterRequests"
                 >
                   Manage

@@ -29,10 +29,7 @@ function OwnerDashboard() {
                   Review and manage incoming requests. You can approve, deny, or
                   revoke permissions based on user consent preferences.
                 </p>
-                <Link
-                  className={`${styles.primaryButton} btn rounded-pill`}
-                  to="/"
-                >
+                <Link className={`${styles.primaryButton} btn`} to="/">
                   Manage
                 </Link>
               </div>
@@ -50,10 +47,7 @@ function OwnerDashboard() {
                   revoke permissions at any time to maintain control over data
                   access.
                 </p>
-                <Link
-                  className={`${styles.primaryButton} btn rounded-pill`}
-                  to="/"
-                >
+                <Link className={`${styles.primaryButton} btn`} to="/">
                   View
                 </Link>
               </div>
@@ -71,10 +65,7 @@ function OwnerDashboard() {
                   revoke permissions at any time to maintain control over data
                   access.
                 </p>
-                <Link
-                  className={`${styles.primaryButton} btn rounded-pill`}
-                  to="/"
-                >
+                <Link className={`${styles.primaryButton} btn`} to="/">
                   View
                 </Link>
               </div>

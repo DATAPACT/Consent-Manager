@@ -16,7 +16,7 @@ function RequesterLogin() {
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
         <h3>Login as a data requester</h3>
         <p className="mt-3">
-          Don't have an account? <Link to="/">Sign up</Link>
+          Don't have an account? <Link to="/requesterRegister">Sign up</Link>
         </p>
         <form className="mt-4">
           <div className="mb-3">
@@ -40,7 +40,7 @@ function RequesterLogin() {
           <div className="d-flex mt-4">
             <div className="me-auto">
               <Link
-                className="btn btn-primary"
+                className={`${styles.primaryButton} btn`}
                 to="/requesterBase/requesterDashboard"
               >
                 Log in

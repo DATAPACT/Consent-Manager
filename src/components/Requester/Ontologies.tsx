@@ -29,7 +29,7 @@ function Ontologies() {
           </div>
           <div className="align-self-center">
             <button
-              className={`${styles.primaryButton} btn rounded-pill`}
+              className={`${styles.primaryButton} btn`}
               data-bs-toggle="modal"
               data-bs-target="#uploadOntologyModal"
             >

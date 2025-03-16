@@ -15,7 +15,7 @@ function OwnerLogin() {
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
         <h3>Login as a data owner</h3>
         <p className="mt-3">
-          Don't have an account? <Link to="/">Sign up</Link>
+          Don't have an account? <Link to="/ownerRegister">Sign up</Link>
         </p>
         <form className="mt-4">
           <div className="mb-3">
@@ -38,7 +38,10 @@ function OwnerLogin() {
 
           <div className="d-flex mt-4">
             <div className="me-auto">
-              <Link className="btn btn-primary" to="/ownerBase/ownerDashboard">
+              <Link
+                className={`${styles.primaryButton} btn`}
+                to="/ownerBase/ownerDashboard"
+              >
                 Log in
               </Link>
             </div>
