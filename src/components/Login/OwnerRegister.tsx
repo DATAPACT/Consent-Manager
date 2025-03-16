@@ -78,10 +78,7 @@ function OwnerRegister() {
           </div>
 
           <div className="mb-3 mt-4">
-            <Link
-              className={`${styles.primaryButton} btn`}
-              to="/ownerBase/ownerDashboard"
-            >
+            <Link className={`${styles.primaryButton} btn`} to="/ownerOtp">
               Continue
             </Link>
           </div>

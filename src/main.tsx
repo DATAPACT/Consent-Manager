@@ -18,6 +18,8 @@ import RequesterRequests from "./components/Requester/RequesterRequests";
 import CreateRequest from "./components/Requester/CreateRequest";
 import OwnerRegister from "./components/Login/OwnerRegister";
 import RequesterRegister from "./components/Login/RequesterRegister";
+import RequesterOtp from "./components/Login/RequesterOtp";
+import OwnerOtp from "./components/Login/OwnerOtp";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -28,6 +30,8 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/ownerRegister" element={<OwnerRegister />} />
         <Route path="/requesterLogin" element={<RequesterLogin />} />
         <Route path="/requesterRegister" element={<RequesterRegister />} />
+        <Route path="/requesterOtp" element={<RequesterOtp />} />
+        <Route path="/ownerOtp" element={<OwnerOtp />} />
 
         {/* owner */}
         <Route path="/ownerBase" element={<OwnerBase />}>

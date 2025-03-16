@@ -78,10 +78,7 @@ function RequesterRegister() {
           </div>
 
           <div className="mb-3 mt-4">
-            <Link
-              className={`${styles.primaryButton} btn`}
-              to="/ownerBase/ownerDashboard"
-            >
+            <Link className={`${styles.primaryButton} btn`} to="/requesterOtp">
               Continue
             </Link>
           </div>
