@@ -51,7 +51,7 @@ function RequesterDashboard() {
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn rounded-pill`}
-                  to="/"
+                  to="/requesterBase/requesterRequests"
                 >
                   Manage
                 </Link>

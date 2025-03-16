@@ -14,6 +14,7 @@ import OwnerDashboard from "./components/Owner/OwnerDashboard";
 import RequesterBase from "./components/Requester/RequesterBase";
 import RequesterDashboard from "./components/Requester/RequesterDashboard";
 import Ontologies from "./components/Requester/Ontologies";
+import RequesterRequests from "./components/Requester/RequesterRequests";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -30,6 +31,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/requesterBase" element={<RequesterBase />}>
           <Route path="requesterDashboard" element={<RequesterDashboard />} />
           <Route path="ontologies" element={<Ontologies />} />
+          <Route path="requesterRequests" element={<RequesterRequests />} />
         </Route>
       </Routes>
     </Router>
