@@ -1,4 +1,4 @@
-# Upconsent React setup and run instructions
+# Conent Manager setup and run instructions
 
 ## Prerequisites
 
