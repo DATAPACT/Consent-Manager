@@ -1,4 +1,4 @@
-# Conent Manager setup and run instructions
+# Consent Manager setup and run instructions
 
 ## Prerequisites
 
