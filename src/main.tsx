@@ -20,6 +20,9 @@ import OwnerRegister from "./components/Login/OwnerRegister";
 import RequesterRegister from "./components/Login/RequesterRegister";
 import RequesterOtp from "./components/Login/RequesterOtp";
 import OwnerOtp from "./components/Login/OwnerOtp";
+import OwnerPendingRequests from "./components/Owner/OwnerPendingRequests";
+import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestDetails";
+import OwnerPendingRequestModify from "./components/Owner/OwnerPendingRequestModify";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -36,6 +39,18 @@ createRoot(document.getElementById("root")!).render(
         {/* owner */}
         <Route path="/ownerBase" element={<OwnerBase />}>
           <Route path="ownerDashboard" element={<OwnerDashboard />} />
+          <Route
+            path="ownerPendingRequests"
+            element={<OwnerPendingRequests />}
+          />
+          <Route
+            path="ownerPendingRequestsDetails"
+            element={<OwnerPendingRequestsDetails />}
+          />
+          <Route
+            path="ownerPendingRequestModify"
+            element={<OwnerPendingRequestModify />}
+          />
         </Route>
 
         {/* requester */}

@@ -29,7 +29,10 @@ function OwnerDashboard() {
                   Review and manage incoming requests. You can approve, deny, or
                   revoke permissions based on user consent preferences.
                 </p>
-                <Link className={`${styles.primaryButton} btn`} to="/">
+                <Link
+                  className={`${styles.primaryButton} btn`}
+                  to="/ownerBase/ownerPendingRequests"
+                >
                   Manage
                 </Link>
               </div>
