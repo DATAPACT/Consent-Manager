@@ -220,7 +220,7 @@ function Ontologies() {
               >
                 Close
               </button>
-              <button type="button" className={`${styles.primaryButton} btn`}>
+              <button type="button" className={`${styles.dangerButton} btn`}>
                 Delete
               </button>
             </div>
