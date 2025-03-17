@@ -7,6 +7,7 @@ import "./css/index.css";
 
 // components
 import Home from "./components/Home/Home";
+import GetStarted from "./components/Home/GetStarted";
 import OwnerLogin from "./components/Login/OwnerLogin";
 import RequesterLogin from "./components/Login/RequesterLogin";
 import OwnerBase from "./components/Owner/OwnerBase";
@@ -34,6 +35,7 @@ createRoot(document.getElementById("root")!).render(
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/getStarted" element={<GetStarted />} />
         <Route path="/ownerLogin" element={<OwnerLogin />} />
         <Route path="/ownerRegister" element={<OwnerRegister />} />
         <Route path="/requesterLogin" element={<RequesterLogin />} />
