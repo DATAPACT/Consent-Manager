@@ -295,7 +295,7 @@ function Ontologies() {
                 Close
               </button>
               <button type="button" className={`${styles.primaryButton} btn`}>
-                Upload
+                Update
               </button>
             </div>
           </div>
