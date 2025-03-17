@@ -25,6 +25,13 @@ function OwnerApprovedRequests() {
         </p>
 
         <hr />
+        {/* no approved requests */}
+        {/* <div className="text-center mt-5">
+          <h4>No approved requests</h4>
+          <p className="mt-3">
+            Once you approve a request, it will appear here.
+          </p>
+        </div> */}
         <table className="table">
           <thead>
             <tr>

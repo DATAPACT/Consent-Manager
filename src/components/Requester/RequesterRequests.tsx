@@ -84,6 +84,20 @@ function RequesterRequests() {
             role="tabpanel"
             aria-labelledby="nav-home-tab"
           >
+            {/* no draft requests */}
+            {/* <div className="text-center mt-5">
+              <h4>No draft requests</h4>
+              <p className="mt-3">
+                Create a new data request to securely request permission from
+                Data Owners.
+              </p>
+              <Link className="btn mt-2" to="/requesterBase/createRequest">
+                <i className="fa-solid fa-square-plus fa-xl"></i>
+              </Link>
+              <br />
+              <small>Create request</small>
+            </div> */}
+
             <table className="table mt-4">
               <thead>
                 <tr>
@@ -179,6 +193,14 @@ function RequesterRequests() {
             role="tabpanel"
             aria-labelledby="nav-profile-tab"
           >
+            {/* no pending requests */}
+            {/* <div className="text-center mt-5">
+              <h4>No pending requests</h4>
+              <p className="mt-3">
+                Once you send a request, it will appear here while awaiting
+                approval.
+              </p>
+            </div> */}
             <table className="table mt-4">
               <thead>
                 <tr>
@@ -235,6 +257,13 @@ function RequesterRequests() {
             role="tabpanel"
             aria-labelledby="nav-contact-tab"
           >
+            {/* no approved requests */}
+            {/* <div className="text-center mt-5">
+              <h4>No approved requests</h4>
+              <p className="mt-3">
+                Once request is approved, it will appear here.
+              </p>
+            </div> */}
             <table className="table mt-4">
               <thead>
                 <tr>

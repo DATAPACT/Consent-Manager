@@ -39,6 +39,23 @@ function Ontologies() {
         </div>
 
         <hr />
+        {/* no ontologies */}
+        {/* <div className="text-center mt-5">
+          <h4>No ontologies found</h4>
+          <p className="mt-3">
+            Upload an Ontology file to define and manage data structures.
+          </p>
+          <button
+            className="btn mt-2"
+            data-bs-toggle="modal"
+            data-bs-target="#uploadOntologyModal"
+          >
+            <i className="fa-solid fa-cloud-arrow-up fa-xl"></i>
+          </button>
+          <br />
+          <small>Upload Ontology</small>
+        </div> */}
+
         <table className="table">
           <thead>
             <tr>

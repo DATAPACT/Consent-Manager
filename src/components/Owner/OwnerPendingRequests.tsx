@@ -25,6 +25,15 @@ function OwnerPendingRequests() {
         </p>
 
         <hr />
+
+        {/* no pending requests */}
+        {/* <div className="text-center mt-5">
+          <h4>No pending requests</h4>
+          <p className="mt-3">
+            Once you receive a request, it will appear here while awaiting for
+            your approval.
+          </p>
+        </div> */}
         <table className="table">
           <thead>
             <tr>
