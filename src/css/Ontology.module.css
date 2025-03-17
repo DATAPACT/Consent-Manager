@@ -20,17 +20,16 @@
 .dangerButton {
   background-color: #dc3545;
   color: white;
-  padding-inline: 20px;
-  padding-block: 10px;
-  font-weight: 300;
+  border-radius: 0;
+  font-weight: 400;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
 }
 
 .dangerButton:hover {
-  background-color: #dc3545;
+  background-color: #c03b48;
   color: white;
-  font-weight: 300;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-  transition: box-shadow 0.2s ease-in-out;
+  font-weight: 400;
 }
 
 .secondaryButton {
@@ -44,8 +43,6 @@
 .secondaryButton:hover {
   background-color: #c8c8c8;
   font-weight: 400;
-  border-bottom-width: 2px;
-  border-bottom-color: #262626;
 }
 
 .formInput {

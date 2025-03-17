@@ -99,17 +99,16 @@ function RequesterRequests() {
                   <td className="py-4">Request 1</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#editontOlogyModal"
+                      to="/requesterBase/editDraftRequest"
                     >
                       <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                    </button>
+                    </Link>
                     <button
                       className="btn btn-sm text-dark"
                       data-bs-toggle="modal"
-                      data-bs-target="#editontOlogyModal"
+                      data-bs-target="#deleteRequestModal"
                     >
                       <i className="fa-solid fa-trash fa-lg"></i>
                     </button>
@@ -125,17 +124,16 @@ function RequesterRequests() {
                   <td className="py-4">Request 2</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#editontOlogyModal"
+                      to="/requesterBase/editDraftRequest"
                     >
                       <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                    </button>
+                    </Link>
                     <button
                       className="btn btn-sm text-dark"
                       data-bs-toggle="modal"
-                      data-bs-target="#editontOlogyModal"
+                      data-bs-target="#deleteRequestModal"
                     >
                       <i className="fa-solid fa-trash fa-lg"></i>
                     </button>
@@ -151,17 +149,16 @@ function RequesterRequests() {
                   <td className="py-4">Request 3</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#editontOlogyModal"
+                      to="/requesterBase/editDraftRequest"
                     >
                       <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                    </button>
+                    </Link>
                     <button
                       className="btn btn-sm text-dark"
                       data-bs-toggle="modal"
-                      data-bs-target="#editontOlogyModal"
+                      data-bs-target="#deleteRequestModal"
                     >
                       <i className="fa-solid fa-trash fa-lg"></i>
                     </button>
@@ -197,39 +194,36 @@ function RequesterRequests() {
                   <td className="py-4">Request 1</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
+                      to="/requesterBase/requesterPendingRequestsDetails"
                     >
                       <i className="fa-solid fa-eye"></i>
-                    </button>
+                    </Link>
                   </td>
                 </tr>
                 <tr>
                   <td className="py-4">Request 2</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
+                      to="/requesterBase/requesterPendingRequestsDetails"
                     >
                       <i className="fa-solid fa-eye"></i>
-                    </button>
+                    </Link>
                   </td>
                 </tr>
                 <tr>
                   <td className="py-4">Request 3</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
+                      to="/requesterBase/requesterPendingRequestsDetails"
                     >
                       <i className="fa-solid fa-eye"></i>
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               </tbody>
@@ -256,11 +250,7 @@ function RequesterRequests() {
                   <td className="py-4">Request 1</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
-                      className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
-                    >
+                    <button className="btn btn-sm text-dark">
                       <i className="fa-solid fa-download"></i>
                     </button>
                   </td>
@@ -269,11 +259,7 @@ function RequesterRequests() {
                   <td className="py-4">Request 2</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
-                      className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
-                    >
+                    <button className="btn btn-sm text-dark">
                       <i className="fa-solid fa-download"></i>
                     </button>
                   </td>
@@ -282,11 +268,7 @@ function RequesterRequests() {
                   <td className="py-4">Request 3</td>
                   <td className="py-4">Thursday 21 October 2025</td>
                   <td className="py-4 text-center">
-                    <button
-                      className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
-                    >
+                    <button className="btn btn-sm text-dark">
                       <i className="fa-solid fa-download"></i>
                     </button>
                   </td>
@@ -297,89 +279,17 @@ function RequesterRequests() {
         </div>
       </div>
 
-      {/* upload ontology modal */}
+      {/* deelte request modal */}
       <div
         className="modal fade"
-        id="uploadOntologyModal"
-        aria-labelledby="uploadOntologyLabel"
+        id="deleteRequestModal"
+        aria-labelledby="deleteRequestLabel"
         aria-hidden="true"
       >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="uploadOntologyLabel">
-                Upload ontology
-              </h1>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>
-                Upload your ontology file in TXT, XML, or TTL format. Supported
-                file types ensure compatibility with our system.
-              </p>
-              <form>
-                <div className="mb-3">
-                  <label className="form-label">Ontology name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="exampleInputEmail1"
-                    aria-describedby="emailHelp"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Ontology file</label>
-                  <div className="input-group">
-                    <input
-                      type="file"
-                      className="form-control"
-                      id="inputGroupFile01"
-                      required
-                    />
-                  </div>
-                  <div id="emailHelp" className="form-text mt-2">
-                    Accepted files: .txt, .xml, .ttl
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className={`${styles.secondaryButton} btn rounded-pill`}
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                className={`${styles.primaryButton} btn rounded-pill`}
-              >
-                Upload
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* deelte ontology modal */}
-      <div
-        className="modal fade"
-        id="deleteOntologyModal"
-        aria-labelledby="deleteOntologyLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="deleteOntologyLabel">
+              <h1 className="modal-title fs-5" id="deleteRequestLabel">
                 Are you sure?
               </h1>
               <button
@@ -390,23 +300,17 @@ function RequesterRequests() {
               ></button>
             </div>
             <div className="modal-body">
-              <p>
-                Are you sure you want to delete this ontology? This action
-                cannot be undone.
-              </p>
+              <p>Are you sure you want to delete this request?</p>
             </div>
             <div className="modal-footer">
               <button
                 type="button"
-                className={`${styles.secondaryButton} btn rounded-pill`}
+                className={`${styles.secondaryButton} btn`}
                 data-bs-dismiss="modal"
               >
                 Close
               </button>
-              <button
-                type="button"
-                className={`${styles.dangerButton} btn rounded-pill`}
-              >
+              <button type="button" className={`${styles.dangerButton} btn`}>
                 Delete
               </button>
             </div>
@@ -414,78 +318,6 @@ function RequesterRequests() {
         </div>
       </div>
 
-      {/* edit ontology modal */}
-      <div
-        className="modal fade"
-        id="editOntologyModal"
-        aria-labelledby="editOntologyLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="editOntologyLabel">
-                Edit ontology
-              </h1>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>
-                Upload your ontology file in TXT, XML, or TTL format. Supported
-                file types ensure compatibility with our system.
-              </p>
-              <form>
-                <div className="mb-3">
-                  <label className="form-label">Ontology name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="exampleInputEmail1"
-                    aria-describedby="emailHelp"
-                    defaultValue={"Ontology 1"}
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Ontology file</label>
-                  <div className="input-group">
-                    <input
-                      type="file"
-                      className="form-control"
-                      id="inputGroupFile01"
-                      required
-                    />
-                  </div>
-                  <div id="emailHelp" className="form-text mt-2">
-                    Accepted files: .txt, .xml, .ttl
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className={`${styles.secondaryButton} btn rounded-pill`}
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                className={`${styles.primaryButton} btn rounded-pill`}
-              >
-                Upload
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
       <Footer />
     </>
   );
