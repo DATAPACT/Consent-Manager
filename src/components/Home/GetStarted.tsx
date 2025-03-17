@@ -54,9 +54,17 @@ function GetStarted() {
           Continue as a data requester
         </Link>
 
-        <div className="alert alert-warning mt-5" role="alert">
-          Before you proceed, ensure you select the correct role.Choosing the
-          wrong option may limit your ability to perform the necessary actions.
+        <div className="alert alert-primary mt-5" role="alert">
+          <div className="d-flex flex-row">
+            <div>
+              <i className="fa-solid fa-circle-info fa-lg"></i>
+            </div>
+            <div className="ms-3">
+              Before you proceed, ensure you select the correct role. Choosing
+              the wrong option may limit your ability to perform the necessary
+              actions.
+            </div>
+          </div>
         </div>
       </div>
       <Footer />

@@ -8,7 +8,7 @@ function Navbar() {
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
-        <div className="container-fluid">
+        <div className="container-fluid w-75">
           <Link className="navbar-brand" to="/">
             Consent Manager
           </Link>
