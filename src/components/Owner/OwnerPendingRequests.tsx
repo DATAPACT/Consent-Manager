@@ -1,5 +1,5 @@
 // css
-import styles from "../../css/Ontology.module.css";
+import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 
 // components
 import Footer from "../Footer/Footer";

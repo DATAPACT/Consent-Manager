@@ -50,7 +50,10 @@ function OwnerDashboard() {
                   revoke permissions at any time to maintain control over data
                   access.
                 </p>
-                <Link className={`${styles.primaryButton} btn`} to="/">
+                <Link
+                  className={`${styles.primaryButton} btn`}
+                  to="/ownerBase/ownerApprovedRequests"
+                >
                   View
                 </Link>
               </div>

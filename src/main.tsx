@@ -23,6 +23,8 @@ import OwnerOtp from "./components/Login/OwnerOtp";
 import OwnerPendingRequests from "./components/Owner/OwnerPendingRequests";
 import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestDetails";
 import OwnerPendingRequestModify from "./components/Owner/OwnerPendingRequestModify";
+import OwnerApprovedRequests from "./components/Owner/OwnerApprovedRequests";
+import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedRequestDetails";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -50,6 +52,14 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="ownerPendingRequestModify"
             element={<OwnerPendingRequestModify />}
+          />
+          <Route
+            path="ownerApprovedRequests"
+            element={<OwnerApprovedRequests />}
+          />
+          <Route
+            path="ownerApprovedRequestsDetails"
+            element={<OwnerApprovedRequestsDetails />}
           />
         </Route>
 
