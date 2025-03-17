@@ -25,6 +25,7 @@ import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestD
 import OwnerPendingRequestModify from "./components/Owner/OwnerPendingRequestModify";
 import OwnerApprovedRequests from "./components/Owner/OwnerApprovedRequests";
 import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedRequestDetails";
+import SendDraftRequest from "./components/Requester/SendDraftRequest";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -69,6 +70,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="ontologies" element={<Ontologies />} />
           <Route path="requesterRequests" element={<RequesterRequests />} />
           <Route path="createRequest" element={<CreateRequest />} />
+          <Route path="sendDraftRequest" element={<SendDraftRequest />} />
         </Route>
       </Routes>
     </Router>

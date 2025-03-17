@@ -113,13 +113,12 @@ function RequesterRequests() {
                     >
                       <i className="fa-solid fa-trash fa-lg"></i>
                     </button>
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
+                      to="/requesterBase/sendDraftRequest"
                     >
                       <i className="fa-solid fa-file-import fa-lg"></i>
-                    </button>
+                    </Link>
                   </td>
                 </tr>
                 <tr>
@@ -140,13 +139,12 @@ function RequesterRequests() {
                     >
                       <i className="fa-solid fa-trash fa-lg"></i>
                     </button>
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
+                      to="/requesterBase/sendDraftRequest"
                     >
                       <i className="fa-solid fa-file-import fa-lg"></i>
-                    </button>
+                    </Link>
                   </td>
                 </tr>
                 <tr>
@@ -167,13 +165,12 @@ function RequesterRequests() {
                     >
                       <i className="fa-solid fa-trash fa-lg"></i>
                     </button>
-                    <button
+                    <Link
                       className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteOntologyModal"
+                      to="/requesterBase/sendDraftRequest"
                     >
                       <i className="fa-solid fa-file-import fa-lg"></i>
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               </tbody>
