@@ -15,7 +15,7 @@ function RequesterRegister() {
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
         <h3>Register as a data requester</h3>
         <p className="mt-3">
-          Already have an account? <Link to="/ownerLogin">Login</Link>
+          Already have an account? <Link to="/requesterLogin">Login</Link>
         </p>
         <form className="mt-4">
           <div className="mb-3">

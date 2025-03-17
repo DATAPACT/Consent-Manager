@@ -4,12 +4,28 @@ import styles from "../../css/Navbar.module.css";
 // libraries
 import { Link } from "react-router-dom";
 
+// components
+import logo from "../../assets/logo.png";
+
 function Navbar() {
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid w-75">
-          <Link className="navbar-brand" to="/">
+          <Link
+            className="navbar-brand"
+            to="/"
+            style={{
+              fontWeight: "500",
+            }}
+          >
+            <img
+              src={logo}
+              alt="Logo"
+              width="30"
+              height="24"
+              className="d-inline-block align-text-top me-2"
+            />
             Consent Manager
           </Link>
           <button
@@ -26,45 +42,24 @@ function Navbar() {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" aria-current="page" href="#">
-                  Home
+                <a className="nav-link" href="#">
+                  About
                 </a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="#">
-                  Link
+                  Why us
                 </a>
               </li>
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Dropdown
+              <li className="nav-item">
+                <a className="nav-link" href="#">
+                  Who is it for
                 </a>
-                <ul className="dropdown-menu">
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Action
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Another action
-                    </a>
-                  </li>
-                  <li>
-                    <hr className="dropdown-divider" />
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Something else here
-                    </a>
-                  </li>
-                </ul>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">
+                  Documentation
+                </a>
               </li>
             </ul>
 
@@ -109,6 +104,10 @@ function Navbar() {
                         <p>Grant, deny, or revoke consents for data access.</p>
                       </div>
                     </Link>
+                    <p className="mt-4">
+                      Don't have an account?{" "}
+                      <Link to="/getStarted">Start here</Link>
+                    </p>
                   </li>
                 </ul>
               </li>
