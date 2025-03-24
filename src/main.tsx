@@ -29,6 +29,7 @@ import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedReques
 import SendDraftRequest from "./components/Requester/SendDraftRequest";
 import RequesterPendingRequestsDetails from "./components/Requester/RequesterPendingRequestDetails";
 import EditDraftRequest from "./components/Requester/EditDraftRequest";
+import PrivateRoute from "./PrivateRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -44,7 +45,10 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/ownerOtp" element={<OwnerOtp />} />
 
         {/* owner */}
-        <Route path="/ownerBase" element={<OwnerBase />}>
+        <Route
+          path="/ownerBase"
+          element={<PrivateRoute element={<OwnerBase />} />}
+        >
           <Route path="ownerDashboard" element={<OwnerDashboard />} />
           <Route
             path="ownerPendingRequests"

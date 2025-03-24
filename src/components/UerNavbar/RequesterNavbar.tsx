@@ -3,11 +3,24 @@ import styles from "../../css/Navbar.module.css";
 
 // libraries
 import { Link } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../../firebase"; // Make sure to import Firebase config
 
 // components
 import logo from "../../assets/logo.png";
 
-function RequesterNavbar() {
+const RequesterNavbar: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Log out the user from Firebase
+      navigate("/"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -51,9 +64,9 @@ function RequesterNavbar() {
             {/* Sign-in Dropdown */}
             <ul className="navbar-nav mb-2 mb-lg-0">
               <li className="nav-item dropdown">
-                <Link className="nav-link" to="/">
+                <button className="nav-link" onClick={handleLogout}>
                   Sign out
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -61,6 +74,6 @@ function RequesterNavbar() {
       </nav>
     </>
   );
-}
+};
 
 export default RequesterNavbar;

@@ -128,7 +128,7 @@ const OwnerRegister: React.FC = () => {
             </button>
           </div>
         </form>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p className="text-danger">{error}</p>}
       </div>
       <br />
       <br />
