@@ -85,7 +85,10 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/requesterBase"
             element={
-              <PrivateRoute requiredRole="requester" element={<OwnerBase />} />
+              <PrivateRoute
+                requiredRole="requester"
+                element={<RequesterBase />}
+              />
             }
           >
             <Route path="requesterDashboard" element={<RequesterDashboard />} />
