@@ -30,6 +30,7 @@ import SendDraftRequest from "./components/Requester/SendDraftRequest";
 import RequesterPendingRequestsDetails from "./components/Requester/RequesterPendingRequestDetails";
 import EditDraftRequest from "./components/Requester/EditDraftRequest";
 import PrivateRoute from "./PrivateRoute";
+import UploadOntology from "./components/Requester/UploadOntology";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -84,6 +85,7 @@ createRoot(document.getElementById("root")!).render(
             element={<RequesterPendingRequestsDetails />}
           />
           <Route path="editDraftRequest" element={<EditDraftRequest />} />
+          <Route path="uploadOntology" element={<UploadOntology />} />
         </Route>
       </Routes>
     </Router>

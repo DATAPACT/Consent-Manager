@@ -6,8 +6,70 @@ import Footer from "../Footer/Footer";
 
 // libraries
 import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { auth, db, storage } from "../../firebase"; // Import Firebase services
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc } from "firebase/firestore";
 
-function Ontologies() {
+const Ontologies: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [name, setName] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [success, setSuccess] = useState<string>("");
+
+  // Handle file selection
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFile(event.target.files[0]);
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Prevent page reload
+
+    if (!name || !file) {
+      setError("Please provide a name and select a file.");
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      setError("You must be logged in to upload an ontology.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      // Upload file to Firebase Storage
+      const storageRef = ref(storage, `ontologies/${user.uid}/${file.name}`);
+      await uploadBytes(storageRef, file);
+
+      // Get the file URL
+      const fileUrl = await getDownloadURL(storageRef);
+
+      // Save ontology data to Firestore
+      await addDoc(collection(db, "ontologies"), {
+        name,
+        fileUrl,
+        requesterId: user.uid,
+        createdAt: new Date(),
+      });
+
+      setSuccess("Ontology uploaded successfully!");
+      setFile(null);
+      setName("");
+    } catch (err: any) {
+      setError("Error uploading ontology: " + err.message);
+    }
+
+    setLoading(false);
+  };
+
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -28,13 +90,12 @@ function Ontologies() {
             </p>
           </div>
           <div className="align-self-center">
-            <button
+            <Link
               className={`${styles.primaryButton} btn`}
-              data-bs-toggle="modal"
-              data-bs-target="#uploadOntologyModal"
+              to="/requesterBase/uploadOntology"
             >
               Upload ontology
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -127,80 +188,6 @@ function Ontologies() {
             </tr>
           </tbody>
         </table>
-      </div>
-
-      {/* upload ontology modal */}
-      <div
-        className="modal fade"
-        id="uploadOntologyModal"
-        aria-labelledby="uploadOntologyLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="uploadOntologyLabel">
-                Upload ontology
-              </h1>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>
-                Upload your ontology file in TXT, XML, or TTL format. Supported
-                file types ensure compatibility with our system.
-              </p>
-              <form>
-                <div className="mb-3">
-                  <label className={`${styles.formLabel} form-label`}>
-                    Ontology name
-                  </label>
-
-                  <input
-                    type="text"
-                    className={`${styles.formInput} form-control`}
-                    id="exampleInputEmail1"
-                    aria-describedby="emailHelp"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className={`${styles.formLabel} form-label`}>
-                    Ontology file
-                  </label>
-                  <div className="input-group">
-                    <input
-                      type="file"
-                      className={`${styles.formInput} form-control`}
-                      id="inputGroupFile01"
-                      required
-                    />
-                  </div>
-                  <div id="emailHelp" className="form-text mt-2">
-                    Accepted files: .txt, .xml, .ttl
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className={`${styles.secondaryButton} btn`}
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" className={`${styles.primaryButton} btn`}>
-                Upload
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* delete ontology modal */}
@@ -321,6 +308,6 @@ function Ontologies() {
       <Footer />
     </>
   );
-}
+};
 
 export default Ontologies;
