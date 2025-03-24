@@ -3,12 +3,49 @@ import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 
 // libraries
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../../firebase"; // Import Firebase utils
+import { useState } from "react";
 
 // css
 import styles from "../../css/Login.module.css";
 
-function OwnerRegister() {
+const OwnerRegister: React.FC = () => {
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent the default form submission
+
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // Create user data in Firestore under "owners" collection
+      const user = userCredential.user;
+      await setDoc(doc(db, "owners", user.uid), {
+        name,
+        email,
+        role: "owner",
+        createdAt: new Date(),
+      });
+
+      // Redirect to Dashboard
+      navigate("/ownerBase/ownerDashboard");
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -17,14 +54,16 @@ function OwnerRegister() {
         <p className="mt-3">
           Already have an account? <Link to="/ownerLogin">Login</Link>
         </p>
-        <form className="mt-4">
+        <form className="mt-4" onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>Name</label>
             <input
-              type="email"
+              type="text"
+              value={name}
               className={`${styles.formInput} form-control`}
               id="exampleInputEmail1"
-              aria-describedby="emailHelp"
+              onChange={(e) => setName(e.target.value)}
+              required
             />
           </div>
           <div className="mb-3">
@@ -33,17 +72,22 @@ function OwnerRegister() {
             </label>
             <input
               type="email"
+              value={email}
               className={`${styles.formInput} form-control`}
               id="exampleInputEmail1"
-              aria-describedby="emailHelp"
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>Password</label>
             <input
               type="password"
+              value={password}
               className={`${styles.formInput} form-control`}
               id="exampleInputPassword1"
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
@@ -63,6 +107,7 @@ function OwnerRegister() {
               type="checkbox"
               className="form-check-input"
               id="exampleCheck1"
+              required
             />
             <label className="form-check-label">
               I have read and agree to the{" "}
@@ -78,11 +123,12 @@ function OwnerRegister() {
           </div>
 
           <div className="mb-3 mt-4">
-            <Link className={`${styles.primaryButton} btn`} to="/ownerOtp">
-              Continue
-            </Link>
+            <button type="submit" className={`${styles.primaryButton} btn`}>
+              Register
+            </button>
           </div>
         </form>
+        {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
       <br />
       <br />
@@ -90,6 +136,6 @@ function OwnerRegister() {
       <Footer />
     </>
   );
-}
+};
 
 export default OwnerRegister;
