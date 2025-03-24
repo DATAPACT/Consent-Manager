@@ -1,48 +1,34 @@
-// components
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext"; // Import AuthContext
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
-
-// libraries
-import { Link, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../firebase"; // Import Firebase services
-import { doc, getDoc } from "firebase/firestore";
-
-// css
 import styles from "../../css/Login.module.css";
 
 const OwnerLogin: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const { login, user, loading } = useAuth(); // Use AuthContext
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      // Sign in the user with Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      // Check if the user exists in the "owners" collection
-      const ownerDoc = await getDoc(doc(db, "owners", user.uid));
-
-      if (ownerDoc.exists()) {
-        // If the user is an owner, redirect to the owner dashboard
-        navigate("/ownerBase/ownerDashboard");
-      } else {
-        setError("You are not registered as a data owner.");
-      }
+      await login(email, password); // Login using AuthContext
     } catch (error: any) {
       setError(error.message);
     }
   };
+
+  // Handle redirection if the user is already logged in
+  useEffect(() => {
+    // Redirect if the user is already logged in
+    if (!loading && user) {
+      navigate("/ownerBase/ownerDashboard"); // Redirect to the dashboard if logged in
+    }
+  }, [user, loading, navigate]);
 
   return (
     <>
@@ -65,7 +51,6 @@ const OwnerLogin: React.FC = () => {
             <input
               type="email"
               className={`${styles.formInput} form-control`}
-              id="exampleInputEmail1"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

@@ -32,62 +32,70 @@ import EditDraftRequest from "./components/Requester/EditDraftRequest";
 import PrivateRoute from "./PrivateRoute";
 import UploadOntology from "./components/Requester/UploadOntology";
 
+// Context
+import { AuthProvider } from "./AuthContext";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/getStarted" element={<GetStarted />} />
-        <Route path="/ownerLogin" element={<OwnerLogin />} />
-        <Route path="/ownerRegister" element={<OwnerRegister />} />
-        <Route path="/requesterLogin" element={<RequesterLogin />} />
-        <Route path="/requesterRegister" element={<RequesterRegister />} />
-        <Route path="/requesterOtp" element={<RequesterOtp />} />
-        <Route path="/ownerOtp" element={<OwnerOtp />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/getStarted" element={<GetStarted />} />
+          <Route path="/ownerLogin" element={<OwnerLogin />} />
+          <Route path="/ownerRegister" element={<OwnerRegister />} />
+          <Route path="/requesterLogin" element={<RequesterLogin />} />
+          <Route path="/requesterRegister" element={<RequesterRegister />} />
+          <Route path="/requesterOtp" element={<RequesterOtp />} />
+          <Route path="/ownerOtp" element={<OwnerOtp />} />
 
-        {/* owner */}
-        <Route
-          path="/ownerBase"
-          element={<PrivateRoute element={<OwnerBase />} />}
-        >
-          <Route path="ownerDashboard" element={<OwnerDashboard />} />
+          {/* owner */}
           <Route
-            path="ownerPendingRequests"
-            element={<OwnerPendingRequests />}
-          />
-          <Route
-            path="ownerPendingRequestsDetails"
-            element={<OwnerPendingRequestsDetails />}
-          />
-          <Route
-            path="ownerPendingRequestModify"
-            element={<OwnerPendingRequestModify />}
-          />
-          <Route
-            path="ownerApprovedRequests"
-            element={<OwnerApprovedRequests />}
-          />
-          <Route
-            path="ownerApprovedRequestsDetails"
-            element={<OwnerApprovedRequestsDetails />}
-          />
-        </Route>
+            path="/ownerBase"
+            element={<PrivateRoute element={<OwnerBase />} />}
+          >
+            <Route path="ownerDashboard" element={<OwnerDashboard />} />
+            <Route
+              path="ownerPendingRequests"
+              element={<OwnerPendingRequests />}
+            />
+            <Route
+              path="ownerPendingRequestsDetails"
+              element={<OwnerPendingRequestsDetails />}
+            />
+            <Route
+              path="ownerPendingRequestModify"
+              element={<OwnerPendingRequestModify />}
+            />
+            <Route
+              path="ownerApprovedRequests"
+              element={<OwnerApprovedRequests />}
+            />
+            <Route
+              path="ownerApprovedRequestsDetails"
+              element={<OwnerApprovedRequestsDetails />}
+            />
+          </Route>
 
-        {/* requester */}
-        <Route path="/requesterBase" element={<RequesterBase />}>
-          <Route path="requesterDashboard" element={<RequesterDashboard />} />
-          <Route path="ontologies" element={<Ontologies />} />
-          <Route path="requesterRequests" element={<RequesterRequests />} />
-          <Route path="createRequest" element={<CreateRequest />} />
-          <Route path="sendDraftRequest" element={<SendDraftRequest />} />
+          {/* requester */}
           <Route
-            path="requesterPendingRequestsDetails"
-            element={<RequesterPendingRequestsDetails />}
-          />
-          <Route path="editDraftRequest" element={<EditDraftRequest />} />
-          <Route path="uploadOntology" element={<UploadOntology />} />
-        </Route>
-      </Routes>
-    </Router>
+            path="/requesterBase"
+            element={<PrivateRoute element={<RequesterBase />} />}
+          >
+            <Route path="requesterDashboard" element={<RequesterDashboard />} />
+            <Route path="ontologies" element={<Ontologies />} />
+            <Route path="requesterRequests" element={<RequesterRequests />} />
+            <Route path="createRequest" element={<CreateRequest />} />
+            <Route path="sendDraftRequest" element={<SendDraftRequest />} />
+            <Route
+              path="requesterPendingRequestsDetails"
+              element={<RequesterPendingRequestsDetails />}
+            />
+            <Route path="editDraftRequest" element={<EditDraftRequest />} />
+            <Route path="uploadOntology" element={<UploadOntology />} />
+          </Route>
+        </Routes>
+      </Router>
+    </AuthProvider>
   </StrictMode>
 );

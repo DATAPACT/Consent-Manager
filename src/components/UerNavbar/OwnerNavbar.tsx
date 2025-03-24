@@ -2,23 +2,22 @@
 import styles from "../../css/Navbar.module.css";
 
 // libraries
-import { Link } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../../firebase"; // Make sure to import Firebase config
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext"; // Use AuthContext
 
 // components
 import logo from "../../assets/logo.png";
 
 const OwnerNavbar: React.FC = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth(); // Get user and logout function from context
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Log out the user from Firebase
-      navigate("/"); // Redirect to login page after logout
+      await logout(); // Logout using AuthContext
+      navigate("/"); // Redirect to login page
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -29,9 +28,7 @@ const OwnerNavbar: React.FC = () => {
           <Link
             className="navbar-brand"
             to="/ownerBase/ownerDashboard"
-            style={{
-              fontWeight: "500",
-            }}
+            style={{ fontWeight: "500" }}
           >
             <img
               src={logo}
@@ -54,20 +51,41 @@ const OwnerNavbar: React.FC = () => {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              {/* <li className="nav-item">
-                <a className="nav-link active" aria-current="page" href="#">
-                  Home
-                </a>
-              </li> */}
-            </ul>
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0"></ul>
 
-            {/* Sign-in Dropdown */}
+            {/* Sign-out Button */}
             <ul className="navbar-nav mb-2 mb-lg-0">
               <li className="nav-item dropdown">
-                <button className="nav-link" onClick={handleLogout}>
-                  Sign out
-                </button>
+                <a
+                  className="nav-link dropdown-toggle"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {/* Show username if logged in */}
+                  {user && <strong>{user.displayName || "Owner"}</strong>}
+                </a>
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Action
+                    </a>
+                  </li>
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Another action
+                    </a>
+                  </li>
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+                  <li>
+                    <button className="dropdown-item" onClick={handleLogout}>
+                      Sign out
+                    </button>
+                  </li>
+                </ul>
               </li>
             </ul>
           </div>

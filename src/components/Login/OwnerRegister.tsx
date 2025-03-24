@@ -5,7 +5,7 @@ import Footer from "../Footer/Footer";
 // libraries
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase"; // Import Firebase utils
 import { useState } from "react";
 
@@ -23,6 +23,21 @@ const OwnerRegister: React.FC = () => {
     e.preventDefault(); // Prevent the default form submission
 
     try {
+      // Ensure user is not already registered as an owner or requester
+      const ownerDoc = await getDoc(doc(db, "owners", email));
+      const requesterDoc = await getDoc(doc(db, "requesters", email));
+
+      // If user is already an owner or requester, prevent registration
+      if (ownerDoc.exists()) {
+        setError("This email is already registered as an owner.");
+        return;
+      }
+
+      if (requesterDoc.exists()) {
+        setError("This email is already registered as a requester.");
+        return;
+      }
+
       // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -30,8 +45,9 @@ const OwnerRegister: React.FC = () => {
         password
       );
 
-      // Create user data in Firestore under "owners" collection
       const user = userCredential.user;
+
+      // Create user data in Firestore under "owners" collection using user.uid (not email)
       await setDoc(doc(db, "owners", user.uid), {
         name,
         email,
