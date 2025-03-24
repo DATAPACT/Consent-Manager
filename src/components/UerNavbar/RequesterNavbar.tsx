@@ -27,7 +27,7 @@ const OwnerNavbar: React.FC = () => {
         <div className="container-fluid w-50">
           <Link
             className="navbar-brand"
-            to="/ownerBase/ownerDashboard"
+            to="/requesterBase/requesterDashboard"
             style={{ fontWeight: "500" }}
           >
             <img
