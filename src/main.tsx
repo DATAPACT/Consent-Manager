@@ -31,6 +31,7 @@ import RequesterPendingRequestsDetails from "./components/Requester/RequesterPen
 import EditDraftRequest from "./components/Requester/EditDraftRequest";
 import PrivateRoute from "./PrivateRoute";
 import UploadOntology from "./components/Requester/UploadOntology";
+import Unauthorized from "./components/Unauthorized";
 
 // Context
 import { AuthProvider } from "./AuthContext";
@@ -48,11 +49,14 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/requesterRegister" element={<RequesterRegister />} />
           <Route path="/requesterOtp" element={<RequesterOtp />} />
           <Route path="/ownerOtp" element={<OwnerOtp />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* owner */}
           <Route
             path="/ownerBase"
-            element={<PrivateRoute element={<OwnerBase />} />}
+            element={
+              <PrivateRoute requiredRole="owner" element={<OwnerBase />} />
+            }
           >
             <Route path="ownerDashboard" element={<OwnerDashboard />} />
             <Route
@@ -80,7 +84,9 @@ createRoot(document.getElementById("root")!).render(
           {/* requester */}
           <Route
             path="/requesterBase"
-            element={<PrivateRoute element={<RequesterBase />} />}
+            element={
+              <PrivateRoute requiredRole="requester" element={<OwnerBase />} />
+            }
           >
             <Route path="requesterDashboard" element={<RequesterDashboard />} />
             <Route path="ontologies" element={<Ontologies />} />

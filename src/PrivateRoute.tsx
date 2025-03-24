@@ -3,9 +3,13 @@ import { useAuth } from "./AuthContext";
 
 interface PrivateRouteProps {
   element: React.ReactNode;
+  requiredRole: "owner" | "requester"; // Add the required role for the route
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
+const PrivateRoute: React.FC<PrivateRouteProps> = ({
+  element,
+  requiredRole,
+}) => {
   const { user, loading } = useAuth();
 
   // Return a loading spinner or null if the app is still loading
@@ -14,7 +18,17 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
   }
 
   // If no user, redirect to the login page
-  return user ? element : <Navigate to="/" replace />;
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // If the user's role doesn't match the required role, redirect to unauthorized page
+  if (user.role !== requiredRole) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // If the user is authenticated and has the right role, allow access to the route
+  return <>{element}</>;
 };
 
 export default PrivateRoute;
