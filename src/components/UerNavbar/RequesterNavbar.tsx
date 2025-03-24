@@ -8,7 +8,7 @@ import { useAuth } from "../../AuthContext"; // Use AuthContext
 // components
 import logo from "../../assets/logo.png";
 
-const OwnerNavbar: React.FC = () => {
+const RequesterNavbar: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth(); // Get user and logout function from context
 
@@ -95,4 +95,4 @@ const OwnerNavbar: React.FC = () => {
   );
 };
 
-export default OwnerNavbar;
+export default RequesterNavbar;
