@@ -7,7 +7,7 @@ import Footer from "../Footer/Footer";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import React, { useState } from "react";
 import { db } from "../../firebase"; // Ensure your Firestore instance is imported
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, Timestamp } from "firebase/firestore"; // Import Timestamp
 import { auth } from "../../firebase";
 
 const UploadOntology: React.FC = () => {
@@ -32,9 +32,10 @@ const UploadOntology: React.FC = () => {
         // Reference to the ontologies collection
         const docRef = doc(db, "ontologies", requesterId + "-" + name);
 
-        // Add the ontology name to Firestore
+        // Add the ontology name and timestamp to Firestore
         await setDoc(docRef, {
           name: name,
+          uploadedAt: Timestamp.fromDate(new Date()), // Add the current timestamp
         });
 
         setName("");
