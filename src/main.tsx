@@ -100,7 +100,10 @@ createRoot(document.getElementById("root")!).render(
               path="requesterPendingRequestsDetails"
               element={<RequesterPendingRequestsDetails />}
             />
-            <Route path="editDraftRequest" element={<EditDraftRequest />} />
+            <Route
+              path="editDraftRequest/:id" // Dynamic route to capture 'id' for editing draft requests
+              element={<EditDraftRequest />}
+            />
             <Route path="uploadOntology" element={<UploadOntology />} />
           </Route>
         </Routes>
