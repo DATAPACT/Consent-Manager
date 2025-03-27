@@ -20,6 +20,9 @@ const Ontologies: React.FC = () => {
   const [ontologies, setOntologies] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [ontologyToDelete, setOntologyToDelete] = useState<string | null>(null);
+  const [ontologyNameToDelete, setOntologyNameToDelete] = useState<
+    string | null
+  >(null);
 
   // Fetch ontologies from Firestore
   useEffect(() => {
@@ -140,7 +143,10 @@ const Ontologies: React.FC = () => {
                       className="btn btn-sm text-dark"
                       data-bs-toggle="modal"
                       data-bs-target="#deleteOntologyModal"
-                      onClick={() => setOntologyToDelete(ontology.id)} // Set ontology to delete
+                      onClick={() => {
+                        setOntologyToDelete(ontology.id);
+                        setOntologyNameToDelete(ontology.name); // Store the name of the ontology to delete
+                      }}
                     >
                       <i className="fa-solid fa-trash"></i>
                     </button>
@@ -174,7 +180,8 @@ const Ontologies: React.FC = () => {
               ></button>
             </div>
             <div className="modal-body">
-              Are you sure you want to delete this ontology?
+              Are you sure you want to delete{" "}
+              <strong>"{ontologyNameToDelete}"</strong>?
             </div>
             <div className="modal-footer">
               <button
