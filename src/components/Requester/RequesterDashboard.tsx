@@ -1,4 +1,3 @@
-// css
 import styles from "../../css/Dashboard.module.css";
 
 // components
@@ -6,8 +5,43 @@ import Footer from "../Footer/Footer";
 
 // libraries
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { auth, db } from "../../firebase"; // Firebase import
+import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore queries
 
 function RequesterDashboard() {
+  const [ontologyCount, setOntologyCount] = useState<number>(0); // State for ontology count
+  const [requestCount, setRequestCount] = useState<number>(0); // State for request count
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        // Fetch the count of ontologies for the logged-in user
+        const ontologiesQuery = query(
+          collection(db, "ontologies"),
+          where("requesterId", "==", user.uid)
+        );
+        const ontologySnapshot = await getDocs(ontologiesQuery);
+        setOntologyCount(ontologySnapshot.size); // Set the count of ontologies
+
+        // Fetch the count of requests for the logged-in user
+        const requestsQuery = query(
+          collection(db, "requests"),
+          where("requesterId", "==", user.uid)
+        );
+        const requestSnapshot = await getDocs(requestsQuery);
+        setRequestCount(requestSnapshot.size); // Set the count of requests
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -23,7 +57,8 @@ function RequesterDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Ontologies</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2">2</h3>
+                <h3 className="mt-2">{ontologyCount}</h3>{" "}
+                {/* Dynamic ontology count */}
                 <small className="text-muted">ontologies.</small>
                 <p className="card-text mt-2">
                   View, edit, and organize your ontologies. Upload new ones to
@@ -43,7 +78,8 @@ function RequesterDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Requests</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2">3</h3>
+                <h3 className="mt-2">{requestCount}</h3>{" "}
+                {/* Dynamic request count */}
                 <small className="text-muted">requests.</small>
                 <p className="card-text mt-2">
                   Send new requests, review approved ones, or create a new
@@ -65,9 +101,7 @@ function RequesterDashboard() {
             >
               <div className="card-body">
                 <h4 className="card-title">How it works</h4>
-
                 <i className="fa-solid fa-book fa-lg mt-4"></i>
-
                 <p className="card-text mt-2">
                   Access detailed guides and resources to help you navigate the
                   platform. Find information on managing data requests,
