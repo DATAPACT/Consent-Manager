@@ -73,6 +73,7 @@ function CreateRequest() {
         startDate: Timestamp.fromDate(new Date(startDate)),
         endDate: Timestamp.fromDate(new Date(endDate)),
         createdAt: Timestamp.fromDate(new Date()), // Timestamp when the request was created
+        status: "draft", // Add this status field to the request data
       };
 
       // Store the request in Firestore (under 'requests' collection)
@@ -85,7 +86,7 @@ function CreateRequest() {
       setStartDate("");
       setEndDate("");
 
-      // Navigate to /requesterBase/Ontologies after successful upload
+      // Navigate to /requesterBase/requesterRequests after successful upload
       navigate("/requesterBase/requesterRequests");
     } catch (error) {
       console.error("Error creating request:", error);

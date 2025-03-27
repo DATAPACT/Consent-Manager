@@ -1,13 +1,60 @@
-// css
 import styles from "../../css/Ontology.module.css";
-
-// components
 import Footer from "../Footer/Footer";
-
-// libraries
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { db, auth } from "../../firebase"; // Make sure Firebase instance is correctly imported
+import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore methods to fetch data
 
 function RequesterRequests() {
+  const [draftRequests, setDraftRequests] = useState<any[]>([]); // State to store draft requests
+  const [loading, setLoading] = useState<boolean>(true); // State to track loading status
+  const [error, setError] = useState<string>(""); // State to store error message
+
+  // Fetch draft requests from Firestore on component mount
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        // Reference to the requests collection
+        const requestsRef = collection(db, "requests");
+
+        // Query to get draft requests (assuming 'status' field is set to 'draft' for drafts)
+        const q = query(
+          requestsRef,
+          where("requesterId", "==", auth.currentUser?.uid),
+          where("status", "==", "draft")
+        );
+
+        // Fetch the data
+        const querySnapshot = await getDocs(q);
+
+        // Map over the documents to extract data
+        const requests = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setDraftRequests(requests); // Set the draft requests state
+        setLoading(false); // Stop loading
+      } catch (error) {
+        console.error("Error fetching requests:", error);
+        setError("An error occurred while fetching the requests.");
+        setLoading(false);
+      }
+    };
+
+    fetchRequests(); // Call fetch function
+  }, []);
+
+  // Render loading state
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // Render error state
+  if (error) {
+    return <div className="text-danger">{error}</div>;
+  }
+
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -77,6 +124,7 @@ function RequesterRequests() {
             </button>
           </div>
         </nav>
+
         <div className="tab-content" id="nav-tabContent">
           <div
             className="tab-pane fade show active"
@@ -84,231 +132,66 @@ function RequesterRequests() {
             role="tabpanel"
             aria-labelledby="nav-home-tab"
           >
-            {/* no draft requests */}
-            {/* <div className="text-center mt-5">
-              <h4>No draft requests</h4>
-              <p className="mt-3">
-                Create a new data request to securely request permission from
-                Data Owners.
-              </p>
-              <Link className="btn mt-2" to="/requesterBase/createRequest">
-                <i className="fa-solid fa-square-plus fa-xl"></i>
-              </Link>
-              <br />
-              <small>Create request</small>
-            </div> */}
-
+            {/* Display draft requests */}
             <table className="table mt-4">
               <thead>
                 <tr>
                   <th scope="col">Name</th>
-                  <th scope="col">Timestamp</th>
+                  <th scope="col">Date created</th>
                   <th scope="col" className="text-center">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="py-4">Request 1</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/editDraftRequest"
-                    >
-                      <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                    </Link>
-                    <button
-                      className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteRequestModal"
-                    >
-                      <i className="fa-solid fa-trash fa-lg"></i>
-                    </button>
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/sendDraftRequest"
-                    >
-                      <i className="fa-solid fa-file-import fa-lg"></i>
-                    </Link>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4">Request 2</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/editDraftRequest"
-                    >
-                      <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                    </Link>
-                    <button
-                      className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteRequestModal"
-                    >
-                      <i className="fa-solid fa-trash fa-lg"></i>
-                    </button>
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/sendDraftRequest"
-                    >
-                      <i className="fa-solid fa-file-import fa-lg"></i>
-                    </Link>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4">Request 3</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/editDraftRequest"
-                    >
-                      <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                    </Link>
-                    <button
-                      className="btn btn-sm text-dark"
-                      data-bs-toggle="modal"
-                      data-bs-target="#deleteRequestModal"
-                    >
-                      <i className="fa-solid fa-trash fa-lg"></i>
-                    </button>
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/sendDraftRequest"
-                    >
-                      <i className="fa-solid fa-file-import fa-lg"></i>
-                    </Link>
-                  </td>
-                </tr>
+                {draftRequests.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-center py-4">
+                      No draft requests available.
+                    </td>
+                  </tr>
+                ) : (
+                  draftRequests.map((request) => (
+                    <tr key={request.id}>
+                      <td className="py-4">{request.requestName}</td>
+                      <td className="py-4">
+                        {new Date(
+                          request.createdAt.seconds * 1000
+                        ).toLocaleString()}
+                      </td>
+                      <td className="py-4 text-center">
+                        <Link
+                          className="btn btn-sm text-dark"
+                          to={`/requesterBase/editDraftRequest/${request.id}`}
+                        >
+                          <i className="fa-solid fa-pen-to-square fa-lg"></i>
+                        </Link>
+                        <button
+                          className="btn btn-sm text-dark"
+                          data-bs-toggle="modal"
+                          data-bs-target="#deleteRequestModal"
+                        >
+                          <i className="fa-solid fa-trash fa-lg"></i>
+                        </button>
+                        <Link
+                          className="btn btn-sm text-dark"
+                          to={`/requesterBase/sendDraftRequest/${request.id}`}
+                        >
+                          <i className="fa-solid fa-file-import fa-lg"></i>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-          <div
-            className="tab-pane fade"
-            id="nav-profile"
-            role="tabpanel"
-            aria-labelledby="nav-profile-tab"
-          >
-            {/* no pending requests */}
-            {/* <div className="text-center mt-5">
-              <h4>No pending requests</h4>
-              <p className="mt-3">
-                Once you send a request, it will appear here while awaiting
-                approval.
-              </p>
-            </div> */}
-            <table className="table mt-4">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Timestamp</th>
-                  <th scope="col" className="text-center">
-                    View
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="py-4">Request 1</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/requesterPendingRequestsDetails"
-                    >
-                      <i className="fa-solid fa-eye"></i>
-                    </Link>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4">Request 2</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/requesterPendingRequestsDetails"
-                    >
-                      <i className="fa-solid fa-eye"></i>
-                    </Link>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4">Request 3</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <Link
-                      className="btn btn-sm text-dark"
-                      to="/requesterBase/requesterPendingRequestsDetails"
-                    >
-                      <i className="fa-solid fa-eye"></i>
-                    </Link>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div
-            className="tab-pane fade"
-            id="nav-contact"
-            role="tabpanel"
-            aria-labelledby="nav-contact-tab"
-          >
-            {/* no approved requests */}
-            {/* <div className="text-center mt-5">
-              <h4>No approved requests</h4>
-              <p className="mt-3">
-                Once request is approved, it will appear here.
-              </p>
-            </div> */}
-            <table className="table mt-4">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Timestamp</th>
-                  <th scope="col" className="text-center">
-                    Download
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="py-4">Request 1</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <button className="btn btn-sm text-dark">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4">Request 2</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <button className="btn btn-sm text-dark">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4">Request 3</td>
-                  <td className="py-4">Thursday 21 October 2025</td>
-                  <td className="py-4 text-center">
-                    <button className="btn btn-sm text-dark">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+
+          {/* Repeat similar structures for Pending and Approved tabs if needed */}
         </div>
       </div>
 
-      {/* deelte request modal */}
+      {/* Delete request modal */}
       <div
         className="modal fade"
         id="deleteRequestModal"
