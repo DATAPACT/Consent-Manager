@@ -1,13 +1,12 @@
-// css
 import styles from "../../css/Ontology.module.css";
 
 // components
 import Footer from "../Footer/Footer";
 
 // libraries
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import React, { useState } from "react";
-import { db } from "../../firebase"; // Make sure you import your Firestore instance
+import { db } from "../../firebase"; // Ensure your Firestore instance is imported
 import { doc, setDoc } from "firebase/firestore";
 import { auth } from "../../firebase";
 
@@ -15,6 +14,7 @@ const UploadOntology: React.FC = () => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +40,9 @@ const UploadOntology: React.FC = () => {
         setName("");
         setError("");
         alert("Ontology uploaded successfully!");
+
+        // Navigate to /requesterBase/Ontologies after successful upload
+        navigate("/requesterBase/Ontologies");
       }
     } catch (error) {
       setError("Error uploading ontology");
@@ -61,7 +64,7 @@ const UploadOntology: React.FC = () => {
         </Link>
 
         <h3 className="mt-4">Send request</h3>
-        <p>Submit requests to data wwners for review and action</p>
+        <p>Submit requests to data owners for review and action</p>
 
         <hr />
 
@@ -71,20 +74,10 @@ const UploadOntology: React.FC = () => {
               Ontology name
             </label>
             <input
-              type="name"
+              type="text"
               className={`${styles.formInput} form-control`}
-              id="exampleInputEmail1"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label className={`${styles.formLabel} form-label`}>File</label>
-            <input
-              type="file"
-              className={`${styles.formInput} form-control`}
-              id="exampleInputEmail1"
               required
             />
           </div>
@@ -99,6 +92,8 @@ const UploadOntology: React.FC = () => {
             </button>
           </div>
         </form>
+
+        {error && <p className="text-danger">{error}</p>}
 
         <h5 className="mt-5">Uploading an ontology</h5>
         <p>
