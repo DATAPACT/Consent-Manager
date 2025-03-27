@@ -3,12 +3,20 @@ import Footer from "../Footer/Footer";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { db, auth } from "../../firebase"; // Make sure Firebase instance is correctly imported
-import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore methods to fetch data
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore"; // Firestore methods to fetch and delete data
 
 function RequesterRequests() {
   const [draftRequests, setDraftRequests] = useState<any[]>([]); // State to store draft requests
   const [loading, setLoading] = useState<boolean>(true); // State to track loading status
   const [error, setError] = useState<string>(""); // State to store error message
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null); // State to hold the request ID for deletion
 
   // Fetch draft requests from Firestore on component mount
   useEffect(() => {
@@ -44,6 +52,23 @@ function RequesterRequests() {
 
     fetchRequests(); // Call fetch function
   }, []);
+
+  // Handle delete request
+  const handleDelete = async () => {
+    if (requestToDelete) {
+      try {
+        const requestRef = doc(db, "requests", requestToDelete); // Reference to the request to delete
+        await deleteDoc(requestRef); // Delete the request from Firestore
+        setDraftRequests(
+          draftRequests.filter((request) => request.id !== requestToDelete)
+        ); // Remove from state
+        setRequestToDelete(null); // Clear the state
+      } catch (error) {
+        console.error("Error deleting request:", error);
+        setError("An error occurred while deleting the request.");
+      }
+    }
+  };
 
   // Render loading state
   if (loading) {
@@ -168,6 +193,7 @@ function RequesterRequests() {
                         </Link>
                         <button
                           className="btn btn-sm text-dark"
+                          onClick={() => setRequestToDelete(request.id)} // Set the request ID for deletion
                           data-bs-toggle="modal"
                           data-bs-target="#deleteRequestModal"
                         >
@@ -186,8 +212,6 @@ function RequesterRequests() {
               </tbody>
             </table>
           </div>
-
-          {/* Repeat similar structures for Pending and Approved tabs if needed */}
         </div>
       </div>
 
@@ -222,7 +246,12 @@ function RequesterRequests() {
               >
                 Close
               </button>
-              <button type="button" className={`${styles.dangerButton} btn`}>
+              <button
+                type="button"
+                className={`${styles.dangerButton} btn`}
+                onClick={handleDelete} // Trigger deletion
+                data-bs-dismiss="modal"
+              >
                 Delete
               </button>
             </div>
