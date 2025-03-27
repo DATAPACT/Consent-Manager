@@ -95,7 +95,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="ontologies" element={<Ontologies />} />
             <Route path="requesterRequests" element={<RequesterRequests />} />
             <Route path="createRequest" element={<CreateRequest />} />
-            <Route path="sendDraftRequest" element={<SendDraftRequest />} />
+            <Route path="sendDraftRequest/:id" element={<SendDraftRequest />} />
             <Route
               path="requesterPendingRequestsDetails"
               element={<RequesterPendingRequestsDetails />}
