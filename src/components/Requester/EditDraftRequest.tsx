@@ -16,7 +16,7 @@ import styles from "../../css/CreateRequest.module.css";
 import Footer from "../Footer/Footer";
 
 function EditDraftRequest() {
-  const { id } = useParams(); // Get the request ID from the URL
+  const { requestId } = useParams(); // Get the request ID from the URL
   const [requestData, setRequestData] = useState<any>(null); // State to hold the fetched request data
   const [ontologies, setOntologies] = useState<any[]>([]); // State to hold the fetched ontology names and ids
   const [selectedOntologyIds, setSelectedOntologyIds] = useState<string[]>([]); // State for selected ontology IDs
@@ -29,7 +29,7 @@ function EditDraftRequest() {
   useEffect(() => {
     const fetchRequestData = async () => {
       try {
-        const requestRef = doc(db, "requests", id!); // Reference to the specific draft request
+        const requestRef = doc(db, "requests", requestId!); // Reference to the specific draft request
         const requestSnapshot = await getDoc(requestRef); // Fetch the request data
         if (requestSnapshot.exists()) {
           const requestData = requestSnapshot.data();
@@ -74,10 +74,10 @@ function EditDraftRequest() {
       }
     };
 
-    if (id) {
+    if (requestId) {
       fetchRequestData(); // Fetch data if 'id' is present
     }
-  }, [id]);
+  }, [requestId]);
 
   if (loading) {
     return <div>Loading...</div>; // Show loading state while data is being fetched
@@ -120,7 +120,7 @@ function EditDraftRequest() {
     e.preventDefault(); // Prevent the form from reloading the page
 
     try {
-      const requestRef = doc(db, "requests", id!); // Reference to the specific draft request
+      const requestRef = doc(db, "requests", requestId!); // Reference to the specific draft request
       await updateDoc(requestRef, updatedRequestData); // Update the request document with the updated data
       navigate("/requesterBase/requesterRequests"); // Redirect to the requester requests page
     } catch (error) {

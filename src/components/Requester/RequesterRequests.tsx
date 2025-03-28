@@ -2,7 +2,7 @@ import styles from "../../css/Ontology.module.css";
 import Footer from "../Footer/Footer";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db, auth } from "../../firebase"; // Make sure Firebase instance is correctly imported
+import { db, auth } from "../../firebase";
 import {
   collection,
   query,
@@ -10,39 +10,48 @@ import {
   getDocs,
   deleteDoc,
   doc,
-} from "firebase/firestore"; // Firestore methods to fetch and delete data
+} from "firebase/firestore";
 
 function RequesterRequests() {
-  const [draftRequests, setDraftRequests] = useState<any[]>([]); // State to store draft requests
-  const [loading, setLoading] = useState<boolean>(true); // State to track loading status
-  const [error, setError] = useState<string>(""); // State to store error message
-  const [requestToDelete, setRequestToDelete] = useState<string | null>(null); // State to hold the request ID for deletion
+  const [draftRequests, setDraftRequests] = useState<any[]>([]);
+  const [sentRequests, setSentRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
 
-  // Fetch draft requests from Firestore on component mount
+  // Fetch requests from Firestore
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        // Reference to the requests collection
         const requestsRef = collection(db, "requests");
 
-        // Query to get draft requests (assuming 'status' field is set to 'draft' for drafts)
-        const q = query(
+        // Draft requests
+        const draftQuery = query(
           requestsRef,
           where("requesterId", "==", auth.currentUser?.uid),
           where("status", "==", "draft")
         );
-
-        // Fetch the data
-        const querySnapshot = await getDocs(q);
-
-        // Map over the documents to extract data
-        const requests = querySnapshot.docs.map((doc) => ({
+        const draftSnapshot = await getDocs(draftQuery);
+        const draftRequests = draftSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        setDraftRequests(requests); // Set the draft requests state
-        setLoading(false); // Stop loading
+        // Sent requests
+        const sentQuery = query(
+          requestsRef,
+          where("requesterId", "==", auth.currentUser?.uid),
+          where("status", "==", "sent")
+        );
+        const sentSnapshot = await getDocs(sentQuery);
+        const sentRequests = sentSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setDraftRequests(draftRequests);
+        setSentRequests(sentRequests);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching requests:", error);
         setError("An error occurred while fetching the requests.");
@@ -50,19 +59,19 @@ function RequesterRequests() {
       }
     };
 
-    fetchRequests(); // Call fetch function
+    fetchRequests();
   }, []);
 
-  // Handle delete request
+  // Delete request
   const handleDelete = async () => {
     if (requestToDelete) {
       try {
-        const requestRef = doc(db, "requests", requestToDelete); // Reference to the request to delete
-        await deleteDoc(requestRef); // Delete the request from Firestore
+        const requestRef = doc(db, "requests", requestToDelete);
+        await deleteDoc(requestRef);
         setDraftRequests(
           draftRequests.filter((request) => request.id !== requestToDelete)
-        ); // Remove from state
-        setRequestToDelete(null); // Clear the state
+        );
+        setRequestToDelete(null);
       } catch (error) {
         console.error("Error deleting request:", error);
         setError("An error occurred while deleting the request.");
@@ -70,15 +79,8 @@ function RequesterRequests() {
     }
   };
 
-  // Render loading state
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  // Render error state
-  if (error) {
-    return <div className="text-danger">{error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-danger">{error}</div>;
 
   return (
     <>
@@ -86,7 +88,6 @@ function RequesterRequests() {
         <Link
           className="text-decoration-none"
           to="/requesterBase/requesterDashboard"
-          role="button"
         >
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
         </Link>
@@ -94,10 +95,7 @@ function RequesterRequests() {
         <div className="d-flex mb-3">
           <div className="me-auto">
             <h3 className="mt-4">Requests</h3>
-            <p>
-              Manage and organize your ontologies for seamless integration and
-              use.
-            </p>
+            <p>Manage and organize your requests.</p>
           </div>
           <div className="align-self-center">
             <Link
@@ -109,63 +107,36 @@ function RequesterRequests() {
           </div>
         </div>
 
+        {/* Tabs */}
         <nav>
           <div className="nav nav-tabs" id="nav-tab" role="tablist">
             <button
               className="nav-link active"
-              id="nav-home-tab"
               data-bs-toggle="tab"
               data-bs-target="#nav-home"
-              type="button"
-              role="tab"
-              aria-controls="nav-home"
-              aria-selected="true"
             >
               Drafts
             </button>
             <button
               className="nav-link"
-              id="nav-profile-tab"
               data-bs-toggle="tab"
               data-bs-target="#nav-profile"
-              type="button"
-              role="tab"
-              aria-controls="nav-profile"
-              aria-selected="false"
             >
-              Pending
-            </button>
-            <button
-              className="nav-link"
-              id="nav-contact-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#nav-contact"
-              type="button"
-              role="tab"
-              aria-controls="nav-contact"
-              aria-selected="false"
-            >
-              Approved
+              Sent
             </button>
           </div>
         </nav>
 
+        {/* Tab Content */}
         <div className="tab-content" id="nav-tabContent">
-          <div
-            className="tab-pane fade show active"
-            id="nav-home"
-            role="tabpanel"
-            aria-labelledby="nav-home-tab"
-          >
-            {/* Display draft requests */}
+          {/* Draft Requests */}
+          <div className="tab-pane fade show active" id="nav-home">
             <table className="table mt-4">
               <thead>
                 <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Date created</th>
-                  <th scope="col" className="text-center">
-                    Actions
-                  </th>
+                  <th>Name</th>
+                  <th>Date Created</th>
+                  <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,13 +149,13 @@ function RequesterRequests() {
                 ) : (
                   draftRequests.map((request) => (
                     <tr key={request.id}>
-                      <td className="py-4">{request.requestName}</td>
-                      <td className="py-4">
+                      <td>{request.requestName}</td>
+                      <td>
                         {new Date(
                           request.createdAt.seconds * 1000
                         ).toLocaleString()}
                       </td>
-                      <td className="py-4 text-center">
+                      <td className="text-center">
                         <Link
                           className="btn btn-sm text-dark"
                           to={`/requesterBase/editDraftRequest/${request.id}`}
@@ -193,7 +164,7 @@ function RequesterRequests() {
                         </Link>
                         <button
                           className="btn btn-sm text-dark"
-                          onClick={() => setRequestToDelete(request.id)} // Set the request ID for deletion
+                          onClick={() => setRequestToDelete(request.id)}
                           data-bs-toggle="modal"
                           data-bs-target="#deleteRequestModal"
                         >
@@ -212,10 +183,44 @@ function RequesterRequests() {
               </tbody>
             </table>
           </div>
+
+          {/* Sent Requests */}
+          <div className="tab-pane fade" id="nav-profile">
+            <table className="table mt-4">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Date Sent</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sentRequests.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-center py-4">
+                      No sent requests available.
+                    </td>
+                  </tr>
+                ) : (
+                  sentRequests.map((request) => (
+                    <tr key={request.id}>
+                      <td>{request.requestName}</td>
+                      <td>
+                        {new Date(
+                          request.createdAt.seconds * 1000
+                        ).toLocaleString()}
+                      </td>
+                      <td className="text-warning">Waiting for response</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Delete request modal */}
+      {/* Delete Modal */}
       <div
         className="modal fade"
         id="deleteRequestModal"
@@ -232,7 +237,6 @@ function RequesterRequests() {
                 type="button"
                 className="btn-close"
                 data-bs-dismiss="modal"
-                aria-label="Close"
               ></button>
             </div>
             <div className="modal-body">
@@ -249,7 +253,7 @@ function RequesterRequests() {
               <button
                 type="button"
                 className={`${styles.dangerButton} btn`}
-                onClick={handleDelete} // Trigger deletion
+                onClick={handleDelete}
                 data-bs-dismiss="modal"
               >
                 Delete

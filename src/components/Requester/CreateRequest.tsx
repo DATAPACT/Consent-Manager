@@ -1,9 +1,9 @@
 import styles from "../../css/CreateRequest.module.css";
 
-// components
+// Components
 import Footer from "../Footer/Footer";
 
-// libraries
+// Libraries
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { auth, db } from "../../firebase"; // Firebase import
@@ -65,7 +65,7 @@ function CreateRequest() {
     }
 
     try {
-      // Create a new request object
+      // Create a new request object with an empty owners array
       const requestData = {
         requesterId: user.uid,
         requestName,
@@ -74,6 +74,7 @@ function CreateRequest() {
         endDate: Timestamp.fromDate(new Date(endDate)),
         createdAt: Timestamp.fromDate(new Date()), // Timestamp when the request was created
         status: "draft", // Add this status field to the request data
+        owners: [], // Empty array to store owner IDs in the future
       };
 
       // Store the request in Firestore (under 'requests' collection)

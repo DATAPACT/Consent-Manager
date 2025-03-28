@@ -95,13 +95,17 @@ createRoot(document.getElementById("root")!).render(
             <Route path="ontologies" element={<Ontologies />} />
             <Route path="requesterRequests" element={<RequesterRequests />} />
             <Route path="createRequest" element={<CreateRequest />} />
-            <Route path="sendDraftRequest/:id" element={<SendDraftRequest />} />
+            <Route
+              path="sendDraftRequest/:requestId"
+              element={<SendDraftRequest />}
+            />
+
             <Route
               path="requesterPendingRequestsDetails"
               element={<RequesterPendingRequestsDetails />}
             />
             <Route
-              path="editDraftRequest/:id" // Dynamic route to capture 'id' for editing draft requests
+              path="editDraftRequest/:requestId" // Dynamic route to capture 'id' for editing draft requests
               element={<EditDraftRequest />}
             />
             <Route path="uploadOntology" element={<UploadOntology />} />
