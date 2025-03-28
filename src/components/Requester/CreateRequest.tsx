@@ -1,8 +1,5 @@
 import styles from "../../css/CreateRequest.module.css";
 
-// Components
-import Footer from "../Footer/Footer";
-
 // Libraries
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -206,8 +203,6 @@ function CreateRequest() {
           </button>
         </form>
       </div>
-
-      <Footer />
     </>
   );
 }

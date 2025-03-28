@@ -1,4 +1,5 @@
 // components
+import Footer from "../Footer/Footer";
 import RequesterNavbar from "../UerNavbar/RequesterNavbar";
 
 // libraries
@@ -9,6 +10,7 @@ function RequesterBase() {
     <>
       <RequesterNavbar />
       <Outlet />
+      <Footer />
     </>
   );
 }

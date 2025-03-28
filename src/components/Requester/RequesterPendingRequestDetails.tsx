@@ -1,9 +1,6 @@
 // css
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 
-// components
-import Footer from "../Footer/Footer";
-
 // libraries
 import { Link } from "react-router-dom";
 
@@ -54,8 +51,6 @@ function RequesterPendingRequestsDetails() {
           exercitationem consectetur! Quo, reprehenderit modi!
         </p>
       </div>
-
-      <Footer />
     </>
   );
 }

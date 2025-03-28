@@ -64,7 +64,7 @@ createRoot(document.getElementById("root")!).render(
               element={<OwnerPendingRequests />}
             />
             <Route
-              path="ownerPendingRequestsDetails"
+              path="ownerPendingRequestsDetails/:requestId"
               element={<OwnerPendingRequestsDetails />}
             />
             <Route
@@ -105,7 +105,7 @@ createRoot(document.getElementById("root")!).render(
               element={<RequesterPendingRequestsDetails />}
             />
             <Route
-              path="editDraftRequest/:requestId" // Dynamic route to capture 'id' for editing draft requests
+              path="editDraftRequest/:requestId"
               element={<EditDraftRequest />}
             />
             <Route path="uploadOntology" element={<UploadOntology />} />

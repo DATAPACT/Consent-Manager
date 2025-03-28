@@ -1,8 +1,5 @@
 import styles from "../../css/Ontology.module.css";
 
-// components
-import Footer from "../Footer/Footer";
-
 // libraries
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -245,8 +242,6 @@ const Ontologies: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </>
   );
 };

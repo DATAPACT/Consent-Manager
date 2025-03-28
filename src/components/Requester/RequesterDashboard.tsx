@@ -1,8 +1,5 @@
 import styles from "../../css/Dashboard.module.css";
 
-// components
-import Footer from "../Footer/Footer";
-
 // libraries
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -124,7 +121,6 @@ function RequesterDashboard() {
           proper data sharing practices.
         </div>
       </div>
-      <Footer />
     </>
   );
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import styles from "../../css/Dashboard.module.css";
-import Footer from "../Footer/Footer";
 import { Link } from "react-router-dom";
 import { db, auth } from "../../firebase"; // Import Firebase configuration
 import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore methods
@@ -128,7 +127,6 @@ function OwnerDashboard() {
           security and compliance.
         </div>
       </div>
-      <Footer />
     </>
   );
 }

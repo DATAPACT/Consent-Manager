@@ -10,7 +10,6 @@ import {
   updateDoc,
 } from "firebase/firestore"; // Firestore functions
 import styles from "../../css/Ontology.module.css";
-import Footer from "../Footer/Footer";
 
 function SendDraftRequest() {
   const { requestId } = useParams(); // Get request ID from URL
@@ -175,8 +174,6 @@ function SendDraftRequest() {
           </button>
         </div>
       </div>
-
-      <Footer />
     </>
   );
 }

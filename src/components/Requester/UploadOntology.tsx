@@ -1,8 +1,5 @@
 import styles from "../../css/Ontology.module.css";
 
-// components
-import Footer from "../Footer/Footer";
-
 // libraries
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import React, { useState } from "react";
@@ -111,8 +108,6 @@ const UploadOntology: React.FC = () => {
           Fugit rem culpa minus, quae et nulla eius ratione veniam itaque.
         </p>
       </div>
-
-      <Footer />
     </>
   );
 };

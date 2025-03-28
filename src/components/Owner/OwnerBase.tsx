@@ -1,4 +1,5 @@
 // components
+import Footer from "../Footer/Footer";
 import OwnerNavbar from "../UerNavbar/OwnerNavbar";
 
 // libraries
@@ -9,6 +10,7 @@ function OwnerBase() {
     <>
       <OwnerNavbar />
       <Outlet />
+      <Footer />
     </>
   );
 }

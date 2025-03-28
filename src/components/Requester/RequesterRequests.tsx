@@ -1,5 +1,4 @@
 import styles from "../../css/Ontology.module.css";
-import Footer from "../Footer/Footer";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { db, auth } from "../../firebase";
@@ -262,8 +261,6 @@ function RequesterRequests() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </>
   );
 }
