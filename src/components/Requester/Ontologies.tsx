@@ -220,7 +220,7 @@ const Ontologies: React.FC = () => {
             <div className="modal-footer">
               <button
                 type="button"
-                className="btn btn-secondary"
+                className={`${styles.secondaryButton} btn`}
                 data-bs-dismiss="modal"
                 onClick={() => setIsOntologyInUse(false)} // Reset state and close modal
               >
@@ -230,7 +230,7 @@ const Ontologies: React.FC = () => {
               {!isOntologyInUse && (
                 <button
                   type="button"
-                  className="btn btn-danger"
+                  className={`${styles.dangerButton} btn`}
                   onClick={async () => {
                     if (ontologyToDelete) {
                       await handleDeleteOntology(ontologyToDelete); // Proceed with deletion if not in use
