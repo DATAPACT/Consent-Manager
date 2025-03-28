@@ -1,13 +1,56 @@
-// css
+import { useState, useEffect } from "react";
 import styles from "../../css/Dashboard.module.css";
-
-// components
 import Footer from "../Footer/Footer";
-
-// libraries
 import { Link } from "react-router-dom";
+import { db, auth } from "../../firebase"; // Import Firebase configuration
+import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore methods
+
+// Define the type for your request document
+interface Request {
+  id: string;
+  status: string;
+  owners: string[]; // owners is an array of user IDs
+}
 
 function OwnerDashboard() {
+  const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchPendingRequests = async () => {
+      try {
+        const requestsRef = collection(db, "requests"); // Reference to the requests collection
+        const q = query(
+          requestsRef,
+          where("status", "==", "sent") // Only fetch "sent" requests
+        );
+
+        const querySnapshot = await getDocs(q);
+        const allRequests: Request[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Request[]; // Type the requests to match the Request interface
+
+        const userId = auth.currentUser?.uid;
+
+        if (!userId) {
+          console.log("User not logged in");
+          return; // Stop execution if no user is logged in
+        }
+
+        // Filter requests where the user is in the "owners" array and count them
+        const userPendingRequests = allRequests.filter((request) =>
+          request.owners.includes(userId)
+        );
+
+        setPendingRequestsCount(userPendingRequests.length); // Set the count of pending requests
+      } catch (error) {
+        console.error("Error fetching requests:", error);
+      }
+    };
+
+    fetchPendingRequests(); // Fetch pending requests
+  }, []);
+
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -23,7 +66,7 @@ function OwnerDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Pending requests</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2 text-warning">2</h3>
+                <h3 className="mt-2 text-warning">{pendingRequestsCount}</h3>
                 <small className="text-muted">pending requests.</small>
                 <p className="card-text mt-2">
                   Review and manage incoming requests. You can approve, deny, or
