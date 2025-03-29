@@ -9,26 +9,28 @@ const OwnerLogin: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const { login, user, loading } = useAuth(); // Use AuthContext
+  const [loading, setLoading] = useState<boolean>(false); // Local loading state
+  const { login, user } = useAuth(); // Use AuthContext
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // Set loading state
 
     try {
-      await login(email, password); // Login using AuthContext
+      await login(email, password); // Attempt to log in
     } catch (error: any) {
       setError(error.message);
+      setLoading(false); // Reset loading on error
     }
   };
 
-  // Handle redirection if the user is already logged in
+  // Redirect if user is already logged in
   useEffect(() => {
-    // Redirect if the user is already logged in
-    if (!loading && user) {
+    if (user) {
       navigate("/ownerBase/ownerDashboard"); // Redirect to the dashboard if logged in
     }
-  }, [user, loading, navigate]);
+  }, [user, navigate]);
 
   return (
     <>
@@ -54,6 +56,7 @@ const OwnerLogin: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-3">
@@ -64,13 +67,18 @@ const OwnerLogin: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
           <div className="d-flex mt-4">
             <div className="me-auto">
-              <button className={`${styles.primaryButton} btn`} type="submit">
-                Log in
+              <button
+                className={`${styles.primaryButton} btn`}
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign in"}
               </button>
             </div>
 
