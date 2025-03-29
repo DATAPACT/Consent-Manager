@@ -131,21 +131,21 @@ function RequesterRequests() {
               data-bs-toggle="tab"
               data-bs-target="#nav-drafts"
             >
-              Drafts
+              Drafts ({draftRequests.length})
             </button>
             <button
               className="nav-link"
               data-bs-toggle="tab"
               data-bs-target="#nav-sent"
             >
-              Sent
+              Sent ({sentRequests.length})
             </button>
             <button
               className="nav-link"
               data-bs-toggle="tab"
               data-bs-target="#nav-approved"
             >
-              Approved
+              Sent ({approvedRequests.length})
             </button>
           </div>
         </nav>
@@ -229,13 +229,15 @@ function RequesterRequests() {
                 <tbody>
                   {sentRequests.map((request) => (
                     <tr key={request.id}>
-                      <td>{request.requestName}</td>
-                      <td>
+                      <td className="py-3">{request.requestName}</td>
+                      <td className="py-3">
                         {new Date(
                           request.createdAt.seconds * 1000
                         ).toLocaleString()}
                       </td>
-                      <td className="text-warning">Waiting for response</td>
+                      <td className="py-3 text-warning">
+                        Waiting for response
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -264,13 +266,13 @@ function RequesterRequests() {
                 <tbody>
                   {approvedRequests.map((request) => (
                     <tr key={request.id}>
-                      <td>{request.requestName}</td>
-                      <td>
+                      <td className="py-3">{request.requestName}</td>
+                      <td className="py-3">
                         {new Date(
                           request.createdAt.seconds * 1000
                         ).toLocaleString()}
                       </td>
-                      <td className="text-center">
+                      <td className="py-3 text-center">
                         <i className="fa-solid fa-download"></i>
                       </td>
                     </tr>
