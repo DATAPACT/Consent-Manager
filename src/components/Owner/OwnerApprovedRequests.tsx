@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
-import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link } from "react-router-dom";
 import { db, auth } from "../../firebase"; // Import Firebase Auth
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Footer from "../Footer/Footer";
+
+// css
+import styles from "../../css/Ontology.module.css";
 
 interface Request {
   id: string;
@@ -19,6 +28,11 @@ function OwnerApprovedRequests() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [userId, setUserId] = useState<string | null>(null);
+
+  // State for selected request to delete
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     // Listen for authentication state changes
@@ -59,6 +73,22 @@ function OwnerApprovedRequests() {
 
     fetchApprovedRequests();
   }, [userId]); // Run when userId is set
+
+  const handleRevokeRequest = async () => {
+    if (!selectedRequestId) return;
+
+    try {
+      const requestRef = doc(db, "requests", selectedRequestId);
+      await deleteDoc(requestRef); // Delete the request from Firestore
+      setApprovedRequests(
+        approvedRequests.filter((req) => req.id !== selectedRequestId)
+      ); // Update UI
+      setSelectedRequestId(null); // Clear selected request
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      setError("Failed to revoke the request.");
+    }
+  };
 
   return (
     <>
@@ -117,6 +147,7 @@ function OwnerApprovedRequests() {
                       className={`${styles.dangerButton} btn ms-3`}
                       data-bs-toggle="modal"
                       data-bs-target={`#revokeRequestModal-${request.id}`}
+                      onClick={() => setSelectedRequestId(request.id)} // Set selected request to be deleted
                     >
                       Revoke
                     </button>
@@ -140,21 +171,37 @@ function OwnerApprovedRequests() {
                             ></button>
                           </div>
                           <div className="modal-body">
-                            <p>Are you sure you want to revoke this request?</p>
+                            <p>
+                              Are you sure you want to revoke this request?
+                              Please explain below the reason for revoking this
+                              request so we can notify the Requester about your
+                              decision.
+                            </p>
+
+                            <div className="mb-3">
+                              <label
+                                className={`${styles.formLabel} form-label`}
+                              >
+                                Describe your decision
+                              </label>
+                              <textarea
+                                className={`${styles.formInput} form-control`}
+                                id="exampleFormControlTextarea1"
+                                rows={4}
+                              ></textarea>
+                            </div>
                           </div>
                           <div className="modal-footer">
                             <button
-                              className="btn btn-secondary"
+                              className={`${styles.secondaryButton} btn`}
                               data-bs-dismiss="modal"
                             >
                               Cancel
                             </button>
                             <button
-                              className="btn btn-danger"
+                              className={`${styles.dangerButton} btn`}
                               data-bs-dismiss="modal"
-                              onClick={() =>
-                                console.log(`Revoke request: ${request.id}`)
-                              }
+                              onClick={handleRevokeRequest} // Call revoke handler on confirmation
                             >
                               Revoke
                             </button>
