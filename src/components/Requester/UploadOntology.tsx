@@ -62,8 +62,11 @@ const UploadOntology: React.FC = () => {
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
         </Link>
 
-        <h3 className="mt-4">Send request</h3>
-        <p>Submit requests to data owners for review and action</p>
+        <h3 className="mt-4">Upload ontology</h3>
+        <p>
+          Upload your ontology to seamlessly integrate data and enhance
+          analysis.
+        </p>
 
         <hr />
 
