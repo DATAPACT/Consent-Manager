@@ -83,7 +83,7 @@ const RequesterLogin: React.FC = () => {
             </div>
 
             <div className="align-self-center">
-              <Link to="/">I forgot my password.</Link>
+              <Link to="">I forgot my password.</Link>
             </div>
           </div>
         </form>
