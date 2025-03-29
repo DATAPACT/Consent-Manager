@@ -91,11 +91,11 @@ function OwnerPendingRequests() {
           <tbody>
             {pendingRequests.map((request) => (
               <tr key={request.id}>
-                <td className="py-4">{request.requestName}</td>
-                <td className="py-4">
+                <td className="py-3">{request.requestName}</td>
+                <td className="py-3">
                   {new Date(request.createdAt.seconds * 1000).toLocaleString()}
                 </td>
-                <td className="py-4 text-center">
+                <td className="py-3 text-center">
                   <Link
                     className="btn btn-sm text-dark"
                     to={`/ownerBase/ownerPendingRequestsDetails/${request.id}`}

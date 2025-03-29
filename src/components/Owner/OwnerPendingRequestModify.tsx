@@ -1,19 +1,64 @@
 // css
 import styles from "../../css/CreateRequest.module.css";
 
-// components
-import Footer from "../Footer/Footer";
-
 // libraries
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { db } from "../../firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Import updateDoc and deleteDoc
+
+interface Request {
+  id: string;
+  requestName: string;
+  status: string;
+  owners: string[];
+  createdAt: { seconds: number };
+  senderName: string;
+  startDate: { seconds: number };
+  endDate: { seconds: number };
+  moreInfo: string;
+}
 
 function OwnerPendingRequestModify() {
+  const { requestId } = useParams<{ requestId: string }>();
+  const [requestDetails, setRequestDetails] = useState<Request | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const fetchRequestDetails = async () => {
+      if (!requestId) {
+        setError("Invalid request ID.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const requestDocRef = doc(db, "requests", requestId);
+        const docSnap = await getDoc(requestDocRef);
+
+        if (docSnap.exists()) {
+          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
+        } else {
+          setError("Request not found.");
+        }
+
+        setLoading(false);
+      } catch (error) {
+        setError("Error fetching request details.");
+        setLoading(false);
+      }
+    };
+
+    fetchRequestDetails();
+  }, [requestId]);
+
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
         <Link
           className="text-decoration-none"
-          to="/ownerBase/ownerPendingRequestsDetails"
+          to={`/ownerBase/ownerPendingRequestsDetails/${requestId}`}
           role="button"
         >
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
@@ -125,8 +170,6 @@ function OwnerPendingRequestModify() {
           </button>
         </form>
       </div>
-
-      <Footer />
     </>
   );
 }

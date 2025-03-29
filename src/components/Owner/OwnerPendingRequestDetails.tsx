@@ -162,7 +162,7 @@ function OwnerPendingRequestsDetails() {
           <div className="ms-3">
             <Link
               className={`${styles.secondaryButton} btn`}
-              to="/ownerBase/ownerPendingRequestModify"
+              to={`/ownerBase/ownerPendingRequestModify/${requestId}`}
             >
               Modify
             </Link>

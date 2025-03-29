@@ -10,7 +10,6 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import Footer from "../Footer/Footer";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -102,9 +101,7 @@ function OwnerApprovedRequests() {
         </Link>
 
         <h3 className="mt-4">Approved requests</h3>
-        <p>
-          Manage and organize your ontologies for seamless integration and use.
-        </p>
+        <p>View details of the requests you have approved or revoke them.</p>
         <hr />
 
         {loading ? (
@@ -216,8 +213,6 @@ function OwnerApprovedRequests() {
           </table>
         )}
       </div>
-
-      <Footer />
     </>
   );
 }

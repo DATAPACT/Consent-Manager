@@ -68,7 +68,7 @@ createRoot(document.getElementById("root")!).render(
               element={<OwnerPendingRequestsDetails />}
             />
             <Route
-              path="ownerPendingRequestModify"
+              path="ownerPendingRequestModify/:requestId"
               element={<OwnerPendingRequestModify />}
             />
             <Route
