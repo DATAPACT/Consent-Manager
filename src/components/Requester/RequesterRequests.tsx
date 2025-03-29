@@ -154,23 +154,24 @@ function RequesterRequests() {
         <div className="tab-content" id="nav-tabContent">
           {/* Draft Requests */}
           <div className="tab-pane fade show active" id="nav-drafts">
-            <table className="table mt-4">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Date Created</th>
-                  <th className="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {draftRequests.length === 0 ? (
+            {draftRequests.length === 0 ? (
+              <div className="text-center mt-5">
+                <h4>No draft requests</h4>
+                <p className="mt-2">
+                  Once you create a request it will appear here.
+                </p>
+              </div>
+            ) : (
+              <table className="table mt-4">
+                <thead>
                   <tr>
-                    <td colSpan={3} className="text-center py-4">
-                      No draft requests available.
-                    </td>
+                    <th>Name</th>
+                    <th>Date Created</th>
+                    <th className="text-center">Actions</th>
                   </tr>
-                ) : (
-                  draftRequests.map((request) => (
+                </thead>
+                <tbody>
+                  {draftRequests.map((request) => (
                     <tr key={request.id}>
                       <td>{request.requestName}</td>
                       <td>
@@ -201,10 +202,10 @@ function RequesterRequests() {
                         </Link>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Sent Requests */}

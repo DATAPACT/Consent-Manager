@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { db } from "../../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Import updateDoc and deleteDoc
+
+// css
+import styles from "../../css/Ontology.module.css";
 
 interface Request {
   id: string;
@@ -65,29 +67,29 @@ function OwnerPendingRequestsDetails() {
 
       closeModal("approveRequestModal");
 
-      navigate("/ownerBase/ownerPendingRequests");
+      navigate("/ownerBase/ownerDashboard");
     } catch (error) {
-      setError("Error updating request.");
+      setError("Error approving request.");
     }
     setUpdating(false);
   };
 
-  // Reject request function
+  // Reject request function (delete instead of updating status)
   const rejectRequest = async () => {
     if (!requestDetails) return;
 
     setUpdating(true);
     try {
       const requestDocRef = doc(db, "requests", requestId!);
-      await updateDoc(requestDocRef, { status: "rejected" });
+      await deleteDoc(requestDocRef); // Delete the request from Firestore
 
-      setRequestDetails((prev) => prev && { ...prev, status: "rejected" });
+      setRequestDetails(null); // Clear the request details from the state
 
       closeModal("rejectRequestModal");
 
-      navigate("/ownerBase/ownerPendingRequests");
+      navigate("/ownerBase/ownerDashboard"); // Navigate to the pending requests page
     } catch (error) {
-      setError("Error updating request.");
+      setError("Error deleting the request.");
     }
     setUpdating(false);
   };
@@ -236,7 +238,22 @@ function OwnerPendingRequestsDetails() {
               ></button>
             </div>
             <div className="modal-body">
-              Are you sure you want to reject this request?
+              <p>
+                Are you sure you want to reject this request? Please explain
+                below the reason for rejecting this request so we can notify the
+                Requester about your decision.
+              </p>
+
+              <div className="mb-3">
+                <label className={`${styles.formLabel} form-label`}>
+                  Describe your decision
+                </label>
+                <textarea
+                  className={`${styles.formInput} form-control`}
+                  id="exampleFormControlTextarea1"
+                  rows={4}
+                ></textarea>
+              </div>
             </div>
             <div className="modal-footer">
               <button

@@ -71,9 +71,9 @@ function OwnerPendingRequests() {
       <hr />
 
       {pendingRequests.length === 0 ? (
-        <div className="text-center mt-4">
+        <div className="text-center mt-5">
           <h4>No pending requests</h4>
-          <p className="mt-3">
+          <p className="mt-2">
             Once you receive a request, it will appear here.
           </p>
         </div>
