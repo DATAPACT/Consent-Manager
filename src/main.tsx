@@ -76,7 +76,7 @@ createRoot(document.getElementById("root")!).render(
               element={<OwnerApprovedRequests />}
             />
             <Route
-              path="ownerApprovedRequestsDetails"
+              path="ownerApprovedRequestsDetails/:requestId"
               element={<OwnerApprovedRequestsDetails />}
             />
           </Route>

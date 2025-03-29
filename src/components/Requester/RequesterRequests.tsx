@@ -14,20 +14,26 @@ import {
 function RequesterRequests() {
   const [draftRequests, setDraftRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
 
-  // Fetch requests from Firestore
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const requestsRef = collection(db, "requests");
+        const userId = auth.currentUser?.uid;
+        if (!userId) {
+          setError("User not logged in.");
+          setLoading(false);
+          return;
+        }
 
-        // Draft requests
+        // Fetch draft requests
         const draftQuery = query(
           requestsRef,
-          where("requesterId", "==", auth.currentUser?.uid),
+          where("requesterId", "==", userId),
           where("status", "==", "draft")
         );
         const draftSnapshot = await getDocs(draftQuery);
@@ -36,10 +42,10 @@ function RequesterRequests() {
           ...doc.data(),
         }));
 
-        // Sent requests
+        // Fetch sent requests
         const sentQuery = query(
           requestsRef,
-          where("requesterId", "==", auth.currentUser?.uid),
+          where("requesterId", "==", userId),
           where("status", "==", "sent")
         );
         const sentSnapshot = await getDocs(sentQuery);
@@ -48,8 +54,21 @@ function RequesterRequests() {
           ...doc.data(),
         }));
 
+        // Fetch approved requests
+        const approvedQuery = query(
+          requestsRef,
+          where("requesterId", "==", userId),
+          where("status", "==", "approved")
+        );
+        const approvedSnapshot = await getDocs(approvedQuery);
+        const approvedRequests = approvedSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
         setDraftRequests(draftRequests);
         setSentRequests(sentRequests);
+        setApprovedRequests(approvedRequests);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching requests:", error);
@@ -61,14 +80,12 @@ function RequesterRequests() {
     fetchRequests();
   }, []);
 
-  // Delete request
   const handleDelete = async () => {
     if (requestToDelete) {
       try {
-        const requestRef = doc(db, "requests", requestToDelete);
-        await deleteDoc(requestRef);
-        setDraftRequests(
-          draftRequests.filter((request) => request.id !== requestToDelete)
+        await deleteDoc(doc(db, "requests", requestToDelete));
+        setDraftRequests((prev) =>
+          prev.filter((request) => request.id !== requestToDelete)
         );
         setRequestToDelete(null);
       } catch (error) {
@@ -112,16 +129,23 @@ function RequesterRequests() {
             <button
               className="nav-link active"
               data-bs-toggle="tab"
-              data-bs-target="#nav-home"
+              data-bs-target="#nav-drafts"
             >
               Drafts
             </button>
             <button
               className="nav-link"
               data-bs-toggle="tab"
-              data-bs-target="#nav-profile"
+              data-bs-target="#nav-sent"
             >
               Sent
+            </button>
+            <button
+              className="nav-link"
+              data-bs-toggle="tab"
+              data-bs-target="#nav-approved"
+            >
+              Approved
             </button>
           </div>
         </nav>
@@ -129,7 +153,7 @@ function RequesterRequests() {
         {/* Tab Content */}
         <div className="tab-content" id="nav-tabContent">
           {/* Draft Requests */}
-          <div className="tab-pane fade show active" id="nav-home">
+          <div className="tab-pane fade show active" id="nav-drafts">
             <table className="table mt-4">
               <thead>
                 <tr>
@@ -184,24 +208,20 @@ function RequesterRequests() {
           </div>
 
           {/* Sent Requests */}
-          <div className="tab-pane fade" id="nav-profile">
-            <table className="table mt-4">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Date Sent</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sentRequests.length === 0 ? (
+          <div className="tab-pane fade" id="nav-sent">
+            {sentRequests.length === 0 ? (
+              <p className="text-center py-4">No sent requests available.</p>
+            ) : (
+              <table className="table mt-4">
+                <thead>
                   <tr>
-                    <td colSpan={3} className="text-center py-4">
-                      No sent requests available.
-                    </td>
+                    <th>Name</th>
+                    <th>Date Sent</th>
+                    <th>Status</th>
                   </tr>
-                ) : (
-                  sentRequests.map((request) => (
+                </thead>
+                <tbody>
+                  {sentRequests.map((request) => (
                     <tr key={request.id}>
                       <td>{request.requestName}</td>
                       <td>
@@ -211,53 +231,46 @@ function RequesterRequests() {
                       </td>
                       <td className="text-warning">Waiting for response</td>
                     </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Approved Requests */}
+          <div className="tab-pane fade" id="nav-approved">
+            <table className="table mt-4">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Date Approved</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {approvedRequests.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="text-center py-4">
+                      No approved requests available.
+                    </td>
+                  </tr>
+                ) : (
+                  approvedRequests.map((request) => (
+                    <tr key={request.id}>
+                      <td>{request.requestName}</td>
+                      <td>
+                        {new Date(
+                          request.createdAt.seconds * 1000
+                        ).toLocaleString()}
+                      </td>
+                      <td className="text-center">
+                        <i className="fa-solid fa-download"></i>
+                      </td>
+                    </tr>
                   ))
                 )}
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Delete Modal */}
-      <div
-        className="modal fade"
-        id="deleteRequestModal"
-        aria-labelledby="deleteRequestLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="deleteRequestLabel">
-                Are you sure?
-              </h1>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>Are you sure you want to delete this request?</p>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className={`${styles.secondaryButton} btn`}
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                className={`${styles.dangerButton} btn`}
-                onClick={handleDelete}
-                data-bs-dismiss="modal"
-              >
-                Delete
-              </button>
-            </div>
           </div>
         </div>
       </div>

@@ -66,31 +66,30 @@ function OwnerPendingRequests() {
       </Link>
 
       <h3 className="mt-4">Pending requests</h3>
-      <p>
-        Manage and organize your ontologies for seamless integration and use.
-      </p>
+      <p>Manage and organize your requests for seamless integration and use.</p>
 
       <hr />
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Date received</th>
-            <th scope="col" className="text-center">
-              View
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {pendingRequests.length === 0 ? (
+      {pendingRequests.length === 0 ? (
+        <div className="text-center mt-4">
+          <h4>No pending requests</h4>
+          <p className="mt-3">
+            Once you receive a request, it will appear here.
+          </p>
+        </div>
+      ) : (
+        <table className="table">
+          <thead>
             <tr>
-              <td colSpan={3} className="text-center py-4">
-                No pending requests
-              </td>
+              <th scope="col">Name</th>
+              <th scope="col">Date received</th>
+              <th scope="col" className="text-center">
+                View
+              </th>
             </tr>
-          ) : (
-            pendingRequests.map((request) => (
+          </thead>
+          <tbody>
+            {pendingRequests.map((request) => (
               <tr key={request.id}>
                 <td className="py-4">{request.requestName}</td>
                 <td className="py-4">
@@ -105,10 +104,10 @@ function OwnerPendingRequests() {
                   </Link>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

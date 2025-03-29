@@ -1,53 +1,56 @@
 import { useState, useEffect } from "react";
 import styles from "../../css/Dashboard.module.css";
 import { Link } from "react-router-dom";
-import { db, auth } from "../../firebase"; // Import Firebase configuration
+import { db, auth } from "../../firebase"; // Firebase config
 import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore methods
 
-// Define the type for your request document
 interface Request {
   id: string;
   status: string;
-  owners: string[]; // owners is an array of user IDs
+  owners: string[];
 }
 
 function OwnerDashboard() {
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
+  const [approvedRequestsCount, setApprovedRequestsCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchPendingRequests = async () => {
+    const fetchRequests = async () => {
       try {
-        const requestsRef = collection(db, "requests"); // Reference to the requests collection
-        const q = query(
-          requestsRef,
-          where("status", "==", "sent") // Only fetch "sent" requests
-        );
-
-        const querySnapshot = await getDocs(q);
-        const allRequests: Request[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Request[]; // Type the requests to match the Request interface
-
         const userId = auth.currentUser?.uid;
-
         if (!userId) {
           console.log("User not logged in");
-          return; // Stop execution if no user is logged in
+          return;
         }
 
-        // Filter requests where the user is in the "owners" array and count them
-        const userPendingRequests = allRequests.filter((request) =>
-          request.owners.includes(userId)
-        );
+        const requestsRef = collection(db, "requests");
 
-        setPendingRequestsCount(userPendingRequests.length); // Set the count of pending requests
+        // Query for pending requests
+        const pendingQuery = query(requestsRef, where("status", "==", "sent"));
+        const pendingSnapshot = await getDocs(pendingQuery);
+        const pendingRequests = pendingSnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
+          .filter((request) => request.owners.includes(userId));
+
+        setPendingRequestsCount(pendingRequests.length);
+
+        // Query for approved requests
+        const approvedQuery = query(
+          requestsRef,
+          where("status", "==", "approved")
+        );
+        const approvedSnapshot = await getDocs(approvedQuery);
+        const approvedRequests = approvedSnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
+          .filter((request) => request.owners.includes(userId));
+
+        setApprovedRequestsCount(approvedRequests.length);
       } catch (error) {
         console.error("Error fetching requests:", error);
       }
     };
 
-    fetchPendingRequests(); // Fetch pending requests
+    fetchRequests();
   }, []);
 
   return (
@@ -85,7 +88,7 @@ function OwnerDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Approved requests</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2 text-success">3</h3>
+                <h3 className="mt-2 text-success">{approvedRequestsCount}</h3>
                 <small className="text-muted">approved requests.</small>
                 <p className="card-text mt-2">
                   Requests you have been granted. You can review, modify, or

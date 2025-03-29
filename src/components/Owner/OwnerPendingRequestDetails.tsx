@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
-import { useParams, Link } from "react-router-dom";
-import { db } from "../../firebase"; // Firebase setup
-import { doc, getDoc } from "firebase/firestore";
+import { useParams, Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { db } from "../../firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
-// Define the type for the request object
 interface Request {
   id: string;
   requestName: string;
   status: string;
-  owners: string[]; // Array of owner IDs
-  createdAt: { seconds: number }; // Firebase timestamp
+  owners: string[];
+  createdAt: { seconds: number };
   senderName: string;
   startDate: { seconds: number };
   endDate: { seconds: number };
@@ -19,9 +18,11 @@ interface Request {
 
 function OwnerPendingRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [updating, setUpdating] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -36,7 +37,7 @@ function OwnerPendingRequestsDetails() {
         const docSnap = await getDoc(requestDocRef);
 
         if (docSnap.exists()) {
-          setRequestDetails(docSnap.data() as Request);
+          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
         } else {
           setError("Request not found.");
         }
@@ -51,17 +52,59 @@ function OwnerPendingRequestsDetails() {
     fetchRequestDetails();
   }, [requestId]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // Approve request function
+  const approveRequest = async () => {
+    if (!requestDetails) return;
 
-  if (error) {
-    return <div className="text-danger">{error}</div>;
-  }
+    setUpdating(true);
+    try {
+      const requestDocRef = doc(db, "requests", requestId!);
+      await updateDoc(requestDocRef, { status: "approved" });
 
-  if (!requestDetails) {
-    return <div>No request details found.</div>;
-  }
+      setRequestDetails((prev) => prev && { ...prev, status: "approved" });
+
+      closeModal("approveRequestModal");
+
+      navigate("/ownerBase/ownerPendingRequests");
+    } catch (error) {
+      setError("Error updating request.");
+    }
+    setUpdating(false);
+  };
+
+  // Reject request function
+  const rejectRequest = async () => {
+    if (!requestDetails) return;
+
+    setUpdating(true);
+    try {
+      const requestDocRef = doc(db, "requests", requestId!);
+      await updateDoc(requestDocRef, { status: "rejected" });
+
+      setRequestDetails((prev) => prev && { ...prev, status: "rejected" });
+
+      closeModal("rejectRequestModal");
+
+      navigate("/ownerBase/ownerPendingRequests");
+    } catch (error) {
+      setError("Error updating request.");
+    }
+    setUpdating(false);
+  };
+
+  // Function to close Bootstrap modal manually
+  const closeModal = (modalId: string) => {
+    const modal = document.getElementById(modalId) as any;
+    if (modal) {
+      modal.classList.remove("show");
+      document.body.classList.remove("modal-open");
+      document.getElementsByClassName("modal-backdrop")[0]?.remove();
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-danger">{error}</div>;
+  if (!requestDetails) return <div>No request details found.</div>;
 
   return (
     <>
@@ -130,6 +173,86 @@ function OwnerPendingRequestsDetails() {
             >
               Reject
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Approval Confirmation Modal */}
+      <div
+        className="modal fade"
+        id="approveRequestModal"
+        tabIndex={-1}
+        aria-labelledby="approveRequestModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Confirm Approval</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+            <div className="modal-body">
+              Are you sure you want to approve this request?
+            </div>
+            <div className="modal-footer">
+              <button
+                className={`${styles.secondaryButton} btn`}
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button
+                className={`${styles.primaryButton} btn`}
+                onClick={approveRequest}
+                disabled={updating}
+              >
+                {updating ? "Approving..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Rejection Confirmation Modal */}
+      <div
+        className="modal fade"
+        id="rejectRequestModal"
+        tabIndex={-1}
+        aria-labelledby="rejectRequestModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Confirm Rejection</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+            <div className="modal-body">
+              Are you sure you want to reject this request?
+            </div>
+            <div className="modal-footer">
+              <button
+                className={`${styles.secondaryButton} btn`}
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button
+                className={`${styles.dangerButton} btn`}
+                onClick={rejectRequest}
+                disabled={updating}
+              >
+                {updating ? "Rejecting..." : "Confirm"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
