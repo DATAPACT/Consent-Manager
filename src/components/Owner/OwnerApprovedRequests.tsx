@@ -120,20 +120,20 @@ function OwnerApprovedRequests() {
             <thead>
               <tr>
                 <th scope="col">Name</th>
-                <th scope="col">Timestamp</th>
+                <th scope="col">Date approved</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {approvedRequests.map((request) => (
                 <tr key={request.id}>
-                  <td className="py-4">{request.requestName}</td>
-                  <td className="py-4">
+                  <td className="py-3">{request.requestName}</td>
+                  <td className="py-3">
                     {new Date(
                       request.createdAt.seconds * 1000
                     ).toLocaleString()}
                   </td>
-                  <td className="py-4">
+                  <td className="py-3">
                     <Link
                       to={`/ownerBase/ownerApprovedRequestsDetails/${request.id}`}
                       className={`${styles.primaryButton} btn`}
