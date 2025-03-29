@@ -12,6 +12,9 @@ import { db } from "../../firebase"; // Ensure Firebase instance is correctly im
 // css
 import styles from "../../css/CreateRequest.module.css";
 
+// components
+import LoadingSpinner from "../LoadingSpinner";
+
 function EditDraftRequest() {
   const { requestId } = useParams(); // Get the request ID from the URL
   const [requestData, setRequestData] = useState<any>(null); // State to hold the fetched request data
@@ -77,7 +80,7 @@ function EditDraftRequest() {
   }, [requestId]);
 
   if (loading) {
-    return <div>Loading...</div>; // Show loading state while data is being fetched
+    return <LoadingSpinner />;
   }
 
   if (error) {

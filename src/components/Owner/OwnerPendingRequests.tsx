@@ -4,6 +4,9 @@ import { Link } from "react-router-dom";
 import { db, auth } from "../../firebase"; // Firebase setup
 import { collection, query, where, getDocs } from "firebase/firestore";
 
+// components
+import LoadingSpinner from "../LoadingSpinner";
+
 // Define the type for the request object
 interface Request {
   id: string;
@@ -52,7 +55,7 @@ function OwnerPendingRequests() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (error) {

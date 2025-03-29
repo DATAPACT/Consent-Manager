@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
+// components
+import LoadingSpinner from "../LoadingSpinner";
+
 function OwnerApprovedRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>(); // Extract requestId from URL params
   const [request, setRequest] = useState<any | null>(null);
@@ -41,7 +44,7 @@ function OwnerApprovedRequestsDetails() {
     fetchRequestDetails();
   }, [requestId]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
 
   return (

@@ -6,6 +6,9 @@ import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Impor
 // css
 import styles from "../../css/Ontology.module.css";
 
+// components
+import LoadingSpinner from "../LoadingSpinner";
+
 interface Request {
   id: string;
   requestName: string;
@@ -104,7 +107,7 @@ function OwnerPendingRequestsDetails() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails) return <div>No request details found.</div>;
 

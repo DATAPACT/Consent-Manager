@@ -11,6 +11,9 @@ import {
   doc,
 } from "firebase/firestore";
 
+// components
+import LoadingSpinner from "../LoadingSpinner";
+
 function RequesterRequests() {
   const [draftRequests, setDraftRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
@@ -95,7 +98,7 @@ function RequesterRequests() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
 
   return (
