@@ -99,16 +99,18 @@ const UploadOntology: React.FC = () => {
 
         <h5 className="mt-5">Uploading an ontology</h5>
         <p>
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Corporis
-          nemo sint non tenetur delectus officiis reiciendis eos vitae quisquam?
-          Fugit rem culpa minus, quae et nulla eius ratione veniam itaque.
+          Please ensure your ontology is in a compatible format (e.g., OWL, RDF)
+          to easily integrate it into our system. Once uploaded, you can manage,
+          view, and share your ontology for improved data organization and
+          analysis.
         </p>
 
         <h5 className="mt-4">What happens next?</h5>
         <p>
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Corporis
-          nemo sint non tenetur delectus officiis reiciendis eos vitae quisquam?
-          Fugit rem culpa minus, quae et nulla eius ratione veniam itaque.
+          You can include your ontologies in your requests. This allows you to
+          leverage your ontology for more structured and efficient data
+          processing, enabling better decision-making and clearer communication
+          with data owners.
         </p>
       </div>
     </>

@@ -116,8 +116,8 @@ function CreateRequest() {
 
         <h3 className="mt-4">Create request</h3>
         <p>
-          Create and submit a new request by specifying the necessary details,
-          including relevant parameters and requirements.
+          Create a new request by specifying the necessary details, including
+          relevant parameters and requirements.
         </p>
 
         <hr />
