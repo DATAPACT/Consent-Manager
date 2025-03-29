@@ -1,16 +1,11 @@
-// components
-import Navbar from "../Navbar/Navbar";
-import Footer from "../Footer/Footer";
-
-// libraries
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase"; // Import Firebase utils
-import { useState } from "react";
 import { useAuth } from "../../AuthContext"; // Import the AuthContext
-
-// css
+import Navbar from "../Navbar/Navbar";
+import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
 
 const RequesterRegister: React.FC = () => {
@@ -18,11 +13,17 @@ const RequesterRegister: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [retypePassword, setRetypePassword] = useState<string>(""); // State for re-type password
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent the default form submission
+
+    if (password !== retypePassword) {
+      setError("Passwords do not match.");
+      return; // Stop form submission if passwords don't match
+    }
 
     try {
       // Create user in Firebase Authentication
@@ -60,6 +61,11 @@ const RequesterRegister: React.FC = () => {
         <p className="mt-3">
           Already have an account? <Link to="/requesterLogin">Login</Link>
         </p>
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
         <form className="mt-4" onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>Name</label>
@@ -67,7 +73,6 @@ const RequesterRegister: React.FC = () => {
               type="text"
               value={name}
               className={`${styles.formInput} form-control`}
-              id="exampleInputEmail1"
               onChange={(e) => setName(e.target.value)}
               required
             />
@@ -80,7 +85,6 @@ const RequesterRegister: React.FC = () => {
               type="email"
               value={email}
               className={`${styles.formInput} form-control`}
-              id="exampleInputEmail1"
               onChange={(e) => setEmail(e.target.value)}
               required
             />
@@ -91,30 +95,24 @@ const RequesterRegister: React.FC = () => {
               type="password"
               value={password}
               className={`${styles.formInput} form-control`}
-              id="exampleInputPassword1"
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>
               Re-type password
             </label>
             <input
               type="password"
+              value={retypePassword} // Set value for re-type password field
               className={`${styles.formInput} form-control`}
-              id="exampleInputPassword1"
-            />
-          </div>
-
-          <div className="mb-3 form-check">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="exampleCheck1"
+              onChange={(e) => setRetypePassword(e.target.value)} // Handle re-type password change
               required
             />
+          </div>
+          <div className="mb-3 form-check">
+            <input type="checkbox" className="form-check-input" required />
             <label className="form-check-label">
               I have read and agree to the{" "}
               <Link className="text-decoration-none" to="/">
@@ -127,14 +125,13 @@ const RequesterRegister: React.FC = () => {
               .
             </label>
           </div>
-
+          {/* Show error message */}
           <div className="mb-3 mt-4">
             <button type="submit" className={`${styles.primaryButton} btn`}>
               Register
             </button>
           </div>
         </form>
-        {error && <p className="text-danger">{error}</p>}
       </div>
       <br />
       <br />
