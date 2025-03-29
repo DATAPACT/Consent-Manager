@@ -173,13 +173,13 @@ function RequesterRequests() {
                 <tbody>
                   {draftRequests.map((request) => (
                     <tr key={request.id}>
-                      <td>{request.requestName}</td>
-                      <td>
+                      <td className="py-3">{request.requestName}</td>
+                      <td className="py-3">
                         {new Date(
                           request.createdAt.seconds * 1000
                         ).toLocaleString()}
                       </td>
-                      <td className="text-center">
+                      <td className="py-3 text-center">
                         <Link
                           className="btn btn-sm text-dark"
                           to={`/requesterBase/editDraftRequest/${request.id}`}
@@ -278,6 +278,51 @@ function RequesterRequests() {
                 </tbody>
               </table>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <div
+        className="modal fade"
+        id="deleteRequestModal"
+        tabIndex={-1}
+        aria-labelledby="deleteRequestModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="deleteRequestModalLabel">
+                Confirm Deletion
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              Are you sure you want to delete this request?
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className={`${styles.secondaryButton} btn`}
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`${styles.dangerButton} btn`}
+                onClick={handleDelete}
+                data-bs-dismiss="modal"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
