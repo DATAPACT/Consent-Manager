@@ -210,7 +210,12 @@ function RequesterRequests() {
           {/* Sent Requests */}
           <div className="tab-pane fade" id="nav-sent">
             {sentRequests.length === 0 ? (
-              <p className="text-center py-4">No sent requests available.</p>
+              <div className="text-center mt-5">
+                <h4>No sent requests</h4>
+                <p className="mt-2">
+                  Go to your drafts and sent a request to a data owner.
+                </p>
+              </div>
             ) : (
               <table className="table mt-4">
                 <thead>
@@ -239,23 +244,24 @@ function RequesterRequests() {
 
           {/* Approved Requests */}
           <div className="tab-pane fade" id="nav-approved">
-            <table className="table mt-4">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Date Approved</th>
-                  <th className="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {approvedRequests.length === 0 ? (
+            {approvedRequests.length === 0 ? (
+              <div className="text-center mt-5">
+                <h4>No approved requests</h4>
+                <p className="mt-2">
+                  Once your requests apprved they will appera here.
+                </p>
+              </div>
+            ) : (
+              <table className="table mt-4">
+                <thead>
                   <tr>
-                    <td colSpan={2} className="text-center py-4">
-                      No approved requests available.
-                    </td>
+                    <th>Name</th>
+                    <th>Date Approved</th>
+                    <th className="text-center">Actions</th>
                   </tr>
-                ) : (
-                  approvedRequests.map((request) => (
+                </thead>
+                <tbody>
+                  {approvedRequests.map((request) => (
                     <tr key={request.id}>
                       <td>{request.requestName}</td>
                       <td>
@@ -267,10 +273,10 @@ function RequesterRequests() {
                         <i className="fa-solid fa-download"></i>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
