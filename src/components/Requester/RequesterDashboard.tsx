@@ -93,7 +93,7 @@ function RequesterDashboard() {
           </div>
           <div className="col">
             <Link
-              to="/"
+              to=""
               className={`${styles.documentationCard} card h-100 text-dark text-decoration-none`}
             >
               <div className="card-body">
