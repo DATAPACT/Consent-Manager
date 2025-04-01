@@ -383,6 +383,22 @@ function CreateRequest() {
         >
           Add Rule
         </button>
+
+        {/* Purpose Select (Visible by default) */}
+        <div className="mb-3 mt-4">
+          <label className={`${styles.formLabel} form-label`}>
+            Constraints
+          </label>
+          <select
+            className={`${styles.formInput} form-select`}
+            aria-label="Default select example"
+          >
+            <option selected>Choose purpose</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+          </select>
+        </div>
         {/* 
         <button className={`${styles.primaryButton} btn mt-3`} type="submit">
           Create Request
