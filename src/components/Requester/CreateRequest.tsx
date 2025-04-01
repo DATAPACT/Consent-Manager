@@ -13,6 +13,7 @@ interface Rule {
   datasetRefinements: Refinement[];
   purposeRefinements: Refinement[];
   actionRefinements: Refinement[];
+  constraintRefinements: Refinement[];
 }
 
 function CreateRequest() {
@@ -22,6 +23,7 @@ function CreateRequest() {
       datasetRefinements: [],
       purposeRefinements: [],
       actionRefinements: [],
+      constraintRefinements: [],
     },
   ]);
 
@@ -34,6 +36,7 @@ function CreateRequest() {
         datasetRefinements: [],
         purposeRefinements: [],
         actionRefinements: [],
+        constraintRefinements: [],
       },
     ]);
   };
@@ -94,6 +97,22 @@ function CreateRequest() {
     );
   };
 
+  const addConstraintRefinement = (ruleId: number) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              constraintRefinements: [
+                ...rule.constraintRefinements,
+                { id: Date.now() },
+              ],
+            }
+          : rule
+      )
+    );
+  };
+
   // Remove refinement row
   const removeDatasetRefinement = (ruleId: number, refinementId: number) => {
     setRules(
@@ -132,6 +151,21 @@ function CreateRequest() {
           ? {
               ...rule,
               actionRefinements: rule.actionRefinements.filter(
+                (item) => item.id !== refinementId
+              ),
+            }
+          : rule
+      )
+    );
+  };
+
+  const removeConstraintRefinement = (ruleId: number, refinementId: number) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              constraintRefinements: rule.constraintRefinements.filter(
                 (item) => item.id !== refinementId
               ),
             }
@@ -372,6 +406,70 @@ function CreateRequest() {
               >
                 Add Purpose Refinement
               </button>
+
+              {/* Constraints Select (Visible by default) */}
+              <div className="mb-3 mt-4">
+                <label className={`${styles.formLabel} form-label`}>
+                  Constraints
+                </label>
+                <select
+                  className={`${styles.formInput} form-select`}
+                  aria-label="Default select example"
+                >
+                  <option selected>Choose constraints</option>
+                  <option value="1">One</option>
+                  <option value="2">Two</option>
+                  <option value="3">Three</option>
+                </select>
+              </div>
+
+              {/* Constraints Refinements */}
+              {rule.constraintRefinements.map((item) => (
+                <div className="row mt-4" key={item.id}>
+                  <div className="d-flex mb-3">
+                    <h6 className="me-auto">Purpose Refinement</h6>
+                    <i
+                      className="fa-solid fa-trash"
+                      onClick={() =>
+                        removeConstraintRefinement(rule.id, item.id)
+                      }
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Attribute
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      <option>Choose attribute</option>
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      <option>Choose instance</option>
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Value
+                    </label>
+                    <input
+                      type="text"
+                      className={`${styles.formInput} form-control`}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addConstraintRefinement(rule.id)}
+                className={`${styles.primaryButton} btn btn-sm mt-3`}
+              >
+                Add Purpose Refinement
+              </button>
             </div>
           </div>
         ))}
@@ -384,21 +482,6 @@ function CreateRequest() {
           Add Rule
         </button>
 
-        {/* Purpose Select (Visible by default) */}
-        <div className="mb-3 mt-4">
-          <label className={`${styles.formLabel} form-label`}>
-            Constraints
-          </label>
-          <select
-            className={`${styles.formInput} form-select`}
-            aria-label="Default select example"
-          >
-            <option selected>Choose purpose</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-          </select>
-        </div>
         {/* 
         <button className={`${styles.primaryButton} btn mt-3`} type="submit">
           Create Request
