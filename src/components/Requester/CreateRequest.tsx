@@ -4,6 +4,14 @@ import { useState } from "react";
 import { auth, db } from "../../firebase";
 import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
 
+// dropdowns
+import {
+  getActionOptions,
+  getPurposeOptions,
+  getAttributeOptions,
+  getInstanceOptions,
+} from "../../helperFunctions/RequestDropdowns";
+
 interface Refinement {
   id: number;
 }
@@ -253,7 +261,11 @@ function CreateRequest() {
                       Attribute
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      <option>Choose attribute</option>
+                      {getAttributeOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col">
@@ -261,7 +273,11 @@ function CreateRequest() {
                       Instance
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      <option>Choose instance</option>
+                      {getInstanceOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col">
@@ -280,7 +296,7 @@ function CreateRequest() {
                 onClick={() => addDatasetRefinement(rule.id)}
                 className={`${styles.primaryButton} btn btn-sm mt-3`}
               >
-                Add Dataset Refinement
+                Add dataset refinement
               </button>
 
               {/* Action Select (Visible by default) */}
@@ -292,10 +308,11 @@ function CreateRequest() {
                   className={`${styles.formInput} form-select`}
                   aria-label="Default select example"
                 >
-                  <option selected>Choose action</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
+                  {getActionOptions().map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -315,7 +332,11 @@ function CreateRequest() {
                       Attribute
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      <option>Choose attribute</option>
+                      {getAttributeOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col">
@@ -323,7 +344,11 @@ function CreateRequest() {
                       Instance
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      <option>Choose instance</option>
+                      {getInstanceOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col">
@@ -342,7 +367,7 @@ function CreateRequest() {
                 onClick={() => addActionRefinement(rule.id)}
                 className={`${styles.primaryButton} btn btn-sm mt-3`}
               >
-                Add Action Refinement
+                Add action refinement
               </button>
 
               {/* Purpose Select (Visible by default) */}
@@ -354,10 +379,11 @@ function CreateRequest() {
                   className={`${styles.formInput} form-select`}
                   aria-label="Default select example"
                 >
-                  <option selected>Choose purpose</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
+                  {getPurposeOptions().map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -377,7 +403,11 @@ function CreateRequest() {
                       Attribute
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      <option>Choose attribute</option>
+                      {getAttributeOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col">
@@ -385,7 +415,11 @@ function CreateRequest() {
                       Instance
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      <option>Choose instance</option>
+                      {getInstanceOptions().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col">
@@ -404,7 +438,7 @@ function CreateRequest() {
                 onClick={() => addPurposeRefinement(rule.id)}
                 className={`${styles.primaryButton} btn btn-sm mt-3`}
               >
-                Add Purpose Refinement
+                Add purpose refinement
               </button>
 
               {/* Constraints Select (Visible by default) */}
@@ -468,7 +502,7 @@ function CreateRequest() {
                 onClick={() => addConstraintRefinement(rule.id)}
                 className={`${styles.primaryButton} btn btn-sm mt-3`}
               >
-                Add Purpose Refinement
+                Add constraint refinement
               </button>
             </div>
           </div>
