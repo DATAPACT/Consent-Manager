@@ -1,11 +1,9 @@
-// src/utils/options.ts
-
 export interface Option {
   value: string;
   label: string;
 }
 
-export const getActionOptions = (): Option[] => {
+export const getActionDropdownValue = (): Option[] => {
   return [
     { value: "", label: "Choose action" },
     { value: "read", label: "Read" },
@@ -14,7 +12,7 @@ export const getActionOptions = (): Option[] => {
   ];
 };
 
-export const getPurposeOptions = (): Option[] => {
+export const getPurposeDropdownValue = (): Option[] => {
   return [
     { value: "", label: "Choose purpose" },
     { value: "marketing", label: "Marketing" },
@@ -23,7 +21,7 @@ export const getPurposeOptions = (): Option[] => {
   ];
 };
 
-export const getAttributeOptions = (): Option[] => {
+export const getAttributeDropdownValue = (): Option[] => {
   return [
     { value: "", label: "Choose attribute" },
     { value: "comercial", label: "Comercial" },
@@ -32,7 +30,7 @@ export const getAttributeOptions = (): Option[] => {
   ];
 };
 
-export const getInstanceOptions = (): Option[] => {
+export const getOperandDropdownValue = (): Option[] => {
   return [
     { value: "", label: "Choose instance" },
     { value: "eq", label: "eq" },

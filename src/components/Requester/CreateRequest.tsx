@@ -6,10 +6,10 @@ import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
 
 // dropdowns
 import {
-  getActionOptions,
-  getPurposeOptions,
-  getAttributeOptions,
-  getInstanceOptions,
+  getActionDropdownValue,
+  getPurposeDropdownValue,
+  getAttributeDropdownValue,
+  getOperandDropdownValue,
 } from "../../helperFunctions/RequestDropdowns";
 
 interface Refinement {
@@ -121,7 +121,7 @@ function CreateRequest() {
     );
   };
 
-  // Remove refinement row
+  // Remove refinement
   const removeDatasetRefinement = (ruleId: number, refinementId: number) => {
     setRules(
       rules.map((rule) =>
@@ -248,7 +248,7 @@ function CreateRequest() {
               {/* Dataset Refinements */}
               {rule.datasetRefinements.map((item) => (
                 <div className="row mt-3" key={item.id}>
-                  <div className="d-flex mb-3">
+                  <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Dataset Refinement</h6>
                     <i
                       className="fa-solid fa-trash"
@@ -261,7 +261,7 @@ function CreateRequest() {
                       Attribute
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      {getAttributeOptions().map((option) => (
+                      {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -273,7 +273,7 @@ function CreateRequest() {
                       Instance
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      {getInstanceOptions().map((option) => (
+                      {getOperandDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -299,7 +299,7 @@ function CreateRequest() {
                 Add dataset refinement
               </button>
 
-              {/* Action Select (Visible by default) */}
+              {/* Action Select */}
               <div className="mb-3 mt-4">
                 <label className={`${styles.formLabel} form-label`}>
                   Action
@@ -308,7 +308,7 @@ function CreateRequest() {
                   className={`${styles.formInput} form-select`}
                   aria-label="Default select example"
                 >
-                  {getActionOptions().map((option) => (
+                  {getActionDropdownValue().map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -319,7 +319,7 @@ function CreateRequest() {
               {/* Action Refinements */}
               {rule.actionRefinements.map((item) => (
                 <div className="row mt-4" key={item.id}>
-                  <div className="d-flex mb-3">
+                  <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Action Refinement</h6>
                     <i
                       className="fa-solid fa-trash"
@@ -332,7 +332,7 @@ function CreateRequest() {
                       Attribute
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      {getAttributeOptions().map((option) => (
+                      {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -344,7 +344,7 @@ function CreateRequest() {
                       Instance
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      {getInstanceOptions().map((option) => (
+                      {getOperandDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -370,7 +370,7 @@ function CreateRequest() {
                 Add action refinement
               </button>
 
-              {/* Purpose Select (Visible by default) */}
+              {/* Purpose Select */}
               <div className="mb-3 mt-4">
                 <label className={`${styles.formLabel} form-label`}>
                   Purpose
@@ -379,7 +379,7 @@ function CreateRequest() {
                   className={`${styles.formInput} form-select`}
                   aria-label="Default select example"
                 >
-                  {getPurposeOptions().map((option) => (
+                  {getPurposeDropdownValue().map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -390,7 +390,7 @@ function CreateRequest() {
               {/* Purpose Refinements */}
               {rule.purposeRefinements.map((item) => (
                 <div className="row mt-4" key={item.id}>
-                  <div className="d-flex mb-3">
+                  <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Purpose Refinement</h6>
                     <i
                       className="fa-solid fa-trash"
@@ -403,7 +403,7 @@ function CreateRequest() {
                       Attribute
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      {getAttributeOptions().map((option) => (
+                      {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -415,7 +415,7 @@ function CreateRequest() {
                       Instance
                     </label>
                     <select className={`${styles.formInput} form-select`}>
-                      {getInstanceOptions().map((option) => (
+                      {getOperandDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -441,7 +441,7 @@ function CreateRequest() {
                 Add purpose refinement
               </button>
 
-              {/* Constraints Select (Visible by default) */}
+              {/* Constraints Select */}
               <div className="mb-3 mt-4">
                 <label className={`${styles.formLabel} form-label`}>
                   Constraints
