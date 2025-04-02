@@ -440,28 +440,16 @@ function CreateRequest() {
               >
                 Add purpose refinement
               </button>
+              <br />
+              <br />
 
               {/* Constraints Select */}
-              <div className="mb-3 mt-4">
-                <label className={`${styles.formLabel} form-label`}>
-                  Constraints
-                </label>
-                <select
-                  className={`${styles.formInput} form-select`}
-                  aria-label="Default select example"
-                >
-                  <option selected>Choose constraints</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
-              </div>
 
               {/* Constraints Refinements */}
               {rule.constraintRefinements.map((item) => (
                 <div className="row mt-4" key={item.id}>
                   <div className="d-flex mb-3">
-                    <h6 className="me-auto">Purpose Refinement</h6>
+                    <h6 className="me-auto">Constraint</h6>
                     <i
                       className="fa-solid fa-trash"
                       onClick={() =>
@@ -502,7 +490,7 @@ function CreateRequest() {
                 onClick={() => addConstraintRefinement(rule.id)}
                 className={`${styles.primaryButton} btn btn-sm mt-3`}
               >
-                Add constraint refinement
+                Add constraint
               </button>
             </div>
           </div>
