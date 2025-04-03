@@ -359,3 +359,22 @@ function CreateRequest() {
 }
 
 export default CreateRequest;
+
+// I'm gonna explain you the structure of a request. then I will show you the code and I want you to add me the logic of adding the request in the database (firebase):
+
+// a request has:
+
+// - a name
+// - the id of the requester that creates it
+// - the name of the requester that creates it
+// - the email of the requester that creates it
+// - a creation timestamp
+// - a status (by default is “draft”)
+// - one or more rules where each rule has:
+// - a rule id
+// -a dataset (just text input) where the dataset has: none or more dataset refinements, where each dataset refinement has: an attribute, an instance and a value.
+// -an action (just text input) where the action has: none or more action refinements, where each action refinement has: an attribute, an instance and a value.
+// - a purpose (just text input) where the purpose has: none or more purpose refinements, where each purpose refinement has: an attribute, an instance and a value.
+// - none or more constraints where each constraint has: an attribute, an instance and a value.
+
+// first of all just show me a representation of this structure (like a json type)
