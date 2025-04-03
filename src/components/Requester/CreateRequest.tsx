@@ -247,7 +247,7 @@ function CreateRequest() {
 
               {/* Dataset Refinements */}
               {rule.datasetRefinements.map((item) => (
-                <div className="row mt-3" key={item.id}>
+                <div className="row mt-2" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Dataset Refinement</h6>
                     <i
@@ -318,7 +318,7 @@ function CreateRequest() {
 
               {/* Action Refinements */}
               {rule.actionRefinements.map((item) => (
-                <div className="row mt-4" key={item.id}>
+                <div className="row mt-2" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Action Refinement</h6>
                     <i
@@ -389,7 +389,7 @@ function CreateRequest() {
 
               {/* Purpose Refinements */}
               {rule.purposeRefinements.map((item) => (
-                <div className="row mt-4" key={item.id}>
+                <div className="row mt-2" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Purpose Refinement</h6>
                     <i
@@ -447,8 +447,8 @@ function CreateRequest() {
 
               {/* Constraints Refinements */}
               {rule.constraintRefinements.map((item) => (
-                <div className="row mt-4" key={item.id}>
-                  <div className="d-flex mb-3">
+                <div className="row" key={item.id}>
+                  <div className="d-flex mb-3 mt-4">
                     <h6 className="me-auto">Constraint</h6>
                     <i
                       className="fa-solid fa-trash"
@@ -488,7 +488,7 @@ function CreateRequest() {
               <button
                 type="button"
                 onClick={() => addConstraintRefinement(rule.id)}
-                className={`${styles.primaryButton} btn btn-sm mt-3`}
+                className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
               >
                 Add constraint
               </button>

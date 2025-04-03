@@ -21,6 +21,21 @@
   font-weight: 400;
 }
 
+.dashedButton {
+  border: 1px dashed #848484; /* Bootstrap primary color */
+  background-color: transparent;
+  padding: 10px;
+  font-weight: 400;
+}
+
+.dashedButton:hover {
+  border: 1px dashed black; /* Bootstrap primary color */
+  background-color: transparent;
+  padding: 10px;
+  font-weight: 400;
+  transition: 0.3s;
+}
+
 .formInput {
   border-width: 1px;
   border-color: #262626;
