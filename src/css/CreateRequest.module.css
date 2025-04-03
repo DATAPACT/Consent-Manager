@@ -21,6 +21,19 @@
   font-weight: 400;
 }
 
+.secondaryButton {
+  background-color: #dee0e2;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.secondaryButton:hover {
+  background-color: #c8c8c8;
+  font-weight: 400;
+}
+
 .dashedButton {
   border: 1px dashed #848484; /* Bootstrap primary color */
   background-color: transparent;

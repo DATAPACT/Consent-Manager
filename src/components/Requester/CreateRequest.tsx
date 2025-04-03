@@ -1,8 +1,5 @@
 import styles from "../../css/CreateRequest.module.css";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { auth, db } from "../../firebase";
-import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
+import { Link } from "react-router-dom";
 
 // dropdowns
 import {
@@ -12,175 +9,23 @@ import {
   getOperandDropdownValue,
 } from "../../helperFunctions/RequestDropdowns";
 
-interface Refinement {
-  id: number;
-}
-
-interface Rule {
-  id: number;
-  datasetRefinements: Refinement[];
-  purposeRefinements: Refinement[];
-  actionRefinements: Refinement[];
-  constraintRefinements: Refinement[];
-}
+// rules utils
+import { useRules } from "../../helperFunctions/RulesUtils";
 
 function CreateRequest() {
-  const [rules, setRules] = useState<Rule[]>([
-    {
-      id: Date.now(),
-      datasetRefinements: [],
-      purposeRefinements: [],
-      actionRefinements: [],
-      constraintRefinements: [],
-    },
-  ]);
-
-  // Function to add a new rule
-  const addRule = () => {
-    setRules([
-      ...rules,
-      {
-        id: Date.now(),
-        datasetRefinements: [],
-        purposeRefinements: [],
-        actionRefinements: [],
-        constraintRefinements: [],
-      },
-    ]);
-  };
-
-  // Function to remove a rule
-  const removeRule = (id: number) => {
-    if (id !== rules[0].id) {
-      setRules(rules.filter((rule) => rule.id !== id));
-    }
-  };
-
-  // Handle refinements for each rule
-  const addDatasetRefinement = (ruleId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              datasetRefinements: [
-                ...rule.datasetRefinements,
-                { id: Date.now() },
-              ],
-            }
-          : rule
-      )
-    );
-  };
-
-  const addPurposeRefinement = (ruleId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              purposeRefinements: [
-                ...rule.purposeRefinements,
-                { id: Date.now() },
-              ],
-            }
-          : rule
-      )
-    );
-  };
-
-  const addActionRefinement = (ruleId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              actionRefinements: [
-                ...rule.actionRefinements,
-                { id: Date.now() },
-              ],
-            }
-          : rule
-      )
-    );
-  };
-
-  const addConstraintRefinement = (ruleId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              constraintRefinements: [
-                ...rule.constraintRefinements,
-                { id: Date.now() },
-              ],
-            }
-          : rule
-      )
-    );
-  };
-
-  // Remove refinement
-  const removeDatasetRefinement = (ruleId: number, refinementId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              datasetRefinements: rule.datasetRefinements.filter(
-                (item) => item.id !== refinementId
-              ),
-            }
-          : rule
-      )
-    );
-  };
-
-  const removePurposeRefinement = (ruleId: number, refinementId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              purposeRefinements: rule.purposeRefinements.filter(
-                (item) => item.id !== refinementId
-              ),
-            }
-          : rule
-      )
-    );
-  };
-
-  const removeActionRefinement = (ruleId: number, refinementId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              actionRefinements: rule.actionRefinements.filter(
-                (item) => item.id !== refinementId
-              ),
-            }
-          : rule
-      )
-    );
-  };
-
-  const removeConstraintRefinement = (ruleId: number, refinementId: number) => {
-    setRules(
-      rules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              constraintRefinements: rule.constraintRefinements.filter(
-                (item) => item.id !== refinementId
-              ),
-            }
-          : rule
-      )
-    );
-  };
+  const {
+    rules,
+    addRule,
+    removeRule,
+    addDatasetRefinement,
+    addPurposeRefinement,
+    addActionRefinement,
+    addConstraintRefinement,
+    removeDatasetRefinement,
+    removePurposeRefinement,
+    removeActionRefinement,
+    removeConstraintRefinement,
+  } = useRules();
 
   return (
     <div className={`${styles.dashboard} container w-50`}>
@@ -247,7 +92,7 @@ function CreateRequest() {
 
               {/* Dataset Refinements */}
               {rule.datasetRefinements.map((item) => (
-                <div className="row mt-2" key={item.id}>
+                <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Dataset Refinement</h6>
                     <i
@@ -294,7 +139,7 @@ function CreateRequest() {
               <button
                 type="button"
                 onClick={() => addDatasetRefinement(rule.id)}
-                className={`${styles.primaryButton} btn btn-sm mt-3`}
+                className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add dataset refinement
               </button>
@@ -318,7 +163,7 @@ function CreateRequest() {
 
               {/* Action Refinements */}
               {rule.actionRefinements.map((item) => (
-                <div className="row mt-2" key={item.id}>
+                <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Action Refinement</h6>
                     <i
@@ -365,7 +210,7 @@ function CreateRequest() {
               <button
                 type="button"
                 onClick={() => addActionRefinement(rule.id)}
-                className={`${styles.primaryButton} btn btn-sm mt-3`}
+                className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add action refinement
               </button>
@@ -389,7 +234,7 @@ function CreateRequest() {
 
               {/* Purpose Refinements */}
               {rule.purposeRefinements.map((item) => (
-                <div className="row mt-2" key={item.id}>
+                <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Purpose Refinement</h6>
                     <i
@@ -436,7 +281,7 @@ function CreateRequest() {
               <button
                 type="button"
                 onClick={() => addPurposeRefinement(rule.id)}
-                className={`${styles.primaryButton} btn btn-sm mt-3`}
+                className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add purpose refinement
               </button>
@@ -447,8 +292,8 @@ function CreateRequest() {
 
               {/* Constraints Refinements */}
               {rule.constraintRefinements.map((item) => (
-                <div className="row" key={item.id}>
-                  <div className="d-flex mb-3 mt-4">
+                <div className="row mt-2 mb-3" key={item.id}>
+                  <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Constraint</h6>
                     <i
                       className="fa-solid fa-trash"
