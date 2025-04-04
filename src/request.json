@@ -1,0 +1,51 @@
+{
+  "name": "example_request",
+  "requester": {
+    "id": "user_123",
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "created_at": "2025-04-04T10:30:00Z",
+  "status": "draft",
+  "rules": [
+    {
+      "dataset": {
+        "text": "dataset url",
+        "dataset_refinements": [
+          {
+            "attribute": "type",
+            "instance": "user",
+            "value": "sensitive"
+          }
+        ]
+      },
+      "action": {
+        "select": "action description",
+        "action_refinements": [
+          {
+            "attribute": "method",
+            "instance": "processing",
+            "value": "anonymization"
+          }
+        ]
+      },
+      "purpose": {
+        "text": "purpose description",
+        "purpose_refinements": [
+          {
+            "attribute": "goal",
+            "instance": "research",
+            "value": "health data analysis"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "attribute": "retention",
+          "instance": "duration",
+          "value": "30 days"
+        }
+      ]
+    }
+  ]
+}
