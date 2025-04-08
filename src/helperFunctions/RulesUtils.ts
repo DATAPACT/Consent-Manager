@@ -3,10 +3,15 @@ import { useState } from "react";
 // Interfaces
 export interface Refinement {
   id: number;
+  attribute?: string;
+  instance?: string;
+  value?: string;
 }
 
 export interface Rule {
   id: number;
+  dataset: string;
+  action: string;
   datasetRefinements: Refinement[];
   purposeRefinements: Refinement[];
   actionRefinements: Refinement[];
@@ -18,6 +23,8 @@ export const useRules = () => {
   const [rules, setRules] = useState<Rule[]>([
     {
       id: Date.now(),
+      dataset: "",
+      action: "",
       datasetRefinements: [],
       purposeRefinements: [],
       actionRefinements: [],
@@ -31,6 +38,8 @@ export const useRules = () => {
       ...rules,
       {
         id: Date.now(),
+        dataset: "",
+        action: "",
         datasetRefinements: [],
         purposeRefinements: [],
         actionRefinements: [],
@@ -172,6 +181,62 @@ export const useRules = () => {
     );
   };
 
+  const updateDataset = (ruleId: number, value: string) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId ? { ...rule, dataset: value } : rule
+      )
+    );
+  };
+
+  const updateDatasetRefinement = (
+    ruleId: number,
+    refinementId: number,
+    field: keyof Refinement,
+    value: string
+  ) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              datasetRefinements: rule.datasetRefinements.map((r) =>
+                r.id === refinementId ? { ...r, [field]: value } : r
+              ),
+            }
+          : rule
+      )
+    );
+  };
+
+  const updateAction = (ruleId: number, value: string) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId ? { ...rule, action: value } : rule
+      )
+    );
+  };
+
+  const updateActionRefinement = (
+    ruleId: number,
+    refinementId: number,
+    field: keyof Refinement,
+    value: string
+  ) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              actionRefinements: rule.actionRefinements.map((r) =>
+                r.id === refinementId ? { ...r, [field]: value } : r
+              ),
+            }
+          : rule
+      )
+    );
+  };
+
   return {
     rules,
     addRule,
@@ -184,5 +249,9 @@ export const useRules = () => {
     removePurposeRefinement,
     removeActionRefinement,
     removeConstraintRefinement,
+    updateDataset,
+    updateAction,
+    updateDatasetRefinement,
+    updateActionRefinement,
   };
 };

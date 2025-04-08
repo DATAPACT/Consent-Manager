@@ -16,8 +16,25 @@ import {
 import { useRules } from "../../helperFunctions/RulesUtils";
 
 function CreateRequest() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RequestData>({
     title: "",
+    description: "",
+    rules: [
+      {
+        dataset: {
+          dataset_name: "",
+          dataset_refinements: [
+            {
+              attribute: "",
+              dataset_attribute_label: "",
+              operator: "",
+              dataset_operator_label: "",
+              value: "",
+            },
+          ],
+        },
+      },
+    ],
   });
 
   const handleChange = (
@@ -29,7 +46,7 @@ function CreateRequest() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await addRequest({ ...formData, rules });
+    const result = await addRequest(formData);
     if (result.success) {
       alert("Request added with ID: " + result.id);
       // Optionally reset the form here
@@ -50,10 +67,6 @@ function CreateRequest() {
     removePurposeRefinement,
     removeActionRefinement,
     removeConstraintRefinement,
-    updateDataset,
-    updateDatasetRefinement,
-    updateAction,
-    updateActionRefinement,
   } = useRules();
 
   return (
@@ -78,7 +91,7 @@ function CreateRequest() {
           </label>
           <input
             name="title"
-            value={formData.title}
+            value={formData.request_name}
             type="text"
             className={`${styles.formInput} form-control`}
             id="requestName"
@@ -115,8 +128,6 @@ function CreateRequest() {
                   Dataset
                 </label>
                 <input
-                  value={rule.dataset}
-                  onChange={(e) => updateDataset(rule.id, e.target.value)}
                   type="text"
                   className={`${styles.formInput} form-control`}
                   placeholder="Dataset URL"
@@ -139,18 +150,7 @@ function CreateRequest() {
                     <label className={`${styles.formLabel} form-label`}>
                       Attribute
                     </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      value={item.attribute || ""}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          rule.id,
-                          item.id,
-                          "attribute",
-                          e.target.value
-                        )
-                      }
-                    >
+                    <select className={`${styles.formInput} form-select`}>
                       {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
@@ -158,25 +158,18 @@ function CreateRequest() {
                       ))}
                     </select>
                   </div>
-                  <select
-                    className={`${styles.formInput} form-select`}
-                    value={item.instance || ""}
-                    onChange={(e) =>
-                      updateDatasetRefinement(
-                        rule.id,
-                        item.id,
-                        "instance",
-                        e.target.value
-                      )
-                    }
-                  >
-                    {getOperandDropdownValue().map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      {getOperandDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="col">
                     <label className={`${styles.formLabel} form-label`}>
                       Value
@@ -184,15 +177,6 @@ function CreateRequest() {
                     <input
                       type="text"
                       className={`${styles.formInput} form-control`}
-                      value={item.value || ""}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          rule.id,
-                          item.id,
-                          "value",
-                          e.target.value
-                        )
-                      }
                     />
                   </div>
                 </div>
@@ -206,7 +190,7 @@ function CreateRequest() {
               </button>
 
               {/* Action Select */}
-              <div className="mb-3 mt-4">
+              {/* <div className="mb-3 mt-4">
                 <label className={`${styles.formLabel} form-label`}>
                   Action
                 </label>
@@ -220,10 +204,10 @@ function CreateRequest() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               {/* Action Refinements */}
-              {rule.actionRefinements.map((item) => (
+              {/* {rule.actionRefinements.map((item) => (
                 <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Action Refinement</h6>
@@ -237,17 +221,7 @@ function CreateRequest() {
                     <label className={`${styles.formLabel} form-label`}>
                       Attribute
                     </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          rule.id,
-                          item.id,
-                          "attribute",
-                          e.target.value
-                        )
-                      }
-                    >
+                    <select className={`${styles.formInput} form-select`}>
                       {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
@@ -259,17 +233,7 @@ function CreateRequest() {
                     <label className={`${styles.formLabel} form-label`}>
                       Instance
                     </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          rule.id,
-                          item.id,
-                          "attribute",
-                          e.target.value
-                        )
-                      }
-                    >
+                    <select className={`${styles.formInput} form-select`}>
                       {getOperandDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
@@ -282,15 +246,6 @@ function CreateRequest() {
                       Value
                     </label>
                     <input
-                      value={item.value || ""}
-                      onChange={(e) =>
-                        updateActionRefinement(
-                          rule.id,
-                          item.id,
-                          "value",
-                          e.target.value
-                        )
-                      }
                       type="text"
                       className={`${styles.formInput} form-control`}
                     />
@@ -303,7 +258,130 @@ function CreateRequest() {
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add action refinement
-              </button>
+              </button> */}
+
+              {/* Purpose Select */}
+              {/* <div className="mb-3 mt-4">
+                <label className={`${styles.formLabel} form-label`}>
+                  Purpose
+                </label>
+                <select
+                  className={`${styles.formInput} form-select`}
+                  aria-label="Default select example"
+                >
+                  {getPurposeDropdownValue().map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div> */}
+
+              {/* Purpose Refinements */}
+              {/* {rule.purposeRefinements.map((item) => (
+                <div className="row mt-2 mb-3" key={item.id}>
+                  <div className="d-flex mb-3 mt-3">
+                    <h6 className="me-auto">Purpose Refinement</h6>
+                    <i
+                      className="fa-solid fa-trash"
+                      onClick={() => removePurposeRefinement(rule.id, item.id)}
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Attribute
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      {getAttributeDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      {getOperandDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Value
+                    </label>
+                    <input
+                      type="text"
+                      className={`${styles.formInput} form-control`}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addPurposeRefinement(rule.id)}
+                className={`${styles.secondaryButton} btn btn-sm mt-3`}
+              >
+                Add purpose refinement
+              </button> */}
+              <br />
+              <br />
+
+              {/* Constraints Select */}
+
+              {/* Constraints Refinements */}
+              {/* {rule.constraintRefinements.map((item) => (
+                <div className="row mt-2 mb-3" key={item.id}>
+                  <div className="d-flex mb-3 mt-3">
+                    <h6 className="me-auto">Constraint</h6>
+                    <i
+                      className="fa-solid fa-trash"
+                      onClick={() =>
+                        removeConstraintRefinement(rule.id, item.id)
+                      }
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Attribute
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      <option>Choose attribute</option>
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select className={`${styles.formInput} form-select`}>
+                      <option>Choose instance</option>
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Value
+                    </label>
+                    <input
+                      type="text"
+                      className={`${styles.formInput} form-control`}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addConstraintRefinement(rule.id)}
+                className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
+              >
+                Add constraint
+              </button> */}
             </div>
           </div>
         ))}
@@ -325,3 +403,22 @@ function CreateRequest() {
 }
 
 export default CreateRequest;
+
+// I'm gonna explain you the structure of a request. then I will show you the code and I want you to add me the logic of adding the request in the database (firebase):
+
+// a request has:
+
+// - a name
+// - the id of the requester that creates it
+// - the name of the requester that creates it
+// - the email of the requester that creates it
+// - a creation timestamp
+// - a status (by default is “draft”)
+// - one or more rules where each rule has:
+// - a rule id
+// -a dataset (just text input) where the dataset has: none or more dataset refinements, where each dataset refinement has: an attribute, an instance and a value.
+// -an action (just text input) where the action has: none or more action refinements, where each action refinement has: an attribute, an instance and a value.
+// - a purpose (just text input) where the purpose has: none or more purpose refinements, where each purpose refinement has: an attribute, an instance and a value.
+// - none or more constraints where each constraint has: an attribute, an instance and a value.
+
+// first of all just show me a representation of this structure (like a json type)

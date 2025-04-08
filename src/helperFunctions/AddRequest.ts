@@ -1,9 +1,16 @@
 import { db } from "../firebase";
 import { collection, addDoc } from "firebase/firestore";
+import { Refinement } from "./RulesUtils";
 
 interface RequestData {
   title: string;
-  description: string;
+  rules: {
+    dataset: string; // Store dataset URL
+    datasetRefinements: Refinement[];
+    purposeRefinements: Refinement[];
+    actionRefinements: Refinement[];
+    constraintRefinements: Refinement[];
+  }[];
 }
 
 export const addRequest = async (data: RequestData) => {
