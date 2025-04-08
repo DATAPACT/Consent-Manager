@@ -1,5 +1,8 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+
+import { addRequest } from "../../helperFunctions/AddRequest";
 
 // dropdowns
 import {
@@ -13,6 +16,29 @@ import {
 import { useRules } from "../../helperFunctions/RulesUtils";
 
 function CreateRequest() {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = await addRequest(formData);
+    if (result.success) {
+      alert("Request added with ID: " + result.id);
+      // Optionally reset the form here
+    } else {
+      alert("Error adding request");
+    }
+  };
+
   const {
     rules,
     addRule,
@@ -42,16 +68,33 @@ function CreateRequest() {
 
       <hr />
 
-      <form className="w-50">
+      <form onSubmit={handleSubmit} className="w-50">
         <div className="mb-3">
           <label className={`${styles.formLabel} form-label`}>
             Request name
           </label>
           <input
+            name="title"
+            value={formData.title}
             type="text"
             className={`${styles.formInput} form-control`}
             id="requestName"
-            name="requestName"
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className={`${styles.formLabel} form-label`}>
+            Request desription
+          </label>
+          <input
+            name="description"
+            value={formData.description}
+            type="text"
+            className={`${styles.formInput} form-control`}
+            id="requestName"
+            onChange={handleChange}
             required
           />
         </div>
@@ -78,7 +121,7 @@ function CreateRequest() {
                 </div>
               </div>
 
-              <div className="mb-3">
+              {/* <div className="mb-3">
                 <label className={`${styles.formLabel} form-label`}>
                   Dataset
                 </label>
@@ -88,10 +131,10 @@ function CreateRequest() {
                   placeholder="Dataset URL"
                   required
                 />
-              </div>
+              </div> */}
 
               {/* Dataset Refinements */}
-              {rule.datasetRefinements.map((item) => (
+              {/* {rule.datasetRefinements.map((item) => (
                 <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Dataset Refinement</h6>
@@ -142,10 +185,10 @@ function CreateRequest() {
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add dataset refinement
-              </button>
+              </button> */}
 
               {/* Action Select */}
-              <div className="mb-3 mt-4">
+              {/* <div className="mb-3 mt-4">
                 <label className={`${styles.formLabel} form-label`}>
                   Action
                 </label>
@@ -159,10 +202,10 @@ function CreateRequest() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               {/* Action Refinements */}
-              {rule.actionRefinements.map((item) => (
+              {/* {rule.actionRefinements.map((item) => (
                 <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Action Refinement</h6>
@@ -213,10 +256,10 @@ function CreateRequest() {
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add action refinement
-              </button>
+              </button> */}
 
               {/* Purpose Select */}
-              <div className="mb-3 mt-4">
+              {/* <div className="mb-3 mt-4">
                 <label className={`${styles.formLabel} form-label`}>
                   Purpose
                 </label>
@@ -230,10 +273,10 @@ function CreateRequest() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               {/* Purpose Refinements */}
-              {rule.purposeRefinements.map((item) => (
+              {/* {rule.purposeRefinements.map((item) => (
                 <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Purpose Refinement</h6>
@@ -284,14 +327,14 @@ function CreateRequest() {
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add purpose refinement
-              </button>
+              </button> */}
               <br />
               <br />
 
               {/* Constraints Select */}
 
               {/* Constraints Refinements */}
-              {rule.constraintRefinements.map((item) => (
+              {/* {rule.constraintRefinements.map((item) => (
                 <div className="row mt-2 mb-3" key={item.id}>
                   <div className="d-flex mb-3 mt-3">
                     <h6 className="me-auto">Constraint</h6>
@@ -336,7 +379,7 @@ function CreateRequest() {
                 className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
               >
                 Add constraint
-              </button>
+              </button> */}
             </div>
           </div>
         ))}
@@ -349,10 +392,9 @@ function CreateRequest() {
           Add Rule
         </button>
 
-        {/* 
         <button className={`${styles.primaryButton} btn mt-3`} type="submit">
           Create Request
-        </button> */}
+        </button>
       </form>
     </div>
   );

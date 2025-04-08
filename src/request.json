@@ -1,49 +1,60 @@
 {
-  "name": "example_request",
+  "name": "",
   "requester": {
-    "id": "user_123",
-    "name": "John Doe",
-    "email": "john.doe@example.com"
+    "id": "",
+    "name": "",
+    "email": ""
   },
-  "created_at": "2025-04-04T10:30:00Z",
+  "created_at": "",
   "status": "draft",
+  "policy_id": "",
   "rules": [
     {
       "dataset": {
-        "text": "dataset url",
+        "dataset_name": "",
         "dataset_refinements": [
           {
-            "attribute": "type",
-            "instance": "user",
-            "value": "sensitive"
+            "attribute": "",
+            "dataset_attribute_label": "",
+            "operator": "",
+            "dataset_operator_label": "",
+            "value": ""
           }
         ]
       },
       "action": {
-        "select": "action description",
+        "action_name": "",
+        "action_label": "",
         "action_refinements": [
           {
-            "attribute": "method",
-            "instance": "processing",
-            "value": "anonymization"
+            "attribute": "",
+            "action_attribute_label": "",
+            "operator": "",
+            "action_operator_label": "",
+            "value": ""
           }
         ]
       },
       "purpose": {
-        "text": "purpose description",
+        "purpose_name": "",
+        "purpose_label": "",
         "purpose_refinements": [
           {
-            "attribute": "goal",
-            "instance": "research",
-            "value": "health data analysis"
+            "attribute": "",
+            "purpose_attribute_label": "",
+            "operator": "",
+            "purpose_operator_label": "",
+            "value": ""
           }
         ]
       },
       "constraints": [
         {
-          "attribute": "retention",
-          "instance": "duration",
-          "value": "30 days"
+          "attribute": "",
+          "constraints_attribute_label": "",
+          "operator": "",
+          "constraints_operator_label": "",
+          "value": ""
         }
       ]
     }
