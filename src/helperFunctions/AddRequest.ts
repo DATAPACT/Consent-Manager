@@ -8,11 +8,17 @@ interface RequestData {
 
 export const addRequest = async (data: RequestData) => {
   try {
+    // data that don't take values from the form
     const requestWithDefaults = {
       ...data,
-      status: "draft",
+
+      requester: {
+        requester_id: "123",
+        requester_name: "george",
+        requester_email: "george@gmail.com",
+      },
       createdAt: new Date().toISOString(),
-      creator: "george",
+      status: "draft",
     };
 
     const docRef = await addDoc(
