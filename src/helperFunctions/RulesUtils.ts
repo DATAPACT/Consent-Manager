@@ -12,6 +12,7 @@ export interface Rule {
   id: number;
   dataset: string;
   action: string;
+  purpose: string;
   datasetRefinements: Refinement[];
   purposeRefinements: Refinement[];
   actionRefinements: Refinement[];
@@ -25,6 +26,7 @@ export const useRules = () => {
       id: Date.now(),
       dataset: "",
       action: "",
+      purpose: "",
       datasetRefinements: [],
       purposeRefinements: [],
       actionRefinements: [],
@@ -40,6 +42,7 @@ export const useRules = () => {
         id: Date.now(),
         dataset: "",
         action: "",
+        purpose: "",
         datasetRefinements: [],
         purposeRefinements: [],
         actionRefinements: [],
@@ -237,6 +240,34 @@ export const useRules = () => {
     );
   };
 
+  const updatePurpose = (ruleId: number, value: string) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId ? { ...rule, purpose: value } : rule
+      )
+    );
+  };
+
+  const updatePurposeRefinement = (
+    ruleId: number,
+    refinementId: number,
+    field: keyof Refinement,
+    value: string
+  ) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              purposeRefinements: rule.purposeRefinements.map((r) =>
+                r.id === refinementId ? { ...r, [field]: value } : r
+              ),
+            }
+          : rule
+      )
+    );
+  };
+
   return {
     rules,
     addRule,
@@ -251,7 +282,9 @@ export const useRules = () => {
     removeConstraintRefinement,
     updateDataset,
     updateAction,
+    updatePurpose,
     updateDatasetRefinement,
     updateActionRefinement,
+    updatePurposeRefinement,
   };
 };

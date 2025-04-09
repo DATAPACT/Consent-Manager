@@ -53,7 +53,9 @@ function CreateRequest() {
     updateDataset,
     updateDatasetRefinement,
     updateAction,
+    updatePurpose,
     updateActionRefinement,
+    updatePurposeRefinement,
   } = useRules();
 
   return (
@@ -150,6 +152,7 @@ function CreateRequest() {
                           e.target.value
                         )
                       }
+                      required
                     >
                       {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
@@ -169,6 +172,7 @@ function CreateRequest() {
                         e.target.value
                       )
                     }
+                    required
                   >
                     {getOperandDropdownValue().map((option) => (
                       <option key={option.value} value={option.value}>
@@ -193,6 +197,7 @@ function CreateRequest() {
                           e.target.value
                         )
                       }
+                      required
                     />
                   </div>
                 </div>
@@ -213,6 +218,9 @@ function CreateRequest() {
                 <select
                   className={`${styles.formInput} form-select`}
                   aria-label="Default select example"
+                  value={rule.action}
+                  onChange={(e) => updateAction(rule.id, e.target.value)}
+                  required
                 >
                   {getActionDropdownValue().map((option) => (
                     <option key={option.value} value={option.value}>
@@ -239,14 +247,16 @@ function CreateRequest() {
                     </label>
                     <select
                       className={`${styles.formInput} form-select`}
+                      value={item.attribute || ""}
                       onChange={(e) =>
-                        updateDatasetRefinement(
+                        updateActionRefinement(
                           rule.id,
                           item.id,
                           "attribute",
                           e.target.value
                         )
                       }
+                      required
                     >
                       {getAttributeDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
@@ -261,14 +271,16 @@ function CreateRequest() {
                     </label>
                     <select
                       className={`${styles.formInput} form-select`}
+                      value={item.instance || ""}
                       onChange={(e) =>
-                        updateDatasetRefinement(
+                        updateActionRefinement(
                           rule.id,
                           item.id,
-                          "attribute",
+                          "instance",
                           e.target.value
                         )
                       }
+                      required
                     >
                       {getOperandDropdownValue().map((option) => (
                         <option key={option.value} value={option.value}>
@@ -293,6 +305,7 @@ function CreateRequest() {
                       }
                       type="text"
                       className={`${styles.formInput} form-control`}
+                      required
                     />
                   </div>
                 </div>
@@ -303,6 +316,114 @@ function CreateRequest() {
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add action refinement
+              </button>
+
+              {/* Purpose Select */}
+              <div className="mb-3 mt-4">
+                <label className={`${styles.formLabel} form-label`}>
+                  Purpose
+                </label>
+                <select
+                  className={`${styles.formInput} form-select`}
+                  aria-label="Default select example"
+                  value={rule.purpose}
+                  onChange={(e) => updatePurpose(rule.id, e.target.value)}
+                  required
+                >
+                  {getPurposeDropdownValue().map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Purpose Refinements */}
+              {rule.purposeRefinements.map((item) => (
+                <div className="row mt-2 mb-3" key={item.id}>
+                  <div className="d-flex mb-3 mt-3">
+                    <h6 className="me-auto">Purpose Refinement</h6>
+                    <i
+                      className="fa-solid fa-trash"
+                      onClick={() => removePurposeRefinement(rule.id, item.id)}
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Attribute
+                    </label>
+                    <select
+                      className={`${styles.formInput} form-select`}
+                      value={item.attribute || ""}
+                      onChange={(e) =>
+                        updatePurposeRefinement(
+                          rule.id,
+                          item.id,
+                          "attribute",
+                          e.target.value
+                        )
+                      }
+                      required
+                    >
+                      {getAttributeDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select
+                      className={`${styles.formInput} form-select`}
+                      value={item.instance || ""}
+                      onChange={(e) =>
+                        updatePurposeRefinement(
+                          rule.id,
+                          item.id,
+                          "instance",
+                          e.target.value
+                        )
+                      }
+                      required
+                    >
+                      {getOperandDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Value
+                    </label>
+                    <input
+                      type="text"
+                      className={`${styles.formInput} form-control`}
+                      value={item.value || ""}
+                      onChange={(e) =>
+                        updatePurposeRefinement(
+                          rule.id,
+                          item.id,
+                          "value",
+                          e.target.value
+                        )
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addPurposeRefinement(rule.id)}
+                className={`${styles.secondaryButton} btn btn-sm mt-3`}
+              >
+                Add purpose refinement
               </button>
             </div>
           </div>
