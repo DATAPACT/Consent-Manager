@@ -268,6 +268,26 @@ export const useRules = () => {
     );
   };
 
+  const updateConstraintsRefinement = (
+    ruleId: number,
+    refinementId: number,
+    field: keyof Refinement,
+    value: string
+  ) => {
+    setRules(
+      rules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              constraintRefinements: rule.constraintRefinements.map((r) =>
+                r.id === refinementId ? { ...r, [field]: value } : r
+              ),
+            }
+          : rule
+      )
+    );
+  };
+
   return {
     rules,
     addRule,
@@ -286,5 +306,6 @@ export const useRules = () => {
     updateDatasetRefinement,
     updateActionRefinement,
     updatePurposeRefinement,
+    updateConstraintsRefinement,
   };
 };

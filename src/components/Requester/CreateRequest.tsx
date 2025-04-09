@@ -56,6 +56,7 @@ function CreateRequest() {
     updatePurpose,
     updateActionRefinement,
     updatePurposeRefinement,
+    updateConstraintsRefinement,
   } = useRules();
 
   return (
@@ -424,6 +425,96 @@ function CreateRequest() {
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
               >
                 Add purpose refinement
+              </button>
+
+              {/* Constraints Refinements */}
+              {rule.constraintRefinements.map((item) => (
+                <div className="row mt-2 mb-3" key={item.id}>
+                  <div className="d-flex mb-3 mt-3">
+                    <h6 className="me-auto">Constraint</h6>
+                    <i
+                      className="fa-solid fa-trash"
+                      onClick={() =>
+                        removeConstraintRefinement(rule.id, item.id)
+                      }
+                      style={{ cursor: "pointer" }}
+                    ></i>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Attribute
+                    </label>
+                    <select
+                      className={`${styles.formInput} form-select`}
+                      value={item.attribute || ""}
+                      onChange={(e) =>
+                        updateConstraintsRefinement(
+                          rule.id,
+                          item.id,
+                          "attribute",
+                          e.target.value
+                        )
+                      }
+                      required
+                    >
+                      {getAttributeDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select
+                      className={`${styles.formInput} form-select`}
+                      value={item.instance || ""}
+                      onChange={(e) =>
+                        updateConstraintsRefinement(
+                          rule.id,
+                          item.id,
+                          "instance",
+                          e.target.value
+                        )
+                      }
+                      required
+                    >
+                      {getOperandDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Value
+                    </label>
+                    <input
+                      type="text"
+                      className={`${styles.formInput} form-control`}
+                      value={item.value || ""}
+                      onChange={(e) =>
+                        updateConstraintsRefinement(
+                          rule.id,
+                          item.id,
+                          "value",
+                          e.target.value
+                        )
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addConstraintRefinement(rule.id)}
+                className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
+              >
+                Add constraint
               </button>
             </div>
           </div>
