@@ -138,7 +138,7 @@ function OwnerPendingRequestsDetails() {
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
         </Link>
         <h3 className="mt-4">{requestDetails.requestName}</h3>
-        <h5 className="mt-4 mb-3">Sender details</h5>
+        <h5 className="mt-4 mb-3">Requester details</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
           {requestDetails.requester.requesterName}
@@ -147,7 +147,11 @@ function OwnerPendingRequestsDetails() {
           <i className="fa-solid fa-envelope me-3"></i>
           {requestDetails.requester.requesterEmail}
         </p>
-        <hr />
+
+        <div className="alert alert-warning" role="alert">
+          If you are unsure whether to accept, reject or make any modifications
+          to the request, please contact the requester.
+        </div>
         {requestDetails.rules?.map((rule, ruleIndex) => (
           <div key={ruleIndex} className="mb-4 mt-4">
             <h5>Requirement {ruleIndex + 1}</h5>
@@ -223,7 +227,7 @@ function OwnerPendingRequestsDetails() {
           </div>
         ))}
         <hr />
-        <div className="d-flex mt-5">
+        <div className="d-flex mt-4">
           <div>
             <button
               className={`${styles.primaryButton} btn`}
