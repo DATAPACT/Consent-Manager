@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 import { Refinement } from "./RulesUtils";
 
 interface RequestData {
-  request_name: string;
+  requestName: string;
   rules: {
     dataset: string;
     datasetRefinements: Refinement[];
@@ -18,6 +18,30 @@ export const addRequest = async (data: RequestData) => {
   try {
     const auth = getAuth();
     const user = auth.currentUser;
+    const now = new Date();
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
 
     if (!user) {
       throw new Error("User not authenticated");
@@ -36,7 +60,13 @@ export const addRequest = async (data: RequestData) => {
         requesterName: requesterName,
         requesterEmail: user.email || "Unknown",
       },
-      createdAt: new Date().toISOString(),
+      createdAt: `${days[now.getDay()]} ${now
+        .getDate()
+        .toString()
+        .padStart(2, "0")} ${months[now.getMonth()]} ${now.getFullYear()} ${now
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       status: "draft",
     };
 

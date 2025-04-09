@@ -20,7 +20,7 @@ import { useRules } from "../../helperFunctions/RulesUtils";
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
   const [formData, setFormData] = useState({
-    request_name: "",
+    requestName: "",
   });
 
   const handleChange = (
@@ -82,8 +82,8 @@ function CreateRequest() {
             Request name
           </label>
           <input
-            name="request_name"
-            value={formData.request_name}
+            name="requestName"
+            value={formData.requestName}
             type="text"
             className={`${styles.formInput} form-control`}
             id="requestName"

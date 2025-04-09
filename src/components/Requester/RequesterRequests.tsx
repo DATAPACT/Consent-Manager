@@ -48,7 +48,7 @@ function RequesterRequests() {
         // Fetch sent requests
         const sentQuery = query(
           requestsRef,
-          where("requesterId", "==", userId),
+          where("requester.requesterId", "==", userId),
           where("status", "==", "sent")
         );
         const sentSnapshot = await getDocs(sentQuery);
@@ -176,7 +176,7 @@ function RequesterRequests() {
                 <tbody>
                   {draftRequests.map((request) => (
                     <tr key={request.id}>
-                      <td className="py-3">{request.request_name}</td>
+                      <td className="py-3">{request.requestName}</td>
                       <td className="py-3">{request.createdAt}</td>
                       <td className="py-3 text-center">
                         <Link
@@ -229,11 +229,7 @@ function RequesterRequests() {
                   {sentRequests.map((request) => (
                     <tr key={request.id}>
                       <td className="py-3">{request.requestName}</td>
-                      <td className="py-3">
-                        {new Date(
-                          request.createdAt.seconds * 1000
-                        ).toLocaleString()}
-                      </td>
+                      <td className="py-3">{request.createdAt}</td>
                       <td className="py-3 text-warning">
                         Waiting for response
                       </td>
