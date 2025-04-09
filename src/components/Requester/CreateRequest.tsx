@@ -162,25 +162,30 @@ function CreateRequest() {
                       ))}
                     </select>
                   </div>
-                  <select
-                    className={`${styles.formInput} form-select`}
-                    value={item.instance || ""}
-                    onChange={(e) =>
-                      updateDatasetRefinement(
-                        rule.id,
-                        item.id,
-                        "instance",
-                        e.target.value
-                      )
-                    }
-                    required
-                  >
-                    {getOperandDropdownValue().map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="col">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Instance
+                    </label>
+                    <select
+                      className={`${styles.formInput} form-select`}
+                      value={item.instance || ""}
+                      onChange={(e) =>
+                        updateDatasetRefinement(
+                          rule.id,
+                          item.id,
+                          "instance",
+                          e.target.value
+                        )
+                      }
+                      required
+                    >
+                      {getOperandDropdownValue().map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="col">
                     <label className={`${styles.formLabel} form-label`}>
@@ -523,12 +528,22 @@ function CreateRequest() {
         <button
           type="button"
           onClick={addRule}
-          className={`${styles.primaryButton} btn btn-sm`}
+          className={`${styles.secondaryButton} btn w-100`}
         >
           Add Rule
         </button>
+        <br />
 
-        <button className={`${styles.primaryButton} btn mt-3`} type="submit">
+        <p className="text-muted mt-4">
+          Bofore you submit your request please make sure that all your rules
+          and refinements are correct. Wrong values can lead to rejection by the
+          data owner.
+        </p>
+
+        <button
+          className={`${styles.primaryButton} btn mt-3 w-100`}
+          type="submit"
+        >
           Create Request
         </button>
       </form>
