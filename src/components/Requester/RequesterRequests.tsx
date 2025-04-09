@@ -36,7 +36,7 @@ function RequesterRequests() {
         // Fetch draft requests
         const draftQuery = query(
           requestsRef,
-          where("requesterId", "==", userId),
+          where("requester.requester_id", "==", userId),
           where("status", "==", "draft")
         );
         const draftSnapshot = await getDocs(draftQuery);
@@ -176,12 +176,8 @@ function RequesterRequests() {
                 <tbody>
                   {draftRequests.map((request) => (
                     <tr key={request.id}>
-                      <td className="py-3">{request.requestName}</td>
-                      <td className="py-3">
-                        {new Date(
-                          request.createdAt.seconds * 1000
-                        ).toLocaleString()}
-                      </td>
+                      <td className="py-3">{request.request_name}</td>
+                      <td className="py-3">{request.createdAt}</td>
                       <td className="py-3 text-center">
                         <Link
                           className="btn btn-sm text-dark"
