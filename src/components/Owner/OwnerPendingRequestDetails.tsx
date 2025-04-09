@@ -137,39 +137,42 @@ function OwnerPendingRequestsDetails() {
         >
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
         </Link>
-
         <h3 className="mt-4">{requestDetails.requestName}</h3>
-
         <h5 className="mt-4 mb-3">Sender details</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
           {requestDetails.requester.requesterName}
         </p>
-        <p>
+        <p className="mb-4">
           <i className="fa-solid fa-envelope me-3"></i>
           {requestDetails.requester.requesterEmail}
         </p>
-
+        <hr />
         {requestDetails.rules?.map((rule, ruleIndex) => (
-          <div key={ruleIndex} className="mb-4">
-            <h5>Rule {ruleIndex + 1}</h5>
+          <div key={ruleIndex} className="mb-4 mt-4">
+            <h5>Requirement {ruleIndex + 1}</h5>
+            <h5 className="mt-4">What’s being requested</h5>
             <p>
-              <strong>Dataset:</strong> {rule.dataset}
+              <strong>Dataset:</strong> The requester wants access to data from{" "}
+              <strong>{rule.dataset}</strong>.
             </p>
             <p>
-              <strong>Action:</strong> {rule.action}
+              <strong>Action:</strong> The requester wants to{" "}
+              <strong>{rule.action}</strong> to this dataset.
             </p>
             <p>
-              <strong>Purpose:</strong> {rule.purpose}
+              <strong>Purpose:</strong> This request is for{" "}
+              <strong>{rule.purpose}</strong> reasons.
             </p>
 
             {rule.datasetRefinements?.length > 0 && (
               <div>
-                <strong>Dataset Refinements:</strong>
-                <ul>
+                <h5>Dataset conditions:</h5>
+                <ul className="list-unstyled">
                   {rule.datasetRefinements.map((ref, i) => (
                     <li key={i}>
-                      {ref.attribute} - {ref.instance} - {ref.value}
+                      Data about <strong>{ref.attribute}</strong> items greater
+                      than <strong>{ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -178,11 +181,12 @@ function OwnerPendingRequestsDetails() {
 
             {rule.actionRefinements?.length > 0 && (
               <div>
-                <strong>Action Refinements:</strong>
-                <ul>
+                <h5>Action conditions:</h5>
+                <ul className="list-unstyled">
                   {rule.actionRefinements.map((ref, i) => (
                     <li key={i}>
-                      {ref.attribute} - {ref.instance} - {ref.value}
+                      Write access to <strong>{ref.attribute}</strong> items
+                      greater than <strong> {ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -191,11 +195,12 @@ function OwnerPendingRequestsDetails() {
 
             {rule.purposeRefinements?.length > 0 && (
               <div>
-                <strong>Purpose Refinements:</strong>
-                <ul>
+                <h5>Purpose conditions:</h5>
+                <ul className="list-unstyled">
                   {rule.purposeRefinements.map((ref, i) => (
                     <li key={i}>
-                      {ref.attribute} - {ref.instance} - {ref.value}
+                      Data will be used for <strong>{ref.attribute}</strong>{" "}
+                      items greater than <strong>{ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -208,7 +213,8 @@ function OwnerPendingRequestsDetails() {
                 <ul>
                   {rule.constraints.map((ref, i) => (
                     <li key={i}>
-                      {ref.attribute} - {ref.instance} - {ref.value}
+                      Data should meet the constraint: **{ref.attribute}** - **
+                      {ref.instance}** - **{ref.value}**.
                     </li>
                   ))}
                 </ul>
@@ -216,7 +222,7 @@ function OwnerPendingRequestsDetails() {
             )}
           </div>
         ))}
-
+        <hr />
         <div className="d-flex mt-5">
           <div>
             <button
