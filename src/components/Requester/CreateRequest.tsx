@@ -1,5 +1,5 @@
 import styles from "../../css/CreateRequest.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { useState } from "react";
 
 import { addRequest } from "../../helperFunctions/AddRequest";
@@ -18,6 +18,7 @@ import {
 import { useRules } from "../../helperFunctions/RulesUtils";
 
 function CreateRequest() {
+  const navigate = useNavigate(); // Initialize navigate
   const [formData, setFormData] = useState({
     request_name: "",
   });
@@ -33,10 +34,9 @@ function CreateRequest() {
     e.preventDefault();
     const result = await addRequest({ ...formData, rules });
     if (result.success) {
-      alert("Request added with ID: " + result.id);
-      // Optionally reset the form here
+      navigate("/requesterBase/RequesterRequests");
     } else {
-      alert("Error adding request");
+      alert("Error creating request");
     }
   };
 
