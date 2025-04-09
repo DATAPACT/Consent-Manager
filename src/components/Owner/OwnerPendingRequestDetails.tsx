@@ -9,16 +9,32 @@ import styles from "../../css/Ontology.module.css";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 
+interface Refinement {
+  attribute: string;
+  instance: string;
+  value: string;
+}
+
+interface Rule {
+  dataset: string;
+  datasetRefinements: Refinement[];
+  action: string;
+  actionRefinements: Refinement[];
+  purpose: string;
+  purposeRefinements: Refinement[];
+  constraints: Refinement[];
+}
+
 interface Request {
   id: string;
   requestName: string;
+  requester: {
+    requesterName: string;
+    requesterEmail: string;
+  };
+  rules: Rule[];
   status: string;
   owners: string[];
-  createdAt: { seconds: number };
-  senderName: string;
-  startDate: { seconds: number };
-  endDate: { seconds: number };
-  moreInfo: string;
 }
 
 function OwnerPendingRequestsDetails() {
@@ -124,33 +140,82 @@ function OwnerPendingRequestsDetails() {
 
         <h3 className="mt-4">{requestDetails.requestName}</h3>
 
-        <h5 className="mt-4">Sender</h5>
-        <p>{requestDetails.senderName}</p>
-
-        <h5 className="mt-4">Date requested</h5>
+        <h5 className="mt-4 mb-3">Sender details</h5>
         <p>
-          {new Date(requestDetails.createdAt.seconds * 1000).toLocaleString()}
+          <i className="fa-solid fa-user me-3"></i>
+          {requestDetails.requester.requesterName}
+        </p>
+        <p>
+          <i className="fa-solid fa-envelope me-3"></i>
+          {requestDetails.requester.requesterEmail}
         </p>
 
-        <div className="d-flex flex-row mt-4">
-          <div>
-            <h5>Start date</h5>
+        {requestDetails.rules?.map((rule, ruleIndex) => (
+          <div key={ruleIndex} className="mb-4">
+            <h5>Rule {ruleIndex + 1}</h5>
             <p>
-              {new Date(
-                requestDetails.startDate.seconds * 1000
-              ).toLocaleString()}
+              <strong>Dataset:</strong> {rule.dataset}
             </p>
-          </div>
-          <div className="ms-5">
-            <h5>End date</h5>
             <p>
-              {new Date(requestDetails.endDate.seconds * 1000).toLocaleString()}
+              <strong>Action:</strong> {rule.action}
             </p>
-          </div>
-        </div>
+            <p>
+              <strong>Purpose:</strong> {rule.purpose}
+            </p>
 
-        <h5 className="mt-3">More info</h5>
-        <p>{requestDetails.moreInfo}</p>
+            {rule.datasetRefinements?.length > 0 && (
+              <div>
+                <strong>Dataset Refinements:</strong>
+                <ul>
+                  {rule.datasetRefinements.map((ref, i) => (
+                    <li key={i}>
+                      {ref.attribute} - {ref.instance} - {ref.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.actionRefinements?.length > 0 && (
+              <div>
+                <strong>Action Refinements:</strong>
+                <ul>
+                  {rule.actionRefinements.map((ref, i) => (
+                    <li key={i}>
+                      {ref.attribute} - {ref.instance} - {ref.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.purposeRefinements?.length > 0 && (
+              <div>
+                <strong>Purpose Refinements:</strong>
+                <ul>
+                  {rule.purposeRefinements.map((ref, i) => (
+                    <li key={i}>
+                      {ref.attribute} - {ref.instance} - {ref.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.constraints?.length > 0 && (
+              <div>
+                <strong>Constraints:</strong>
+                <ul>
+                  {rule.constraints.map((ref, i) => (
+                    <li key={i}>
+                      {ref.attribute} - {ref.instance} - {ref.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
 
         <div className="d-flex mt-5">
           <div>

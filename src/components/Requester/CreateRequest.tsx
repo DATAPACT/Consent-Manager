@@ -153,7 +153,7 @@ function CreateRequest() {
                         updateDatasetRefinement(
                           rule.id,
                           item.id,
-                          "value",
+                          "attribute",
                           Labelvalue,
                           label
                         );
@@ -174,15 +174,17 @@ function CreateRequest() {
                     <select
                       className={`${styles.formInput} form-select`}
                       value={item.instance || ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const Labelvalue = e.target.value;
+                        const label = getAttributeLabel(Labelvalue);
                         updateDatasetRefinement(
                           rule.id,
                           item.id,
                           "instance",
-                          e.target.value,
-                          "label"
-                        )
-                      }
+                          Labelvalue,
+                          label
+                        );
+                      }}
                       required
                     >
                       {getOperandDropdownValue().map((option) => (
@@ -201,14 +203,17 @@ function CreateRequest() {
                       type="text"
                       className={`${styles.formInput} form-control`}
                       value={item.value || ""}
-                      onChange={(e) =>
-                        updatePurposeRefinement(
+                      onChange={(e) => {
+                        const Labelvalue = e.target.value;
+                        const label = getAttributeLabel(Labelvalue);
+                        updateDatasetRefinement(
                           rule.id,
                           item.id,
                           "value",
-                          e.target.value
-                        )
-                      }
+                          Labelvalue,
+                          label
+                        );
+                      }}
                       required
                     />
                   </div>
