@@ -32,9 +32,9 @@ export const addRequest = async (data: RequestData) => {
     const requestWithDefaults = {
       ...data,
       requester: {
-        requester_id: user.uid,
-        requester_name: requesterName,
-        requester_email: user.email || "Unknown",
+        requesterId: user.uid,
+        requesterName: requesterName,
+        requesterEmail: user.email || "Unknown",
       },
       createdAt: new Date().toISOString(),
       status: "draft",

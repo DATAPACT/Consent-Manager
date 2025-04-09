@@ -36,7 +36,7 @@ function RequesterRequests() {
         // Fetch draft requests
         const draftQuery = query(
           requestsRef,
-          where("requester.requester_id", "==", userId),
+          where("requester.requesterId", "==", userId),
           where("status", "==", "draft")
         );
         const draftSnapshot = await getDocs(draftQuery);

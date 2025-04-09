@@ -19,7 +19,7 @@ function RequesterDashboard() {
         // Fetch the count of ontologies for the logged-in user
         const ontologiesQuery = query(
           collection(db, "ontologies"),
-          where("requester.requester_id", "==", user.uid)
+          where("requester.requesterId", "==", user.uid)
         );
         const ontologySnapshot = await getDocs(ontologiesQuery);
         setOntologyCount(ontologySnapshot.size); // Set the count of ontologies
@@ -27,7 +27,7 @@ function RequesterDashboard() {
         // Fetch the count of requests for the logged-in user
         const requestsQuery = query(
           collection(db, "requests"),
-          where("requester.requester_id", "==", user.uid)
+          where("requester.requesterId", "==", user.uid)
         );
         const requestSnapshot = await getDocs(requestsQuery);
         setRequestCount(requestSnapshot.size); // Set the count of requests
