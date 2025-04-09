@@ -6,6 +6,7 @@ export interface Refinement {
   attribute?: string;
   instance?: string;
   value?: string;
+  label?: string;
 }
 
 export interface Rule {
@@ -196,7 +197,8 @@ export const useRules = () => {
     ruleId: number,
     refinementId: number,
     field: keyof Refinement,
-    value: string
+    value: string,
+    label: string
   ) => {
     setRules(
       rules.map((rule) =>
@@ -204,7 +206,9 @@ export const useRules = () => {
           ? {
               ...rule,
               datasetRefinements: rule.datasetRefinements.map((r) =>
-                r.id === refinementId ? { ...r, [field]: value } : r
+                r.id === refinementId
+                  ? { ...r, [field]: value, label: label } // Explicitly set `label` field
+                  : r
               ),
             }
           : rule

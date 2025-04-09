@@ -10,6 +10,8 @@ import {
   getPurposeDropdownValue,
   getAttributeDropdownValue,
   getOperandDropdownValue,
+  getAttributeLabel,
+  getInstanceLabel,
 } from "../../helperFunctions/RequestDropdowns";
 
 // rules utils
@@ -17,7 +19,7 @@ import { useRules } from "../../helperFunctions/RulesUtils";
 
 function CreateRequest() {
   const [formData, setFormData] = useState({
-    title: "",
+    request_name: "",
   });
 
   const handleChange = (
@@ -80,8 +82,8 @@ function CreateRequest() {
             Request name
           </label>
           <input
-            name="title"
-            value={formData.title}
+            name="request_name"
+            value={formData.request_name}
             type="text"
             className={`${styles.formInput} form-control`}
             id="requestName"
@@ -145,14 +147,17 @@ function CreateRequest() {
                     <select
                       className={`${styles.formInput} form-select`}
                       value={item.attribute || ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const Labelvalue = e.target.value;
+                        const label = getAttributeLabel(Labelvalue);
                         updateDatasetRefinement(
                           rule.id,
                           item.id,
-                          "attribute",
-                          e.target.value
-                        )
-                      }
+                          "value",
+                          Labelvalue,
+                          label
+                        );
+                      }}
                       required
                     >
                       {getAttributeDropdownValue().map((option) => (
@@ -174,7 +179,8 @@ function CreateRequest() {
                           rule.id,
                           item.id,
                           "instance",
-                          e.target.value
+                          e.target.value,
+                          "label"
                         )
                       }
                       required
@@ -196,7 +202,7 @@ function CreateRequest() {
                       className={`${styles.formInput} form-control`}
                       value={item.value || ""}
                       onChange={(e) =>
-                        updateDatasetRefinement(
+                        updatePurposeRefinement(
                           rule.id,
                           item.id,
                           "value",

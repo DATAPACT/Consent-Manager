@@ -3,7 +3,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { Refinement } from "./RulesUtils";
 
 interface RequestData {
-  title: string;
+  request_name: string;
   rules: {
     dataset: string; // Store dataset URL
     datasetRefinements: Refinement[];
