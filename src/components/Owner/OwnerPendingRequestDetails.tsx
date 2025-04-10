@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { db } from "../../firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Import updateDoc and deleteDoc
+import { getAuth } from "firebase/auth";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -34,7 +35,9 @@ interface Request {
   };
   rules: Rule[];
   status: string;
-  owners: string[];
+  ownersAccepted: string[];
+  ownersRejected: string[];
+  ownersPending: string[];
 }
 
 function OwnerPendingRequestsDetails() {
@@ -73,42 +76,118 @@ function OwnerPendingRequestsDetails() {
     fetchRequestDetails();
   }, [requestId]);
 
-  // Approve request function
+  // Approve Request
   const approveRequest = async () => {
     if (!requestDetails) return;
 
     setUpdating(true);
     try {
-      const requestDocRef = doc(db, "requests", requestId!);
-      await updateDoc(requestDocRef, { status: "approved" });
+      const auth = getAuth();
+      const user = auth.currentUser;
 
-      setRequestDetails((prev) => prev && { ...prev, status: "approved" });
+      if (!user) {
+        setError("User not authenticated.");
+        setUpdating(false);
+        return;
+      }
+
+      const loggedInUserId = user.uid;
+
+      const requestDocRef = doc(db, "requests", requestId!);
+
+      // Remove the logged-in user's ID from ownersPending array
+      const updatedOwnersPending = requestDetails.ownersPending.filter(
+        (ownerId) => ownerId !== loggedInUserId
+      );
+
+      // Add the logged-in user's ID to the ownersAccepted array
+      const updatedOwnersAccepted = [
+        ...requestDetails.ownersAccepted,
+        loggedInUserId,
+      ];
+
+      // Update Firestore with the new ownersPending and ownersAccepted arrays
+      await updateDoc(requestDocRef, {
+        ownersPending: updatedOwnersPending, // Update ownersPending (remove user)
+        ownersAccepted: updatedOwnersAccepted, // Add user to ownersAccepted
+      });
+
+      // Log success
+      console.log("User moved to ownersAccepted");
+
+      // Update the state with the new ownersPending and ownersAccepted arrays
+      setRequestDetails(
+        (prev) =>
+          prev && {
+            ...prev,
+            ownersPending: updatedOwnersPending,
+            ownersAccepted: updatedOwnersAccepted,
+          }
+      );
 
       closeModal("approveRequestModal");
-
       navigate("/ownerBase/ownerDashboard");
     } catch (error) {
+      console.error("Error approving request:", error);
       setError("Error approving request.");
     }
     setUpdating(false);
   };
 
-  // Reject request function (delete instead of updating status)
+  // Reject Request
   const rejectRequest = async () => {
     if (!requestDetails) return;
 
     setUpdating(true);
     try {
-      const requestDocRef = doc(db, "requests", requestId!);
-      await deleteDoc(requestDocRef); // Delete the request from Firestore
+      const auth = getAuth();
+      const user = auth.currentUser;
 
-      setRequestDetails(null); // Clear the request details from the state
+      if (!user) {
+        setError("User not authenticated.");
+        setUpdating(false);
+        return;
+      }
+
+      const loggedInUserId = user.uid;
+
+      const requestDocRef = doc(db, "requests", requestId!);
+
+      // Remove the logged-in user's ID from ownersPending array
+      const updatedOwnersPending = requestDetails.ownersPending.filter(
+        (ownerId) => ownerId !== loggedInUserId
+      );
+
+      // Add the logged-in user's ID to the ownersRejected array
+      const updatedOwnersRejected = [
+        ...requestDetails.ownersRejected,
+        loggedInUserId,
+      ];
+
+      // Update Firestore with the new ownersPending and ownersRejected arrays
+      await updateDoc(requestDocRef, {
+        ownersPending: updatedOwnersPending, // Update ownersPending (remove user)
+        ownersRejected: updatedOwnersRejected, // Add user to ownersRejected
+      });
+
+      // Log success
+      console.log("User moved to ownersRejected");
+
+      // Update the state with the new ownersPending and ownersRejected arrays
+      setRequestDetails(
+        (prev) =>
+          prev && {
+            ...prev,
+            ownersPending: updatedOwnersPending,
+            ownersRejected: updatedOwnersRejected,
+          }
+      );
 
       closeModal("rejectRequestModal");
-
-      navigate("/ownerBase/ownerDashboard"); // Navigate to the pending requests page
+      navigate("/ownerBase/ownerDashboard");
     } catch (error) {
-      setError("Error deleting the request.");
+      console.error("Error rejecting request:", error);
+      setError("Error rejecting request.");
     }
     setUpdating(false);
   };

@@ -12,7 +12,7 @@ interface Request {
   id: string;
   requestName: string;
   status: string;
-  owners: string[]; // Array of owner IDs
+  ownersPending: string[]; // Array of owner IDs pending approval
   createdAt: { seconds: number }; // Firebase timestamp
 }
 
@@ -25,25 +25,26 @@ function OwnerPendingRequests() {
     const fetchRequests = async () => {
       try {
         const requestsRef = collection(db, "requests");
-        const q = query(requestsRef, where("status", "==", "sent"));
+        const q = query(requestsRef, where("status", "==", "sent")); // Modify this to check for "sent" status
         const querySnapshot = await getDocs(q);
         const allRequests: Request[] = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Request[];
 
-        const userId = auth.currentUser?.uid;
+        const userId = auth.currentUser?.uid; // Get logged-in user's ID
         if (!userId) {
           setError("User not logged in.");
           setLoading(false);
           return;
         }
 
+        // Filter requests based on ownersPending array
         const userRequests = allRequests.filter((request) =>
-          request.owners.includes(userId)
+          request.ownersPending.includes(userId)
         );
 
-        setPendingRequests(userRequests);
+        setPendingRequests(userRequests); // Set the filtered requests
         setLoading(false);
       } catch (error) {
         setError("An error occurred while fetching the requests.");
@@ -52,7 +53,7 @@ function OwnerPendingRequests() {
     };
 
     fetchRequests();
-  }, []);
+  }, []); // Empty dependency array ensures the effect runs once when the component mounts
 
   if (loading) {
     return <LoadingSpinner />;

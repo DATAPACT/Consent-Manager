@@ -68,6 +68,9 @@ export const addRequest = async (data: RequestData) => {
         .toString()
         .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       status: "draft",
+      ownersAccepted: [],
+      ownersRejected: [],
+      ownersPending: [],
     };
 
     const docRef = await addDoc(

@@ -18,7 +18,7 @@ interface Request {
   id: string;
   requestName: string;
   status: string;
-  owners: string[];
+  ownersAccepted: string[];
   createdAt: { seconds: number };
 }
 
@@ -55,12 +55,13 @@ function OwnerApprovedRequests() {
 
       try {
         const requestsRef = collection(db, "requests");
-        const q = query(requestsRef, where("status", "==", "approved"));
+        const q = query(requestsRef, where("status", "==", "sent"));
         const querySnapshot = await getDocs(q);
 
+        // Filter requests where the logged-in user is in the 'ownersAccepted' array
         const filteredRequests: Request[] = querySnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
-          .filter((req) => req.owners.includes(userId)); // Filter requests for the logged-in owner
+          .filter((req) => req.ownersAccepted.includes(userId)); // Correctly filter by ownersAccepted
 
         setApprovedRequests(filteredRequests);
       } catch (err) {

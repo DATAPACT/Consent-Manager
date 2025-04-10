@@ -148,7 +148,7 @@ function RequesterRequests() {
               data-bs-toggle="tab"
               data-bs-target="#nav-approved"
             >
-              Approved ({approvedRequests.length})
+              Processed ({approvedRequests.length})
             </button>
           </div>
         </nav>
