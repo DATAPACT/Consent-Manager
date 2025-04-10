@@ -143,13 +143,6 @@ function RequesterRequests() {
             >
               Sent ({sentRequests.length})
             </button>
-            <button
-              className="nav-link"
-              data-bs-toggle="tab"
-              data-bs-target="#nav-approved"
-            >
-              Processed ({approvedRequests.length})
-            </button>
           </div>
         </nav>
 
@@ -222,7 +215,7 @@ function RequesterRequests() {
                   <tr>
                     <th>Name</th>
                     <th>Date Sent</th>
-                    <th>Status</th>
+                    <th className="text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,46 +223,9 @@ function RequesterRequests() {
                     <tr key={request.id}>
                       <td className="py-3">{request.requestName}</td>
                       <td className="py-3">{request.createdAt}</td>
-                      <td className="py-3 text-warning">
-                        Waiting for response
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Approved Requests */}
-          <div className="tab-pane fade" id="nav-approved">
-            {approvedRequests.length === 0 ? (
-              <div className="text-center mt-5">
-                <h4>No approved requests</h4>
-                <p className="mt-2">
-                  Once your requests apprved they will appera here.
-                </p>
-              </div>
-            ) : (
-              <table className="table mt-4">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Date Approved</th>
-                    <th className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {approvedRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td className="py-3">{request.requestName}</td>
-                      <td className="py-3">
-                        {new Date(
-                          request.createdAt.seconds * 1000
-                        ).toLocaleString()}
-                      </td>
                       <td className="py-3 text-center">
                         <Link
-                          to={`/requesterBase/requesterApprovedRequestsDetails/${request.id}`}
+                          to={`/requesterBase/requesterSentRequestsDetails/${request.id}`}
                           className={`${styles.primaryButton} btn btn-sm`}
                         >
                           See details

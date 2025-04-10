@@ -35,7 +35,7 @@ interface Request {
   owners: string[];
 }
 
-function RequesterApprovedRequestsDetails() {
+function RequesterSentRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -153,7 +153,7 @@ function RequesterApprovedRequestsDetails() {
               aria-controls="profile-tab-pane"
               aria-selected="false"
             >
-              Owner decisions
+              Status
             </button>
           </li>
         </ul>
@@ -286,4 +286,4 @@ function RequesterApprovedRequestsDetails() {
   );
 }
 
-export default RequesterApprovedRequestsDetails;
+export default RequesterSentRequestsDetails;
