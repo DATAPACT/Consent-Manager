@@ -7,7 +7,8 @@ import { collection, query, where, getDocs } from "firebase/firestore"; // Fires
 interface Request {
   id: string;
   status: string;
-  owners: string[];
+  ownersPending: string[]; // Added ownersPending
+  ownersAccepted: string[]; // Added ownersApproved
 }
 
 function OwnerDashboard() {
@@ -25,24 +26,21 @@ function OwnerDashboard() {
 
         const requestsRef = collection(db, "requests");
 
-        // Query for pending requests
+        // Query for all requests with the status "sent" (for pending requests)
         const pendingQuery = query(requestsRef, where("status", "==", "sent"));
         const pendingSnapshot = await getDocs(pendingQuery);
         const pendingRequests = pendingSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
-          .filter((request) => request.owners.includes(userId));
+          .filter((request) => request.ownersPending.includes(userId)); // Filter by ownersPending
 
         setPendingRequestsCount(pendingRequests.length);
 
-        // Query for approved requests
-        const approvedQuery = query(
-          requestsRef,
-          where("status", "==", "approved")
-        );
+        // Query for all requests with the status "approved"
+        const approvedQuery = query(requestsRef, where("status", "==", "sent"));
         const approvedSnapshot = await getDocs(approvedQuery);
         const approvedRequests = approvedSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
-          .filter((request) => request.owners.includes(userId));
+          .filter((request) => request.ownersAccepted.includes(userId)); // Filter by ownersApproved
 
         setApprovedRequestsCount(approvedRequests.length);
       } catch (error) {
