@@ -268,7 +268,12 @@ function RequesterRequests() {
                         ).toLocaleString()}
                       </td>
                       <td className="py-3 text-center">
-                        <i className="fa-solid fa-download"></i>
+                        <Link
+                          to={`/requesterBase/requesterApprovedRequestsDetails/${request.id}`}
+                          className={`${styles.primaryButton} btn btn-sm`}
+                        >
+                          See details
+                        </Link>
                       </td>
                     </tr>
                   ))}

@@ -32,6 +32,7 @@ import EditDraftRequest from "./components/Requester/EditDraftRequest";
 import PrivateRoute from "./PrivateRoute";
 import UploadOntology from "./components/Requester/UploadOntology";
 import Unauthorized from "./components/Unauthorized";
+import RequesterApprovedRequestsDetails from "./components/Requester/RequesterApprovedRequestDetails";
 
 // Context
 import { AuthProvider } from "./AuthContext";
@@ -109,6 +110,10 @@ createRoot(document.getElementById("root")!).render(
               element={<EditDraftRequest />}
             />
             <Route path="uploadOntology" element={<UploadOntology />} />
+            <Route
+              path="requesterApprovedRequestsDetails/:requestId"
+              element={<RequesterApprovedRequestsDetails />}
+            />
           </Route>
         </Routes>
       </Router>
