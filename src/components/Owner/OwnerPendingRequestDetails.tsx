@@ -22,7 +22,7 @@ interface Rule {
   actionRefinements: Refinement[];
   purpose: string;
   purposeRefinements: Refinement[];
-  constraints: Refinement[];
+  constraintRefinements: Refinement[];
 }
 
 interface Request {
@@ -148,10 +148,6 @@ function OwnerPendingRequestsDetails() {
           {requestDetails.requester.requesterEmail}
         </p>
 
-        <div className="alert alert-warning" role="alert">
-          If you are unsure whether to accept, reject or make any modifications
-          to the request, please contact the requester.
-        </div>
         {requestDetails.rules?.map((rule, ruleIndex) => (
           <div key={ruleIndex} className="mb-4 mt-4">
             <h5>Requirement {ruleIndex + 1}</h5>
@@ -211,14 +207,15 @@ function OwnerPendingRequestsDetails() {
               </div>
             )}
 
-            {rule.constraints?.length > 0 && (
+            {rule.constraintRefinements?.length > 0 && (
               <div>
-                <strong>Constraints:</strong>
-                <ul>
-                  {rule.constraints.map((ref, i) => (
+                <h5>Constraints:</h5>
+                <ul className="list-unstyled">
+                  {rule.constraintRefinements.map((ref, i) => (
                     <li key={i}>
-                      Data should meet the constraint: **{ref.attribute}** - **
-                      {ref.instance}** - **{ref.value}**.
+                      Data should meet the constraint:{" "}
+                      <strong>{ref.attribute}</strong> {ref.instance}{" "}
+                      <strong>{ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -226,7 +223,11 @@ function OwnerPendingRequestsDetails() {
             )}
           </div>
         ))}
-        <hr />
+
+        <div className="alert alert-warning" role="alert">
+          If you are unsure whether to accept, reject or make any modifications
+          to the request, please contact the requester.
+        </div>
         <div className="d-flex mt-4">
           <div>
             <button

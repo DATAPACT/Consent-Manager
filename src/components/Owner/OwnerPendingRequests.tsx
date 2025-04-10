@@ -87,7 +87,7 @@ function OwnerPendingRequests() {
               <th scope="col">Name</th>
               <th scope="col">Date received</th>
               <th scope="col" className="text-center">
-                View
+                Actions
               </th>
             </tr>
           </thead>
@@ -100,10 +100,10 @@ function OwnerPendingRequests() {
                 </td>
                 <td className="py-3 text-center">
                   <Link
-                    className="btn btn-sm text-dark"
                     to={`/ownerBase/ownerPendingRequestsDetails/${request.id}`}
+                    className={`${styles.primaryButton} btn btn-sm`}
                   >
-                    <i className="fa-solid fa-arrow-right"></i>
+                    See details
                   </Link>
                 </td>
               </tr>

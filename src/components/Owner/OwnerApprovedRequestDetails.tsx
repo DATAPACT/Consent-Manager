@@ -1,5 +1,4 @@
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
-import Footer from "../Footer/Footer";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
@@ -8,35 +7,61 @@ import { doc, getDoc } from "firebase/firestore";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 
+interface Refinement {
+  attribute: string;
+  instance: string;
+  value: string;
+}
+
+interface Rule {
+  dataset: string;
+  datasetRefinements: Refinement[];
+  action: string;
+  actionRefinements: Refinement[];
+  purpose: string;
+  purposeRefinements: Refinement[];
+  constraintRefinements: Refinement[];
+}
+
+interface Request {
+  id: string;
+  requestName: string;
+  requester: {
+    requesterName: string;
+    requesterEmail: string;
+  };
+  rules: Rule[];
+  status: string;
+  owners: string[];
+}
+
 function OwnerApprovedRequestsDetails() {
-  const { requestId } = useParams<{ requestId: string }>(); // Extract requestId from URL params
-  const [request, setRequest] = useState<any | null>(null);
+  const { requestId } = useParams<{ requestId: string }>();
+  const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
       if (!requestId) {
-        setError("Request ID is missing.");
+        setError("Invalid request ID.");
         setLoading(false);
         return;
       }
 
       try {
-        const requestRef = doc(db, "requests", requestId); // Reference to the request document
-        const requestSnapshot = await getDoc(requestRef);
+        const requestDocRef = doc(db, "requests", requestId);
+        const docSnap = await getDoc(requestDocRef);
 
-        if (requestSnapshot.exists()) {
-          const requestData = requestSnapshot.data();
-          console.log("Fetched Request Data:", requestData); // Log the data for debugging
-          setRequest(requestData);
+        if (docSnap.exists()) {
+          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
         } else {
           setError("Request not found.");
         }
+
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching request:", error);
-        setError("An error occurred while fetching the request.");
-      } finally {
+        setError("Error fetching request details.");
         setLoading(false);
       }
     };
@@ -46,6 +71,8 @@ function OwnerApprovedRequestsDetails() {
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
+  if (!requestDetails)
+    return <div className="text-danger">No request details available.</div>;
 
   return (
     <>
@@ -57,42 +84,96 @@ function OwnerApprovedRequestsDetails() {
         >
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
         </Link>
-        <h3 className="mt-4">{request?.requestName}</h3>
-        <h5 className="mt-4">Sender</h5>
-        <p>{request?.senderName || "Sender name not available"}</p>{" "}
-        {/* Added fallback text */}
-        <h5 className="mt-4">Date requested</h5>
+        <h3 className="mt-4">{requestDetails.requestName}</h3>
+        <h5 className="mt-4 mb-3">Requester details</h5>
         <p>
-          {new Date(request?.createdAt.seconds * 1000).toLocaleDateString()}
+          <i className="fa-solid fa-user me-3"></i>
+          {requestDetails.requester.requesterName}
         </p>
-        <div className="d-flex flex-row mt-4">
-          <div>
-            <h5>Start date</h5>
-            <p>
-              {new Date(request?.startDate.seconds * 1000).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="ms-5">
-            <h5>End date</h5>
-            <p>
-              {new Date(request?.endDate.seconds * 1000).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-        <h5 className="mt-3">More info</h5>
-        <p>{request?.moreInfo}</p>
-        <div className="mt-5">
-          <button
-            className={`${styles.primaryButton} btn`}
-            data-bs-toggle="modal"
-            data-bs-target="#approveRequestModal"
-          >
-            Download request
-          </button>
-        </div>
-      </div>
+        <p className="mb-4">
+          <i className="fa-solid fa-envelope me-3"></i>
+          {requestDetails.requester.requesterEmail}
+        </p>
 
-      <Footer />
+        {requestDetails.rules?.map((rule, ruleIndex) => (
+          <div key={ruleIndex} className="mb-4 mt-4">
+            <h5>Requirement {ruleIndex + 1}</h5>
+            <h5 className="mt-4">What’s being requested</h5>
+            <p>
+              <strong>Dataset:</strong> The requester has access to data from{" "}
+              <strong>{rule.dataset}</strong>.
+            </p>
+            <p>
+              <strong>Action:</strong> The requester can{" "}
+              <strong>{rule.action}</strong> to this dataset.
+            </p>
+            <p>
+              <strong>Purpose:</strong> This request is for{" "}
+              <strong>{rule.purpose}</strong> reasons.
+            </p>
+
+            {rule.datasetRefinements?.length > 0 && (
+              <div>
+                <h5>Dataset conditions:</h5>
+                <ul className="list-unstyled">
+                  {rule.datasetRefinements.map((ref, i) => (
+                    <li key={i}>
+                      Data about <strong>{ref.attribute}</strong> items greater
+                      than <strong>{ref.value}</strong>.
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.actionRefinements?.length > 0 && (
+              <div>
+                <h5>Action conditions:</h5>
+                <ul className="list-unstyled">
+                  {rule.actionRefinements.map((ref, i) => (
+                    <li key={i}>
+                      Write access to <strong>{ref.attribute}</strong> items
+                      greater than <strong>{ref.value}</strong>.
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.purposeRefinements?.length > 0 && (
+              <div>
+                <h5>Purpose conditions:</h5>
+                <ul className="list-unstyled">
+                  {rule.purposeRefinements.map((ref, i) => (
+                    <li key={i}>
+                      Data are used for <strong>{ref.attribute}</strong> items
+                      greater than <strong>{ref.value}</strong>.
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.constraintRefinements?.length > 0 && (
+              <div>
+                <h5>Constraints:</h5>
+                <ul className="list-unstyled">
+                  {rule.constraintRefinements.map((ref, i) => (
+                    <li key={i}>
+                      Data meet the constraint: <strong>{ref.attribute}</strong>{" "}
+                      {ref.instance} <strong>{ref.value}</strong>.
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+
+        <button className={`${styles.primaryButton} btn mt-3`}>
+          Download request
+        </button>
+      </div>
     </>
   );
 }

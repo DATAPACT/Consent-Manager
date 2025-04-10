@@ -60,7 +60,7 @@ function RequesterRequests() {
         // Fetch approved requests
         const approvedQuery = query(
           requestsRef,
-          where("requesterId", "==", userId),
+          where("requester.requesterId", "==", userId),
           where("status", "==", "approved")
         );
         const approvedSnapshot = await getDocs(approvedQuery);
