@@ -33,6 +33,9 @@ interface Request {
   rules: Rule[];
   status: string;
   owners: string[];
+  ownersPending: string[];
+  ownersAccepted: string[];
+  ownersRejected: string[];
 }
 
 function RequesterSentRequestsDetails() {
@@ -40,12 +43,11 @@ function RequesterSentRequestsDetails() {
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  // Inside your component
   const [ownerDetails, setOwnerDetails] = useState<
-    { name: string; email: string }[]
-  >([]); // Store the owner details
+    { name: string; email: string; status: string }[]
+  >([]); // Add status to store the status of each owner
 
-  // fetching the owners detials
+  // Fetching the owners' details
   useEffect(() => {
     const fetchOwnerDetails = async () => {
       if (!requestDetails?.owners) return;
@@ -53,23 +55,34 @@ function RequesterSentRequestsDetails() {
       const owners = requestDetails.owners;
       const ownerDetailsPromises = owners.map(async (ownerId) => {
         try {
-          // Fetch user details for each owner ID from the "users" collection
-          const userDocRef = doc(db, "owners", ownerId); // Assuming "users" collection
+          // Fetch user details for each owner ID from the "owners" collection
+          const userDocRef = doc(db, "owners", ownerId);
           const userDocSnap = await getDoc(userDocRef);
 
           if (userDocSnap.exists()) {
-            // Return the user details (name and email)
+            // Determine the status based on the owner's arrays
+            let status = "Waiting for response"; // Default status
+            if (requestDetails.ownersAccepted.includes(ownerId)) {
+              status = "Accepted";
+            } else if (requestDetails.ownersRejected.includes(ownerId)) {
+              status = "Rejected";
+            } else if (requestDetails.ownersPending.includes(ownerId)) {
+              status = "Pending";
+            }
+
+            // Return the user details (name, email, and status)
             return {
               name: userDocSnap.data().name,
               email: userDocSnap.data().email,
+              status,
             };
           } else {
             // If user doesn't exist, return mock data or handle accordingly
-            return { name: "Unknown", email: "N/A" };
+            return { name: "Unknown", email: "N/A", status: "Unknown" };
           }
         } catch (error) {
           console.error("Error fetching owner details:", error);
-          return { name: "Unknown", email: "N/A" };
+          return { name: "Unknown", email: "N/A", status: "Unknown" };
         }
       });
 
@@ -81,7 +94,7 @@ function RequesterSentRequestsDetails() {
     fetchOwnerDetails();
   }, [requestDetails]); // Re-fetch when requestDetails change
 
-  //  fetching request details
+  // Fetching request details
   useEffect(() => {
     const fetchRequestDetails = async () => {
       if (!requestId) {
@@ -114,7 +127,6 @@ function RequesterSentRequestsDetails() {
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails)
     return <div className="text-danger">No request details available.</div>;
-
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -165,16 +177,6 @@ function RequesterSentRequestsDetails() {
             role="tabpanel"
             aria-labelledby="home-tab"
           >
-            <h5 className="mt-4 mb-3">Requester details</h5>
-            <p>
-              <i className="fa-solid fa-user me-3"></i>
-              {requestDetails.requester.requesterName}
-            </p>
-            <p className="mb-4">
-              <i className="fa-solid fa-envelope me-3"></i>
-              {requestDetails.requester.requesterEmail}
-            </p>
-
             {requestDetails.rules?.map((rule, ruleIndex) => (
               <div key={ruleIndex} className="mb-4 mt-4">
                 <h5>Requirement {ruleIndex + 1}</h5>
@@ -274,7 +276,17 @@ function RequesterSentRequestsDetails() {
                   <tr key={index}>
                     <td className="py-3">{owner.name}</td>
                     <td className="py-3">{owner.email}</td>
-                    <td className="py-3">Waiting for response</td>
+                    <td
+                      className={`py-3 text-${
+                        owner.status === "Accepted"
+                          ? "success"
+                          : owner.status === "Rejected"
+                          ? "danger"
+                          : "warning"
+                      }`}
+                    >
+                      {owner.status}
+                    </td>
                   </tr>
                 ))}
               </tbody>

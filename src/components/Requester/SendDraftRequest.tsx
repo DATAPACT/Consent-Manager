@@ -90,6 +90,7 @@ function SendDraftRequest() {
 
       // Update request: add owner ID to owners array & change status
       await updateDoc(requestRef, {
+        owners: [owner.id], // Add the owner ID to the array
         ownersPending: [owner.id], // Add the owner ID to the array
         status: "sent",
       });
