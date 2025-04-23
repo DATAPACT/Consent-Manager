@@ -84,6 +84,17 @@ const UploadOntology: React.FC = () => {
             />
           </div>
 
+          <div className="mb-3">
+            <label className={`${styles.formLabel} form-label`}>
+              Ontology file
+            </label>
+            <input
+              type="file"
+              className={`${styles.formInput} form-control`}
+              required
+            />
+          </div>
+
           <div className="mt-4">
             <button
               type="submit"

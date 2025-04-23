@@ -13,12 +13,12 @@ function Home() {
       <Navbar />
 
       <div className={`${styles.dashboard} container w-50 text-center`}>
-        <h1>UPCAST Consent Manager</h1>
+        <h1 className="display-5 fw-bold">Take Control of User Consent</h1>
         <p>
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Vitae quis,
-          temporibus enim ipsum reprehenderit optio sit ex accusantium
-          voluptatibus voluptatem dolore laboriosam libero ipsa labore, aliquam
-          nihil repellendus, fugiat asperiores!
+          Manage privacy preferences easily. UPCAST Consent Manager helps you
+          collect, store, and manage user consent across websites and apps. Stay
+          compliant with GDPR, CCPA, and other data laws without slowing down
+          your site.
         </p>
         <Link className={`${styles.primaryButton} btn`} to="/getStarted">
           Get started

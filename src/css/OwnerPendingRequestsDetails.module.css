@@ -3,7 +3,7 @@
 }
 
 .primaryButton {
-  background-color: #00713a;
+  background-color: #0690b6;
   color: white;
   font-weight: 400;
   border-radius: 0;
@@ -12,7 +12,7 @@
 }
 
 .primaryButton:hover {
-  background-color: #005e31;
+  background-color: #0681a3;
   color: white;
   font-weight: 400;
 }
