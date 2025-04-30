@@ -224,6 +224,7 @@ function CreateRequest() {
                 type="button"
                 onClick={() => addDatasetRefinement(permission.id)}
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
+                disabled={!permission.dataset} // Disable button if dataset URL is empty
               >
                 Add dataset refinement
               </button>
@@ -338,6 +339,7 @@ function CreateRequest() {
                     type="button"
                     onClick={() => addActionRefinement(permission.id)}
                     className={`${styles.secondaryButton} btn btn-sm mt-3`}
+                    disabled={!permission.action} // Disable button if no action is selected
                   >
                     Add action refinement
                   </button>
@@ -452,6 +454,7 @@ function CreateRequest() {
                     type="button"
                     onClick={() => addPurposeRefinement(permission.id)}
                     className={`${styles.secondaryButton} btn btn-sm mt-3`}
+                    disabled={!permission.purpose} // Disable button if no action is selected
                   >
                     Add purpose refinement
                   </button>
