@@ -128,7 +128,7 @@ function OwnerApprovedRequestsDetails() {
 
             {rule.actionRefinements?.length > 0 && (
               <div>
-                <h5>Action conditions:</h5>
+                <h5>Action permissions:</h5>
                 <ul className="list-unstyled">
                   {rule.actionRefinements.map((ref, i) => (
                     <li key={i}>
@@ -142,7 +142,7 @@ function OwnerApprovedRequestsDetails() {
 
             {rule.purposeRefinements?.length > 0 && (
               <div>
-                <h5>Purpose conditions:</h5>
+                <h5>Purpose permissions:</h5>
                 <ul className="list-unstyled">
                   {rule.purposeRefinements.map((ref, i) => (
                     <li key={i}>

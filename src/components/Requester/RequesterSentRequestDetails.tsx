@@ -196,7 +196,7 @@ function RequesterSentRequestsDetails() {
 
                 {rule.datasetRefinements?.length > 0 && (
                   <div>
-                    <h5>Dataset conditions:</h5>
+                    <h5>Dataset permissions:</h5>
                     <ul className="list-unstyled">
                       {rule.datasetRefinements.map((ref, i) => (
                         <li key={i}>
@@ -210,7 +210,7 @@ function RequesterSentRequestsDetails() {
 
                 {rule.actionRefinements?.length > 0 && (
                   <div>
-                    <h5>Action conditions:</h5>
+                    <h5>Action permissions:</h5>
                     <ul className="list-unstyled">
                       {rule.actionRefinements.map((ref, i) => (
                         <li key={i}>
@@ -224,7 +224,7 @@ function RequesterSentRequestsDetails() {
 
                 {rule.purposeRefinements?.length > 0 && (
                   <div>
-                    <h5>Purpose conditions:</h5>
+                    <h5>Purpose permissions:</h5>
                     <ul className="list-unstyled">
                       {rule.purposeRefinements.map((ref, i) => (
                         <li key={i}>
