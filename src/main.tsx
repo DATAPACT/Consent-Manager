@@ -33,6 +33,7 @@ import PrivateRoute from "./PrivateRoute";
 import UploadOntology from "./components/Requester/UploadOntology";
 import Unauthorized from "./components/Unauthorized";
 import RequesterSentRequestsDetails from "./components/Requester/RequesterSentRequestDetails";
+import RequesterProfile from "./components/Requester/Profile/RequesterProfile";
 
 // Context
 import { AuthProvider } from "./AuthContext";
@@ -113,6 +114,10 @@ createRoot(document.getElementById("root")!).render(
             <Route
               path="requesterSentRequestsDetails/:requestId"
               element={<RequesterSentRequestsDetails />}
+            />
+            <Route
+              path="requesterProfile/:requestId"
+              element={<RequesterProfile />}
             />
           </Route>
         </Routes>

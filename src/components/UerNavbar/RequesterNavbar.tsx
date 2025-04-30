@@ -68,20 +68,26 @@ const RequesterNavbar: React.FC = () => {
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
-                    <a className="dropdown-item" href="#">
-                      Action
-                    </a>
+                    <Link
+                      className="dropdown-item"
+                      to={`/requesterBase/requesterProfile/${user?.uid}`}
+                    >
+                      My Profile
+                    </Link>
                   </li>
                   <li>
                     <a className="dropdown-item" href="#">
-                      Another action
+                      Documentation
                     </a>
                   </li>
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
                   <li>
-                    <button className="dropdown-item" onClick={handleLogout}>
+                    <button
+                      className="dropdown-item text-danger"
+                      onClick={handleLogout}
+                    >
                       Sign out
                     </button>
                   </li>
