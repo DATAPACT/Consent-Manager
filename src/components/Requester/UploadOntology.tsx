@@ -1,23 +1,25 @@
 import styles from "../../css/Ontology.module.css";
 
 // libraries
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
-import { db } from "../../firebase"; // Ensure your Firestore instance is imported
-import { doc, setDoc, Timestamp, collection } from "firebase/firestore"; // Import Timestamp
+import { db, storage } from "../../firebase"; // Make sure you export `storage` from firebase.js
+import { doc, setDoc, Timestamp, collection } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // For file upload
 import { auth } from "../../firebase";
 
 const UploadOntology: React.FC = () => {
   const [name, setName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name) {
-      setError("Ontology name is required");
+    if (!name || !file) {
+      setError("Ontology name and file are required");
       return;
     }
 
@@ -25,102 +27,110 @@ const UploadOntology: React.FC = () => {
       setLoading(true);
       const requesterId = auth.currentUser?.uid;
 
-      if (requesterId) {
-        // Reference to the ontologies collection with auto-generated ID
-        const docRef = doc(collection(db, "ontologies"));
-
-        // Add the ontology name, timestamp, and requesterId to Firestore
-        await setDoc(docRef, {
-          name: name,
-          uploadedAt: Timestamp.fromDate(new Date()), // Add the current timestamp
-          requesterId: requesterId, // Add requesterId
-        });
-
-        setName("");
-        setError("");
-        alert("Ontology uploaded successfully!");
-
-        // Navigate to /requesterBase/Ontologies after successful upload
-        navigate("/requesterBase/Ontologies");
+      if (!requesterId) {
+        setError("User not authenticated");
+        return;
       }
-    } catch (error) {
+
+      const docRef = doc(collection(db, "ontologies"));
+      const storageRef = ref(storage, `ontologies/${docRef.id}/${file.name}`);
+
+      // Upload file to Firebase Storage
+      await uploadBytes(storageRef, file);
+
+      // Get file download URL
+      const fileURL = await getDownloadURL(storageRef);
+
+      // Save metadata in Firestore
+      await setDoc(docRef, {
+        name,
+        fileURL,
+        uploadedAt: Timestamp.fromDate(new Date()),
+        requesterId,
+      });
+
+      setName("");
+      setFile(null);
+      setError("");
+      alert("Ontology uploaded successfully!");
+      navigate("/requesterBase/Ontologies");
+    } catch (err) {
       setError("Error uploading ontology");
-      console.error(error);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <div className={`${styles.dashboard} container w-50`}>
-        <Link
-          className="text-decoration-none"
-          to="/requesterBase/Ontologies"
-          role="button"
-        >
-          <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
-        </Link>
+    <div className={`${styles.dashboard} container w-50`}>
+      <Link
+        className="text-decoration-none"
+        to="/requesterBase/Ontologies"
+        role="button"
+      >
+        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+      </Link>
 
-        <h3 className="mt-4">Upload ontology</h3>
-        <p>
-          Upload your ontology to seamlessly integrate data and enhance
-          analysis.
-        </p>
+      <h3 className="mt-4">Upload ontology</h3>
+      <p>
+        Upload your ontology to seamlessly integrate data and enhance analysis.
+      </p>
 
-        <hr />
+      <hr />
 
-        <form className="w-50" onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className={`${styles.formLabel} form-label`}>
-              Ontology name
-            </label>
-            <input
-              type="text"
-              className={`${styles.formInput} form-control`}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
+      <form className="w-50" onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className={`${styles.formLabel} form-label`}>
+            Ontology name
+          </label>
+          <input
+            type="text"
+            className={`${styles.formInput} form-control`}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
 
-          <div className="mb-3">
-            <label className={`${styles.formLabel} form-label`}>
-              Ontology file
-            </label>
-            <input type="file" className={`${styles.formInput} form-control`} />
-          </div>
+        <div className="mb-3">
+          <label className={`${styles.formLabel} form-label`}>
+            Ontology file
+          </label>
+          <input
+            type="file"
+            accept=".rdf,.owl,.ttl,.xml,.jsonld"
+            className={`${styles.formInput} form-control`}
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            required
+          />
+        </div>
 
-          <div className="mt-4">
-            <button
-              type="submit"
-              className={`${styles.primaryButton} btn`}
-              disabled={loading}
-            >
-              {loading ? "Uploading..." : "Upload Ontology"}
-            </button>
-          </div>
-        </form>
+        <div className="mt-4">
+          <button
+            type="submit"
+            className={`${styles.primaryButton} btn`}
+            disabled={loading}
+          >
+            {loading ? "Uploading..." : "Upload Ontology"}
+          </button>
+        </div>
+      </form>
 
-        {error && <p className="text-danger">{error}</p>}
+      {error && <p className="text-danger">{error}</p>}
 
-        <h5 className="mt-5">Uploading an ontology</h5>
-        <p>
-          Please ensure your ontology is in a compatible format (e.g., OWL, RDF)
-          to easily integrate it into our system. Once uploaded, you can manage,
-          view, and share your ontology for improved data organization and
-          analysis.
-        </p>
+      <h5 className="mt-5">Uploading an ontology</h5>
+      <p>
+        Please ensure your ontology is in a compatible format (e.g., OWL, RDF)
+        to easily integrate it into our system.
+      </p>
 
-        <h5 className="mt-4">What happens next?</h5>
-        <p>
-          You can include your ontologies in your requests. This allows you to
-          leverage your ontology for more structured and efficient data
-          processing, enabling better decision-making and clearer communication
-          with data owners.
-        </p>
-      </div>
-    </>
+      <h5 className="mt-4">What happens next?</h5>
+      <p>
+        You can include your ontologies in your requests. This allows you to
+        leverage your ontology for structured data processing.
+      </p>
+    </div>
   );
 };
 
