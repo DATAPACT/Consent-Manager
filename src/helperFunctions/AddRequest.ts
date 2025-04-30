@@ -1,11 +1,11 @@
 import { db } from "../firebase";
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { Refinement } from "./RulesUtils";
+import { Refinement } from "./PermissionsUtils";
 
 interface RequestData {
   requestName: string;
-  rules: {
+  permissions: {
     dataset: string;
     datasetRefinements: Refinement[];
     purposeRefinements: Refinement[];
