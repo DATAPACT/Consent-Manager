@@ -564,7 +564,7 @@ function CreateRequest() {
         <br />
 
         <p className="text-muted mt-4">
-          Bofore you submit your request please make sure that all your
+          Bofore you create your request please make sure that all your
           permissions and refinements are correct. Wrong values can lead to
           rejection by the data owner.
         </p>
