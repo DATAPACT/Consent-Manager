@@ -6,8 +6,7 @@ import { addRequest } from "../../helperFunctions/AddRequest";
 
 // dropdowns
 import {
-  getActionDropdownValue,
-  getPurposeDropdownValue,
+  getFeatureDropdownValue,
   getAttributeDropdownValue,
   getOperandDropdownValue,
   getAttributeLabel,
@@ -245,7 +244,7 @@ function CreateRequest() {
                       }
                       required
                     >
-                      {getActionDropdownValue().map((option) => (
+                      {getFeatureDropdownValue("action").map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -359,7 +358,7 @@ function CreateRequest() {
                       }
                       required
                     >
-                      {getPurposeDropdownValue().map((option) => (
+                      {getFeatureDropdownValue("purpose").map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>

@@ -3,22 +3,29 @@ export interface Option {
   label: string;
 }
 
-export const getActionDropdownValue = (): Option[] => {
-  return [
-    { value: "", label: "Choose action" },
-    { value: "read", label: "Read" },
-    { value: "write", label: "Write" },
-    { value: "delete", label: "Delete" },
-  ];
-};
+export const getFeatureDropdownValue = (
+  type: "action" | "purpose"
+): Option[] => {
+  if (type === "action") {
+    return [
+      { value: "", label: "Choose action" },
+      { value: "read", label: "Read" },
+      { value: "write", label: "Write" },
+      { value: "delete", label: "Delete" },
+    ];
+  }
 
-export const getPurposeDropdownValue = (): Option[] => {
-  return [
-    { value: "", label: "Choose purpose" },
-    { value: "marketing", label: "Marketing" },
-    { value: "legal", label: "Legal" },
-    { value: "logistics", label: "Logistics" },
-  ];
+  if (type === "purpose") {
+    return [
+      { value: "", label: "Choose purpose" },
+      { value: "marketing", label: "Marketing" },
+      { value: "legal", label: "Legal" },
+      { value: "logistics", label: "Logistics" },
+    ];
+  }
+
+  // Optionally return an empty array or throw an error if type is invalid
+  return [];
 };
 
 export const getAttributeDropdownValue = (): Option[] => {
