@@ -1,4 +1,4 @@
-import styles from "../../css/OwnerPendingRequestsDetails.module.css";
+import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
@@ -43,6 +43,8 @@ function RequesterSentRequestsDetails() {
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [ownerDetails, setOwnerDetails] = useState<
     { name: string; email: string; status: string }[]
   >([]); // Add status to store the status of each owner
@@ -123,6 +125,15 @@ function RequesterSentRequestsDetails() {
     fetchRequestDetails();
   }, [requestId]);
 
+  const filteredOwners = ownerDetails.filter((owner) => {
+    const matchesStatus =
+      statusFilter === "All" || owner.status === statusFilter;
+    const matchesSearch = owner.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails)
@@ -171,6 +182,7 @@ function RequesterSentRequestsDetails() {
         </ul>
 
         <div className="tab-content" id="myTabContent">
+          {/* request details tab */}
           <div
             className="tab-pane fade show active"
             id="home-tab-pane"
@@ -257,40 +269,84 @@ function RequesterSentRequestsDetails() {
               Download request
             </button>
           </div>
+          {/* status tab */}
           <div
             className="tab-pane fade"
             id="profile-tab-pane"
             role="tabpanel"
             aria-labelledby="profile-tab"
           >
-            <table className="table mt-4">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ownerDetails.map((owner, index) => (
-                  <tr key={index}>
-                    <td className="py-3">{owner.name}</td>
-                    <td className="py-3">{owner.email}</td>
-                    <td
-                      className={`py-3 text-${
-                        owner.status === "Accepted"
-                          ? "success"
-                          : owner.status === "Rejected"
-                          ? "danger"
-                          : "warning"
-                      }`}
-                    >
-                      {owner.status}
-                    </td>
+            {/* filters */}
+            <div className="d-flex align-items-center gap-3 mt-4 mb-2">
+              <div>
+                <label
+                  htmlFor="statusFilter"
+                  className={`${styles.formLabel} form-label me-2`}
+                >
+                  Filter by status:
+                </label>
+                <select
+                  id="statusFilter"
+                  className={`${styles.formInput} form-select w-auto d-inline-block`}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="All">All</option>
+                  <option value="Accepted">Accepted</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
+
+              <div className="ms-auto w-25">
+                <input
+                  type="text"
+                  className={`${styles.formInput} form-control`}
+                  placeholder="Search by owner name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {filteredOwners.length === 0 ? (
+              <div className="text-center mt-5">
+                <h4> No matching requests</h4>
+                <p className="mt-2">
+                  Try changing your filter options or search for another data
+                  owner
+                </p>
+              </div>
+            ) : (
+              <table className="table mt-4">
+                <thead>
+                  <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredOwners.map((owner, index) => (
+                    <tr key={index}>
+                      <td className="py-3">{owner.name}</td>
+                      <td className="py-3">{owner.email}</td>
+                      <td
+                        className={`py-3 text-${
+                          owner.status === "Accepted"
+                            ? "success"
+                            : owner.status === "Rejected"
+                            ? "danger"
+                            : "warning"
+                        }`}
+                      >
+                        {owner.status}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
