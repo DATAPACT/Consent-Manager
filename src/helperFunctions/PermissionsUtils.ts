@@ -11,9 +11,9 @@ export interface Refinement {
 
 export interface Permission {
   id: number;
-  dataset: string;
-  action: string;
-  purpose: string;
+  dataset_IRI: string;
+  action_IRI: string;
+  purpose_IRI: string;
   datasetRefinements: Refinement[];
   purposeRefinements: Refinement[];
   actionRefinements: Refinement[];
@@ -25,9 +25,9 @@ export const usePermissions = () => {
   const [permissions, setPermissions] = useState<Permission[]>([
     {
       id: Date.now(),
-      dataset: "",
-      action: "",
-      purpose: "",
+      dataset_IRI: "",
+      action_IRI: "",
+      purpose_IRI: "",
       datasetRefinements: [],
       purposeRefinements: [],
       actionRefinements: [],
@@ -41,9 +41,9 @@ export const usePermissions = () => {
       ...permissions,
       {
         id: Date.now(),
-        dataset: "",
-        action: "",
-        purpose: "",
+        dataset_IRI: "",
+        action_IRI: "",
+        purpose_IRI: "",
         datasetRefinements: [],
         purposeRefinements: [],
         actionRefinements: [],
@@ -201,7 +201,7 @@ export const usePermissions = () => {
     setPermissions(
       permissions.map((permission) =>
         permission.id === permissionId
-          ? { ...permission, dataset: value }
+          ? { ...permission, datasdataset_URIet: value }
           : permission
       )
     );
