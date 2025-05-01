@@ -13,7 +13,7 @@ interface Refinement {
   value: string;
 }
 
-interface Rule {
+interface Permission {
   dataset: string;
   datasetRefinements: Refinement[];
   action: string;
@@ -30,7 +30,7 @@ interface Request {
     requesterName: string;
     requesterEmail: string;
   };
-  rules: Rule[];
+  permissions: Permission[];
   status: string;
   owners: string[];
 }
@@ -95,28 +95,28 @@ function OwnerApprovedRequestsDetails() {
           {requestDetails.requester.requesterEmail}
         </p>
 
-        {requestDetails.rules?.map((rule, ruleIndex) => (
+        {requestDetails.permissions?.map((permission, ruleIndex) => (
           <div key={ruleIndex} className="mb-4 mt-4">
             <h5>Requirement {ruleIndex + 1}</h5>
             <h5 className="mt-4">What’s being requested</h5>
             <p>
               <strong>Dataset:</strong> The requester has access to data from{" "}
-              <strong>{rule.dataset}</strong>.
+              <strong>{permission.dataset}</strong>.
             </p>
             <p>
               <strong>Action:</strong> The requester can{" "}
-              <strong>{rule.action}</strong> to this dataset.
+              <strong>{permission.action}</strong> to this dataset.
             </p>
             <p>
               <strong>Purpose:</strong> This request is for{" "}
-              <strong>{rule.purpose}</strong> reasons.
+              <strong>{permission.purpose}</strong> reasons.
             </p>
 
-            {rule.datasetRefinements?.length > 0 && (
+            {permission.datasetRefinements?.length > 0 && (
               <div>
                 <h5>Dataset conditions:</h5>
                 <ul className="list-unstyled">
-                  {rule.datasetRefinements.map((ref, i) => (
+                  {permission.datasetRefinements.map((ref, i) => (
                     <li key={i}>
                       Data about <strong>{ref.attribute}</strong> items greater
                       than <strong>{ref.value}</strong>.
@@ -126,11 +126,11 @@ function OwnerApprovedRequestsDetails() {
               </div>
             )}
 
-            {rule.actionRefinements?.length > 0 && (
+            {permission.actionRefinements?.length > 0 && (
               <div>
                 <h5>Action permissions:</h5>
                 <ul className="list-unstyled">
-                  {rule.actionRefinements.map((ref, i) => (
+                  {permission.actionRefinements.map((ref, i) => (
                     <li key={i}>
                       Write access to <strong>{ref.attribute}</strong> items
                       greater than <strong>{ref.value}</strong>.
@@ -140,11 +140,11 @@ function OwnerApprovedRequestsDetails() {
               </div>
             )}
 
-            {rule.purposeRefinements?.length > 0 && (
+            {permission.purposeRefinements?.length > 0 && (
               <div>
                 <h5>Purpose permissions:</h5>
                 <ul className="list-unstyled">
-                  {rule.purposeRefinements.map((ref, i) => (
+                  {permission.purposeRefinements.map((ref, i) => (
                     <li key={i}>
                       Data are used for <strong>{ref.attribute}</strong> items
                       greater than <strong>{ref.value}</strong>.
@@ -154,11 +154,11 @@ function OwnerApprovedRequestsDetails() {
               </div>
             )}
 
-            {rule.constraintRefinements?.length > 0 && (
+            {permission.constraintRefinements?.length > 0 && (
               <div>
                 <h5>Constraints:</h5>
                 <ul className="list-unstyled">
-                  {rule.constraintRefinements.map((ref, i) => (
+                  {permission.constraintRefinements.map((ref, i) => (
                     <li key={i}>
                       Data meet the constraint: <strong>{ref.attribute}</strong>{" "}
                       {ref.instance} <strong>{ref.value}</strong>.
