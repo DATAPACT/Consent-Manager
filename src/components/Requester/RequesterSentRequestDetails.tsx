@@ -321,6 +321,15 @@ function RequesterSentRequestsDetails() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <div>
+                <button
+                  data-bs-toggle="modal"
+                  data-bs-target="#exampleModal"
+                  className={`${styles.primaryButton} btn w-100`}
+                >
+                  Request summary
+                </button>
+              </div>
             </div>
 
             {filteredOwners.length === 0 ? (
@@ -406,6 +415,45 @@ function RequesterSentRequestsDetails() {
                 </ul>
               </nav>
             )}
+          </div>
+        </div>
+
+        {/* summary modal */}
+        <div
+          className="modal fade"
+          id="exampleModal"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-5" id="exampleModalLabel">
+                  Request summary
+                </h1>
+                <button
+                  type="button"
+                  className="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>Total owners sent: {requestDetails?.owners.length ?? 0}</p>
+                <p>Pending: {requestDetails?.ownersPending.length ?? 0}</p>
+                <p>Accepted: {requestDetails?.ownersAccepted.length ?? 0}</p>
+                <p>Rejected: {requestDetails?.ownersRejected.length ?? 0}</p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className={`${styles.secondaryButton} btn`}
+                  data-bs-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
