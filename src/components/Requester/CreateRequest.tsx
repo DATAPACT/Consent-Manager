@@ -119,7 +119,7 @@ function CreateRequest() {
                   Dataset
                 </label>
                 <input
-                  value={permission.dataset_IRI}
+                  value={permission.dataset}
                   onChange={(e) => updateDataset(permission.id, e.target.value)}
                   type="text"
                   className={`${styles.formInput} form-control`}
@@ -224,7 +224,7 @@ function CreateRequest() {
                 type="button"
                 onClick={() => addDatasetRefinement(permission.id)}
                 className={`${styles.secondaryButton} btn btn-sm mt-3`}
-                disabled={!permission.dataset_IRI} // Disable button if dataset URL is empty
+                disabled={!permission.dataset} // Disable button if dataset URL is empty
               >
                 Add dataset refinement
               </button>
@@ -239,7 +239,7 @@ function CreateRequest() {
                     <select
                       className={`${styles.formInput} form-select`}
                       aria-label="Default select example"
-                      value={permission.action_IRI}
+                      value={permission.action}
                       onChange={(e) =>
                         updateAction(permission.id, e.target.value)
                       }
@@ -339,7 +339,7 @@ function CreateRequest() {
                     type="button"
                     onClick={() => addActionRefinement(permission.id)}
                     className={`${styles.secondaryButton} btn btn-sm mt-3`}
-                    disabled={!permission.action_IRI} // Disable button if no action is selected
+                    disabled={!permission.action} // Disable button if no action is selected
                   >
                     Add action refinement
                   </button>
@@ -354,7 +354,7 @@ function CreateRequest() {
                     <select
                       className={`${styles.formInput} form-select`}
                       aria-label="Default select example"
-                      value={permission.purpose_IRI}
+                      value={permission.purpose}
                       onChange={(e) =>
                         updatePurpose(permission.id, e.target.value)
                       }
@@ -454,7 +454,7 @@ function CreateRequest() {
                     type="button"
                     onClick={() => addPurposeRefinement(permission.id)}
                     className={`${styles.secondaryButton} btn btn-sm mt-3`}
-                    disabled={!permission.purpose_IRI} // Disable button if no action is selected
+                    disabled={!permission.purpose} // Disable button if no action is selected
                   >
                     Add purpose refinement
                   </button>

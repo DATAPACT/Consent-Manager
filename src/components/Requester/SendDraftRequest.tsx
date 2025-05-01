@@ -21,6 +21,11 @@ function SendDraftRequest() {
     []
   );
   const [loading, setLoading] = useState(false);
+  const [emailInput, setEmailInput] = useState<string>("");
+  const [selectedOwners, setSelectedOwners] = useState<
+    { email: string; id: string }[]
+  >([]);
+
   const navigate = useNavigate();
 
   // Fetch stored owner emails and IDs from Firestore
@@ -44,37 +49,39 @@ function SendDraftRequest() {
     fetchOwners();
   }, []);
 
-  // Handle email input change
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    setEmail(input);
+    setEmailInput(input);
 
     if (input.trim() === "") {
       setSuggestions([]);
     } else {
-      const filteredOwners = allOwners.filter((owner) =>
-        owner.email.toLowerCase().includes(input.toLowerCase())
+      const filtered = allOwners.filter(
+        (owner) =>
+          owner.email.toLowerCase().includes(input.toLowerCase()) &&
+          !selectedOwners.some((sel) => sel.email === owner.email)
       );
-      setSuggestions(filteredOwners);
+      setSuggestions(filtered);
     }
   };
 
-  // Handle selecting an email from suggestions
   const handleEmailSelect = (selectedEmail: string) => {
-    setEmail(selectedEmail);
+    const owner = allOwners.find((o) => o.email === selectedEmail);
+    if (owner && !selectedOwners.some((o) => o.email === owner.email)) {
+      setSelectedOwners([...selectedOwners, owner]);
+    }
+    setEmailInput("");
     setSuggestions([]);
+  };
+
+  const removeOwner = (email: string) => {
+    setSelectedOwners(selectedOwners.filter((o) => o.email !== email));
   };
 
   // Handle sending the request
   const handleSendRequest = async () => {
-    if (!email) {
-      alert("Please enter an owner's email.");
-      return;
-    }
-
-    const owner = allOwners.find((o) => o.email === email);
-    if (!owner) {
-      alert("No owner found with this email.");
+    if (selectedOwners.length === 0) {
+      alert("Please add at least one valid owner.");
       return;
     }
 
@@ -86,12 +93,12 @@ function SendDraftRequest() {
     setLoading(true);
 
     try {
+      const ownerIds = selectedOwners.map((o) => o.id);
       const requestRef = doc(db, "requests", requestId);
 
-      // Update request: add owner ID to owners array & change status
       await updateDoc(requestRef, {
-        owners: [owner.id], // Add the owner ID to the array
-        ownersPending: [owner.id], // Add the owner ID to the array
+        owners: ownerIds,
+        ownersPending: ownerIds,
         status: "sent",
       });
 
@@ -122,16 +129,15 @@ function SendDraftRequest() {
         <form className="w-50" onSubmit={(e) => e.preventDefault()}>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>
-              Recipient's Email
+              Recipients' Emails
             </label>
             <input
-              type="email"
+              type="text"
               className={`${styles.formInput} form-control`}
-              value={email}
+              value={emailInput}
               onChange={handleEmailChange}
-              required
+              placeholder="Enter owner email"
             />
-            {/* Autocomplete dropdown */}
             {suggestions.length > 0 && (
               <ul
                 className={`${styles.autocomplete} list-group position-absolute`}
@@ -148,6 +154,21 @@ function SendDraftRequest() {
                 ))}
               </ul>
             )}
+            {/* Show selected emails */}
+            <div className="mt-3">
+              {selectedOwners.map((owner) => (
+                <span key={owner.email} className="border p-2 me-2">
+                  {owner.email}
+                  <button
+                    type="button"
+                    className="btn btn-sm ms-1"
+                    onClick={() => removeOwner(owner.email)}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
         </form>
 

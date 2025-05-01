@@ -45,6 +45,9 @@ function RequesterSentRequestsDetails() {
   const [error, setError] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const [ownerDetails, setOwnerDetails] = useState<
     { name: string; email: string; status: string }[]
   >([]); // Add status to store the status of each owner
@@ -133,6 +136,18 @@ function RequesterSentRequestsDetails() {
       .includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredOwners.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOwners = filteredOwners.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  // Reset to page 1 when filters/search chang
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchTerm]);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
@@ -327,7 +342,7 @@ function RequesterSentRequestsDetails() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOwners.map((owner, index) => (
+                  {paginatedOwners.map((owner, index) => (
                     <tr key={index}>
                       <td className="py-3">{owner.name}</td>
                       <td className="py-3">{owner.email}</td>
@@ -346,6 +361,51 @@ function RequesterSentRequestsDetails() {
                   ))}
                 </tbody>
               </table>
+            )}
+            {totalPages > 1 && (
+              <nav className="mt-3 d-flex justify-content-center">
+                <ul className="pagination">
+                  <li
+                    className={`page-item ${
+                      currentPage === 1 ? "disabled" : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                    >
+                      Previous
+                    </button>
+                  </li>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <li
+                      key={i}
+                      className={`page-item ${
+                        currentPage === i + 1 ? "active" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => setCurrentPage(i + 1)}
+                      >
+                        {i + 1}
+                      </button>
+                    </li>
+                  ))}
+                  <li
+                    className={`page-item ${
+                      currentPage === totalPages ? "disabled" : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                    >
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
             )}
           </div>
         </div>

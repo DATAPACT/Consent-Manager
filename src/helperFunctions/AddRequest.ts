@@ -6,7 +6,7 @@ import { Refinement } from "./PermissionsUtils";
 interface RequestData {
   requestName: string;
   permissions: {
-    dataset_IRI: string;
+    dataset: string;
     datasetRefinements: Refinement[];
     purposeRefinements: Refinement[];
     actionRefinements: Refinement[];
