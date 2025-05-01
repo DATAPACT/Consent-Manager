@@ -215,7 +215,7 @@ function RequesterRequests() {
                   <tr>
                     <th>Name</th>
                     <th>Date Sent</th>
-                    <th className="text-center">Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,12 +223,18 @@ function RequesterRequests() {
                     <tr key={request.id}>
                       <td className="py-3">{request.requestName}</td>
                       <td className="py-3">{request.createdAt}</td>
-                      <td className="py-3 text-center">
+                      <td className="py-3">
                         <Link
                           to={`/requesterBase/requesterSentRequestsDetails/${request.id}`}
                           className={`${styles.primaryButton} btn btn-sm`}
                         >
                           See details
+                        </Link>
+                        <Link
+                          to={`/requesterBase/sendDraftRequest/${request.id}`}
+                          className={`${styles.secondaryButton} btn btn-sm ms-2`}
+                        >
+                          Send to more
                         </Link>
                       </td>
                     </tr>
