@@ -99,7 +99,7 @@ const UploadOntology: React.FC = () => {
           </label>
           <input
             type="file"
-            accept=".rdf,.owl,.ttl,.xml,.jsonld"
+            accept=".rdf,.owl,.ttl,.xml,.jsonld,.json"
             className={`${styles.formInput} form-control`}
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             required

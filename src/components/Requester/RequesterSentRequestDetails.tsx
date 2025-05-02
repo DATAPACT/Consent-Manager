@@ -46,7 +46,7 @@ function RequesterSentRequestsDetails() {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [ownerDetails, setOwnerDetails] = useState<
     { name: string; email: string; status: string }[]
