@@ -1,6 +1,26 @@
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase"; // adjust path based on your setup
+
 export interface Option {
   value: string;
   label: string;
+}
+
+export interface OntologyOption {
+  label: string;
+  value: string;
+}
+
+export async function fetchOntologyOptions(): Promise<OntologyOption[]> {
+  const snapshot = await getDocs(collection(db, "ontologies")); // assuming collection name is "ontologies"
+
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      label: data.name || "Unnamed",
+      value: doc.id,
+    };
+  });
 }
 
 export const getFeatureDropdownValue = (

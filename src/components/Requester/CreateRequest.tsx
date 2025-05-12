@@ -1,6 +1,6 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { addRequest } from "../../helperFunctions/AddRequest";
 
@@ -11,6 +11,8 @@ import {
   getOperandDropdownValue,
   getAttributeLabel,
   getInstanceLabel,
+  fetchOntologyOptions,
+  OntologyOption,
 } from "../../helperFunctions/RequestDropdowns";
 
 // permissions utils
@@ -18,9 +20,34 @@ import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
+  const [options, setOptions] = useState<OntologyOption[]>([]);
+  const [selectedOntologies, setSelectedOntologies] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     requestName: "",
   });
+
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const fetched = await fetchOntologyOptions();
+        setOptions(fetched);
+      } catch (error) {
+        console.error("Failed to load ontology options:", error);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  const handleDoubleClick = (value: string) => {
+    if (!selectedOntologies.includes(value)) {
+      setSelectedOntologies([...selectedOntologies, value]);
+    }
+  };
+
+  const removeOntology = (value: string) => {
+    setSelectedOntologies(selectedOntologies.filter((v) => v !== value));
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -89,6 +116,55 @@ function CreateRequest() {
             onChange={handleChange}
             required
           />
+        </div>
+
+        <div className="mb-3">
+          <label className={`${styles.formLabel} form-label`}>
+            Ontology(s)
+          </label>
+          <select className="form-select" size={4} multiple>
+            {options.map((option) => (
+              <option
+                key={option.value}
+                onDoubleClick={() => handleDoubleClick(option.value)}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="alert alert-warning mt-3" role="alert">
+            Select one or more ontologies. If the ontology you're looking for
+            isn't listed,{" "}
+            <Link
+              to="/requesterBase/ontologies"
+              className="text-decoration-underline"
+            >
+              go to the Ontologies page
+            </Link>{" "}
+            to upload it.
+          </div>
+
+          {/* Pills */}
+          <div className="mt-3 d-flex flex-wrap gap-2">
+            {selectedOntologies.map((value) => {
+              const label =
+                options.find((opt) => opt.value === value)?.label || value;
+              return (
+                <span className="border px-2 py-1 me-2" key={value}>
+                  {label}
+                  <button
+                    type="button"
+                    className="btn btn-sm ms-1"
+                    aria-label="Remove"
+                    onClick={() => removeOntology(value)}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </span>
+              );
+            })}
+          </div>
         </div>
 
         {/* Render multiple permissions */}
