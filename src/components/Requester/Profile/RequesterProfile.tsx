@@ -6,7 +6,7 @@ import { useAuth } from "../../../AuthContext"; // Use AuthContext
 import styles from "../../../css/CreateRequest.module.css";
 
 function RequesterProfile() {
-  const { user } = useAuth(); // Get user and logout function from context
+  const { userData } = useAuth(); // Get user and logout function from context
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -17,7 +17,7 @@ function RequesterProfile() {
             style={{ width: "100px" }}
             alt="Avatar"
           />
-          <h2>{user?.displayName}</h2>
+          <h2>{userData?.name}</h2>
         </div>
 
         <div className="row mt-5">
@@ -31,7 +31,7 @@ function RequesterProfile() {
                   type="text"
                   className={`${styles.formInput} form-control`}
                   required
-                  defaultValue={user?.displayName}
+                  defaultValue={userData?.name}
                 />
               </div>
               <button

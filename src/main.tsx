@@ -8,8 +8,7 @@ import "./css/index.css";
 // components
 import Home from "./components/Home/Home";
 import GetStarted from "./components/Home/GetStarted";
-import OwnerLogin from "./components/Login/OwnerLogin";
-import RequesterLogin from "./components/Login/RequesterLogin";
+import Login from "./components/Login/Login";
 import OwnerBase from "./components/Owner/OwnerBase";
 import OwnerDashboard from "./components/Owner/OwnerDashboard";
 import RequesterBase from "./components/Requester/RequesterBase";
@@ -45,9 +44,8 @@ createRoot(document.getElementById("root")!).render(
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/getStarted" element={<GetStarted />} />
-          <Route path="/ownerLogin" element={<OwnerLogin />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/ownerRegister" element={<OwnerRegister />} />
-          <Route path="/requesterLogin" element={<RequesterLogin />} />
           <Route path="/requesterRegister" element={<RequesterRegister />} />
           <Route path="/requesterOtp" element={<RequesterOtp />} />
           <Route path="/ownerOtp" element={<OwnerOtp />} />
@@ -57,7 +55,9 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/ownerBase"
             element={
-              <PrivateRoute requiredRole="owner" element={<OwnerBase />} />
+              <PrivateRoute allowedRoles={["owner"]}>
+                <OwnerBase />
+              </PrivateRoute>
             }
           >
             <Route path="ownerDashboard" element={<OwnerDashboard />} />
@@ -87,10 +87,9 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/requesterBase"
             element={
-              <PrivateRoute
-                requiredRole="requester"
-                element={<RequesterBase />}
-              />
+              <PrivateRoute allowedRoles={["requester"]}>
+                <RequesterBase />
+              </PrivateRoute>
             }
           >
             <Route path="requesterDashboard" element={<RequesterDashboard />} />

@@ -10,15 +10,11 @@ import logo from "../../assets/logo.png";
 
 const RequesterNavbar: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Get user and logout function from context
+  const { userData, logout, user } = useAuth(); // Get user and logout function from context
 
   const handleLogout = async () => {
-    try {
-      await logout(); // Logout using AuthContext
-      navigate("/"); // Redirect to login page
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+    logout();
+    navigate("/");
   };
 
   return (
@@ -64,7 +60,7 @@ const RequesterNavbar: React.FC = () => {
                   aria-expanded="false"
                 >
                   {/* Show username if logged in */}
-                  {user && <strong>{user.displayName || "Owner"}</strong>}
+                  {userData && <strong>{userData.name || "Requester"}</strong>}
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>

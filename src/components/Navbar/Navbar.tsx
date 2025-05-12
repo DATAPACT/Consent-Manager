@@ -63,53 +63,11 @@ function Navbar() {
               </li>
             </ul>
 
-            {/* Sign-in Dropdown */}
             <ul className="navbar-nav mb-2 mb-lg-0">
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link"
-                  role="button"
-                  id="signinDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Sign In
-                </a>
-                <ul
-                  className={`${styles.signinbox} dropdown-menu dropdown-menu-end`}
-                  aria-labelledby="signinDropdown"
-                >
-                  <li className="p-4">
-                    <small className="text-muted">
-                      <strong>SIGN IN</strong>
-                    </small>
-                    <hr />
-                    <Link
-                      className="text-decoration-none text-dark"
-                      to="/requesterLogin"
-                    >
-                      <div className="p-3 border rounded">
-                        <h6>Data requester</h6>
-                        <p>
-                          Request access to user data based on provided consent.
-                        </p>
-                      </div>
-                    </Link>
-                    <Link
-                      className="text-decoration-none text-dark"
-                      to="/ownerLogin"
-                    >
-                      <div className="p-3 border rounded mt-3">
-                        <h6>Data owner</h6>
-                        <p>Grant, deny, or revoke consents for data access.</p>
-                      </div>
-                    </Link>
-                    <p className="mt-4">
-                      Don't have an account?{" "}
-                      <Link to="/getStarted">Start here</Link>
-                    </p>
-                  </li>
-                </ul>
+              <li className="nav-item">
+                <Link className="nav-link" to="/login">
+                  Sign in
+                </Link>
               </li>
             </ul>
           </div>

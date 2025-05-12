@@ -5,40 +5,62 @@ import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
 
-const RequesterLogin: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false); // Local loading state
-  const { login, user } = useAuth(); // Use AuthContext
+const Login: React.FC = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { user, role, login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && role) {
+      if (role === "owner") {
+        navigate("/ownerBase/ownerDashboard");
+      } else if (role === "requester") {
+        navigate("/requesterBase/requesterDashboard");
+      }
+    }
+  }, [user, role, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // Set loading state
+    setError("");
+    setLoading(true);
 
     try {
       await login(email, password);
-    } catch (error: any) {
-      setError(error.message);
-      setLoading(false); // Reset loading on error
+      // Redirect happens in useEffect
+    } catch (err: any) {
+      let errorMessage = "Login failed. Please try again.";
+
+      if (err.code) {
+        switch (err.code) {
+          case "auth/user-not-found":
+            errorMessage = "No account found with this email.";
+            break;
+          case "auth/invalid-credential":
+            errorMessage = "Incorrect email or password.";
+            break;
+          case "auth/too-many-requests":
+            errorMessage = "Too many attempts. Please wait and try again.";
+            break;
+        }
+      }
+
+      setError(errorMessage);
+      setLoading(false);
     }
   };
-
-  // Redirect if user is already logged in
-  useEffect(() => {
-    if (user) {
-      navigate("/requesterBase/requesterDashboard");
-    }
-  }, [user, navigate]);
 
   return (
     <>
       <Navbar />
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
-        <h3>Login as a data requester</h3>
+        <h3>Login to your account</h3>
         <p className="mt-3">
-          Don't have an account? <Link to="/requesterRegister">Sign up</Link>
+          Don't have an account? <Link to="/getStarted">Sign up</Link>
         </p>
         {error && (
           <div className="alert alert-danger mt-3" role="alert">
@@ -96,4 +118,4 @@ const RequesterLogin: React.FC = () => {
   );
 };
 
-export default RequesterLogin;
+export default Login;

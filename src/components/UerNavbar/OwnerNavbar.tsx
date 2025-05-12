@@ -10,15 +10,11 @@ import logo from "../../assets/logo.png";
 
 const OwnerNavbar: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Get user and logout function from context
+  const { logout, userData } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await logout(); // Logout using AuthContext
-      navigate("/"); // Redirect to login page
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+  const handleLogout = () => {
+    logout();
+    navigate("/");
   };
 
   return (
@@ -64,7 +60,7 @@ const OwnerNavbar: React.FC = () => {
                   aria-expanded="false"
                 >
                   {/* Show username if logged in */}
-                  {user && <strong>{user.displayName || "Owner"}</strong>}
+                  {userData && <strong>{userData.name || "Owner"}</strong>}
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
