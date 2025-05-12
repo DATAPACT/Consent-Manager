@@ -5,8 +5,6 @@ import {
   collection,
   getDocs,
   doc,
-  query,
-  where,
   updateDoc,
   getDoc,
 } from "firebase/firestore";
@@ -15,9 +13,6 @@ import styles from "../../css/Ontology.module.css";
 function SendDraftRequest() {
   const { requestId } = useParams();
   const [emailInput, setEmailInput] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<
-    { email: string; id: string }[]
-  >([]);
   const [allOwners, setAllOwners] = useState<{ email: string; id: string }[]>(
     []
   );
@@ -35,7 +30,6 @@ function SendDraftRequest() {
   useEffect(() => {
     const fetchOwnersAndRequest = async () => {
       try {
-        // Fetch owners
         const ownersSnapshot = await getDocs(collection(db, "owners"));
         const owners: { email: string; id: string }[] = [];
         ownersSnapshot.forEach((doc) => {
@@ -46,7 +40,6 @@ function SendDraftRequest() {
         });
         setAllOwners(owners);
 
-        // Fetch current request details
         if (requestId) {
           const requestRef = doc(db, "requests", requestId);
           const requestSnap = await getDoc(requestRef);
@@ -67,42 +60,44 @@ function SendDraftRequest() {
   }, [requestId]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    setEmailInput(input);
-
-    if (input.trim() === "") {
-      setSuggestions([]);
-    } else {
-      const filtered = allOwners.filter(
-        (owner) =>
-          owner.email.toLowerCase().includes(input.toLowerCase()) &&
-          !selectedOwners.some((sel) => sel.email === owner.email)
-      );
-      setSuggestions(filtered);
-    }
+    setEmailInput(e.target.value);
   };
 
-  const handleEmailSelect = (selectedEmail: string) => {
-    const owner = allOwners.find((o) => o.email === selectedEmail);
-    if (!owner) return;
+  const handleEmailSelect = () => {
+    const inputs = emailInput
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email !== "");
 
-    const alreadySent = new Set([
-      ...ownersPending,
-      ...ownersAccepted,
-      ...ownersRejected,
-    ]);
+    if (inputs.length === 0) return;
 
-    if (alreadySent.has(owner.id)) {
-      alert("You have already sent this request to this owner.");
-      return;
-    }
+    // Convert already sent owner IDs to emails (from allOwners)
+    const sentOwnerEmails = allOwners
+      .filter((owner) =>
+        [...ownersPending, ...ownersAccepted, ...ownersRejected].includes(
+          owner.id
+        )
+      )
+      .map((owner) => owner.email.toLowerCase());
 
-    if (!selectedOwners.some((o) => o.email === owner.email)) {
-      setSelectedOwners([...selectedOwners, owner]);
+    const selectedEmails = selectedOwners.map((o) => o.email.toLowerCase());
+    const alreadySent = new Set([...sentOwnerEmails, ...selectedEmails]);
+
+    const newOwners = inputs
+      .filter((email) => !alreadySent.has(email))
+      .map((email) => {
+        const owner = allOwners.find((o) => o.email.toLowerCase() === email);
+        return {
+          email,
+          id: owner ? owner.id : "", // keep empty string if unknown user
+        };
+      });
+
+    if (newOwners.length > 0) {
+      setSelectedOwners((prev) => [...prev, ...newOwners]);
     }
 
     setEmailInput("");
-    setSuggestions([]);
   };
 
   const removeOwner = (email: string) => {
@@ -160,45 +155,52 @@ function SendDraftRequest() {
           <label className={`${styles.formLabel} form-label`}>
             Recipients' Emails
           </label>
-          <input
-            type="text"
-            className={`${styles.formInput} form-control`}
-            value={emailInput}
-            onChange={handleEmailChange}
-            placeholder="Enter owner email"
-          />
-          {suggestions.length > 0 && (
-            <ul
-              className={`${styles.autocomplete} list-group position-absolute`}
-            >
-              {suggestions.map((suggestion) => (
-                <li
-                  key={suggestion.email}
-                  className="list-group-item"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleEmailSelect(suggestion.email)}
-                >
-                  {suggestion.email}
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-3">
+          <div className="d-flex">
+            <textarea
+              rows={5}
+              className={`${styles.formInput} form-control me-2`}
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder="Enter one or more emails, separated by commas"
+            />
+          </div>
+          <button
+            type="button"
+            className={`${styles.primaryButton} btn btn-sm mt-2 mb-3`}
+            onClick={handleEmailSelect}
+          >
+            Add email(s)
+          </button>
+          <div
+            className="mt-3 mb-4"
+            style={{
+              maxHeight: "350px", // approx height for 5 pills (adjust as needed)
+              overflowY: "auto",
+            }}
+          >
             {selectedOwners.map((owner) => (
-              <span key={owner.email} className="border p-2 me-2">
-                {owner.email}
-                <button
-                  type="button"
-                  className="btn btn-sm ms-1"
-                  onClick={() => removeOwner(owner.email)}
-                >
-                  <i className="fa-solid fa-xmark"></i>
-                </button>
-              </span>
+              <div key={owner.email} className="mb-2">
+                <span className="border px-2 me-2 d-inline-block">
+                  {owner.email}
+                  <button
+                    type="button"
+                    className="btn btn-sm ms-1"
+                    onClick={() => removeOwner(owner.email)}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </span>
+              </div>
             ))}
           </div>
         </div>
       </form>
+
+      <div className="alert alert-warning" role="alert">
+        <strong>Note:</strong> If you add one or more emails and they don't
+        appear above, it means you've already sent this request to those
+        recipients.
+      </div>
 
       <h5 className="mt-4">Sending a request</h5>
       <p>

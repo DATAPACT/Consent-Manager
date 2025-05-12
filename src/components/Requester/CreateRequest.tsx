@@ -119,9 +119,7 @@ function CreateRequest() {
         </div>
 
         <div className="mb-3">
-          <label className={`${styles.formLabel} form-label`}>
-            Ontology(s)
-          </label>
+          <label className={`${styles.formLabel} form-label`}>Ontologies</label>
           <select className="form-select" size={4} multiple>
             {options.map((option) => (
               <option
