@@ -131,9 +131,10 @@ function RequesterSentRequestsDetails() {
   const filteredOwners = ownerDetails.filter((owner) => {
     const matchesStatus =
       statusFilter === "All" || owner.status === statusFilter;
-    const matchesSearch = owner.name
+    const matchesSearch = owner.email
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
+
     return matchesStatus && matchesSearch;
   });
 
@@ -316,7 +317,7 @@ function RequesterSentRequestsDetails() {
                 <input
                   type="text"
                   className={`${styles.formInput} form-control`}
-                  placeholder="Search by owner name"
+                  placeholder="Search by owner email"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
