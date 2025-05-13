@@ -13,16 +13,40 @@ import styles from "../../css/Ontology.module.css";
 function SendDraftRequest() {
   const { requestId } = useParams();
   const [emailInput, setEmailInput] = useState<string>("");
-  const [allOwners, setAllOwners] = useState<{ email: string; id: string }[]>(
-    []
-  );
+  const [allOwners, setAllOwners] = useState<
+    { email: string; id: string; name?: string }[]
+  >([]);
   const [selectedOwners, setSelectedOwners] = useState<
-    { email: string; id: string }[]
+    { email: string; id: string; name?: string }[]
   >([]);
   const [ownersPending, setOwnersPending] = useState<string[]>([]);
   const [ownersAccepted, setOwnersAccepted] = useState<string[]>([]);
   const [ownersRejected, setOwnersRejected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const now = new Date();
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   const navigate = useNavigate();
 
@@ -31,11 +55,15 @@ function SendDraftRequest() {
     const fetchOwnersAndRequest = async () => {
       try {
         const ownersSnapshot = await getDocs(collection(db, "owners"));
-        const owners: { email: string; id: string }[] = [];
+        const owners: { email: string; id: string; name?: string }[] = [];
         ownersSnapshot.forEach((doc) => {
           const data = doc.data();
           if (data.email) {
-            owners.push({ email: data.email, id: doc.id });
+            owners.push({
+              email: data.email,
+              id: doc.id,
+              name: data.name || "Unknown",
+            });
           }
         });
         setAllOwners(owners);
@@ -59,10 +87,6 @@ function SendDraftRequest() {
     fetchOwnersAndRequest();
   }, [requestId]);
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmailInput(e.target.value);
-  };
-
   const handleEmailSelect = () => {
     const inputs = emailInput
       .split(",")
@@ -71,7 +95,6 @@ function SendDraftRequest() {
 
     if (inputs.length === 0) return;
 
-    // Convert already sent owner IDs to emails (from allOwners)
     const sentOwnerEmails = allOwners
       .filter((owner) =>
         [...ownersPending, ...ownersAccepted, ...ownersRejected].includes(
@@ -89,7 +112,8 @@ function SendDraftRequest() {
         const owner = allOwners.find((o) => o.email.toLowerCase() === email);
         return {
           email,
-          id: owner ? owner.id : "", // keep empty string if unknown user
+          id: owner ? owner.id : "",
+          name: owner?.name || "",
         };
       });
 
@@ -125,6 +149,15 @@ function SendDraftRequest() {
         owners: [...ownersPending, ...ownerIds],
         ownersPending: [...ownersPending, ...ownerIds],
         status: "sent",
+        sentAt: `${days[now.getDay()]} ${now
+          .getDate()
+          .toString()
+          .padStart(2, "0")} ${
+          months[now.getMonth()]
+        } ${now.getFullYear()} ${now
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       });
 
       alert("Request sent successfully!");
@@ -171,28 +204,35 @@ function SendDraftRequest() {
           >
             Add email(s)
           </button>
-          <div
-            className="mt-3 mb-4"
-            style={{
-              maxHeight: "350px", // approx height for 5 pills (adjust as needed)
-              overflowY: "auto",
-            }}
-          >
-            {selectedOwners.map((owner) => (
-              <div key={owner.email} className="mb-2">
-                <span className="border px-2 me-2 d-inline-block">
-                  {owner.email}
-                  <button
-                    type="button"
-                    className="btn btn-sm ms-1"
-                    onClick={() => removeOwner(owner.email)}
-                  >
-                    <i className="fa-solid fa-xmark"></i>
-                  </button>
-                </span>
-              </div>
-            ))}
-          </div>
+
+          {selectedOwners.length > 0 && (
+            <table className="table table-bordered table-sm mt-3">
+              <thead>
+                <tr>
+                  <th className="px-2">Name</th>
+                  <th className="px-2">Email</th>
+                  <th className="px-2">Remove</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedOwners.map((owner) => (
+                  <tr key={owner.email}>
+                    <td className="px-2">{owner.name || "Unknown"}</td>
+                    <td className="px-2">{owner.email}</td>
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        className="btn btn-sm text-center"
+                        onClick={() => removeOwner(owner.email)}
+                      >
+                        <i className="fa-solid fa-xmark"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </form>
 

@@ -222,7 +222,7 @@ function RequesterRequests() {
                   {sentRequests.map((request) => (
                     <tr key={request.id}>
                       <td className="py-3">{request.requestName}</td>
-                      <td className="py-3">{request.createdAt}</td>
+                      <td className="py-3">{request.sentAt}</td>
                       <td className="py-3">
                         <Link
                           to={`/requesterBase/requesterSentRequestsDetails/${request.id}`}

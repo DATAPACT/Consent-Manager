@@ -53,6 +53,7 @@ export const addRequest = async (data: RequestData) => {
 
     const requesterName = requesterData?.name || user.displayName || "Unknown";
 
+    // default request values
     const requestWithDefaults = {
       ...data,
       requester: {
@@ -67,6 +68,7 @@ export const addRequest = async (data: RequestData) => {
         .getHours()
         .toString()
         .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
+      sentAt: "",
       status: "draft",
       owners: [],
       ownersAccepted: [],
