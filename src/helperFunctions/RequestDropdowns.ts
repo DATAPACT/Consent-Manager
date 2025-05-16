@@ -74,11 +74,3 @@ export const getOperandDropdownValue = (): Option[] => {
     { value: "neq", label: "neq" },
   ];
 };
-
-export const getAttributeLabel = (Labelvalue: string): string => {
-  return "Install";
-};
-
-export const getInstanceLabel = (Labelvalue: string): string => {
-  return "Download";
-};

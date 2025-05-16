@@ -211,8 +211,7 @@ export const usePermissions = () => {
     permissionId: number,
     refinementId: number,
     field: keyof Refinement,
-    value: string,
-    label: string
+    value: string
   ) => {
     setPermissions(
       permissions.map((permission) =>
@@ -220,9 +219,7 @@ export const usePermissions = () => {
           ? {
               ...permission,
               datasetRefinements: permission.datasetRefinements.map((r) =>
-                r.id === refinementId
-                  ? { ...r, [field]: value, label: label } // Explicitly set `label` field
-                  : r
+                r.id === refinementId ? { ...r, [field]: value } : r
               ),
             }
           : permission

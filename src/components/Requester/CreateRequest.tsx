@@ -9,8 +9,6 @@ import {
   getFeatureDropdownValue,
   getAttributeDropdownValue,
   getOperandDropdownValue,
-  getAttributeLabel,
-  getInstanceLabel,
   fetchOntologyOptions,
   OntologyOption,
 } from "../../helperFunctions/RequestDropdowns";
@@ -222,17 +220,14 @@ function CreateRequest() {
                     <select
                       className={`${styles.formInput} form-select`}
                       value={item.attribute || ""}
-                      onChange={(e) => {
-                        const Labelvalue = e.target.value;
-                        const label = getAttributeLabel(Labelvalue);
+                      onChange={(e) =>
                         updateDatasetRefinement(
                           permission.id,
                           item.id,
                           "attribute",
-                          Labelvalue,
-                          label
-                        );
-                      }}
+                          e.target.value
+                        )
+                      }
                       required
                     >
                       {getAttributeDropdownValue().map((option) => (
@@ -249,17 +244,14 @@ function CreateRequest() {
                     <select
                       className={`${styles.formInput} form-select`}
                       value={item.instance || ""}
-                      onChange={(e) => {
-                        const Labelvalue = e.target.value;
-                        const label = getAttributeLabel(Labelvalue);
+                      onChange={(e) =>
                         updateDatasetRefinement(
                           permission.id,
                           item.id,
                           "instance",
-                          Labelvalue,
-                          label
-                        );
-                      }}
+                          e.target.value
+                        )
+                      }
                       required
                     >
                       {getOperandDropdownValue().map((option) => (
@@ -278,17 +270,14 @@ function CreateRequest() {
                       type="text"
                       className={`${styles.formInput} form-control`}
                       value={item.value || ""}
-                      onChange={(e) => {
-                        const Labelvalue = e.target.value;
-                        const label = getAttributeLabel(Labelvalue);
+                      onChange={(e) =>
                         updateDatasetRefinement(
                           permission.id,
                           item.id,
                           "value",
-                          Labelvalue,
-                          label
-                        );
-                      }}
+                          e.target.value
+                        )
+                      }
                       required
                     />
                   </div>

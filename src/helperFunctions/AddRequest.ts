@@ -69,7 +69,6 @@ export const addRequest = async (data: RequestData) => {
         .toString()
         .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       sentAt: "",
-      decisionDate: "",
       status: "draft",
       owners: [],
       ownersAccepted: [],
