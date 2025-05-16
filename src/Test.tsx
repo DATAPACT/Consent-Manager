@@ -7,7 +7,8 @@ type Ontology = {
 };
 
 const Test = () => {
-  const [ontologies, setOntologies] = useState<Ontology[]>([]); // <-- Add this type here
+  const [ontologies, setOntologies] = useState<Ontology[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,6 +39,9 @@ const Test = () => {
         );
 
         setOntologies(ontologiesData);
+        if (ontologiesData.length > 0) {
+          setSelectedId(ontologiesData[0].id); // select first by default
+        }
       } catch (err: any) {
         setError(err.message);
       }
@@ -46,20 +50,36 @@ const Test = () => {
     fetchOntologies();
   }, []);
 
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedId(e.target.value);
+  };
+
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
-      <h2>All Ontologies</h2>
-      {ontologies.length === 0 && <p>Loading...</p>}
-      {ontologies.map(({ id, content }) => (
-        <div key={id} style={{ marginBottom: "2rem" }}>
-          <h3>Ontology ID: {id}</h3>
-          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-            {content}
-          </pre>
-        </div>
-      ))}
+      <h2>Select Ontology</h2>
+      {ontologies.length === 0 ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <select value={selectedId} onChange={handleSelectChange}>
+            {ontologies.map(({ id }) => (
+              <option key={id} value={id}>
+                {id}
+              </option>
+            ))}
+          </select>
+
+          <div style={{ marginTop: "2rem" }}>
+            <h3>Ontology Content (ID: {selectedId})</h3>
+            <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+              {ontologies.find((o) => o.id === selectedId)?.content ||
+                "No content"}
+            </pre>
+          </div>
+        </>
+      )}
     </div>
   );
 };
