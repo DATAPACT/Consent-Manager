@@ -9,8 +9,8 @@ import {
   getFeatureDropdownValue,
   getAttributeDropdownValue,
   getOperandDropdownValue,
-  fetchOntologyOptions,
-  OntologyOption,
+  fetchOntologies,
+  Ontology,
 } from "../../helperFunctions/RequestDropdowns";
 
 // permissions utils
@@ -18,33 +18,40 @@ import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
-  const [options, setOptions] = useState<OntologyOption[]>([]);
-  const [selectedOntologies, setSelectedOntologies] = useState<string[]>([]);
+
+  // onotlogies
+  const [ontologies, setOntologies] = useState<Ontology[]>([]);
+  const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     requestName: "",
   });
 
   useEffect(() => {
-    const loadOptions = async () => {
+    const loadOntologies = async () => {
       try {
-        const fetched = await fetchOntologyOptions();
-        setOptions(fetched);
-      } catch (error) {
-        console.error("Failed to load ontology options:", error);
+        const data = await fetchOntologies();
+        setOntologies(data);
+      } catch (err: any) {
+        setError(err.message);
       }
     };
 
-    loadOptions();
+    loadOntologies();
   }, []);
 
-  const handleDoubleClick = (value: string) => {
-    if (!selectedOntologies.includes(value)) {
-      setSelectedOntologies([...selectedOntologies, value]);
+  const handleDoubleClick = (id: string) => {
+    const existing = selectedOntologies.find((o) => o.id === id);
+    if (existing) return;
+    const ontology = ontologies.find((o) => o.id === id);
+    if (ontology) {
+      setSelectedOntologies([...selectedOntologies, ontology]);
     }
   };
 
-  const removeOntology = (value: string) => {
-    setSelectedOntologies(selectedOntologies.filter((v) => v !== value));
+  const removeOntology = (id: string) => {
+    setSelectedOntologies(selectedOntologies.filter((o) => o.id !== id));
   };
 
   const handleChange = (
@@ -115,19 +122,43 @@ function CreateRequest() {
             required
           />
         </div>
-
         <div className="mb-3">
           <label className={`${styles.formLabel} form-label`}>Ontologies</label>
-          <select className="form-select" size={4} multiple>
-            {options.map((option) => (
-              <option
-                key={option.value}
-                onDoubleClick={() => handleDoubleClick(option.value)}
-              >
-                {option.label}
+
+          <select
+            className="form-select"
+            size={5}
+            aria-label="Ontology select"
+            onDoubleClick={(e) => handleDoubleClick(e.currentTarget.value)}
+          >
+            <option className="mb-2" disabled selected>
+              Double-click to select
+            </option>
+            {ontologies.map(({ id }) => (
+              <option key={id} value={id}>
+                {id}
               </option>
             ))}
           </select>
+
+          <div style={{ marginTop: "1rem" }}>
+            <span
+              className="border bg-light px-2 py-1 me-2 text-muted"
+              style={{ cursor: "pointer" }}
+            >
+              Default ontology <span style={{ marginLeft: 5 }}></span>
+            </span>
+            {selectedOntologies.map(({ id }) => (
+              <span
+                key={id}
+                className="border px-2 py-1 me-2"
+                style={{ cursor: "pointer" }}
+                onClick={() => removeOntology(id)}
+              >
+                {id} <span style={{ marginLeft: 5 }}>&times;</span>
+              </span>
+            ))}
+          </div>
 
           <div className="alert alert-warning mt-3" role="alert">
             Select one or more ontologies. If the ontology you're looking for
@@ -141,25 +172,17 @@ function CreateRequest() {
             to upload it.
           </div>
 
-          {/* Pills */}
-          <div className="mt-3 d-flex flex-wrap gap-2">
-            {selectedOntologies.map((value) => {
-              const label =
-                options.find((opt) => opt.value === value)?.label || value;
-              return (
-                <span className="border px-2 py-1 me-2" key={value}>
-                  {label}
-                  <button
-                    type="button"
-                    className="btn btn-sm ms-1"
-                    aria-label="Remove"
-                    onClick={() => removeOntology(value)}
-                  >
-                    <i className="fa-solid fa-xmark"></i>
-                  </button>
-                </span>
-              );
-            })}
+          <div style={{ marginTop: "2rem" }}>
+            {selectedOntologies.map(({ id, content }) => (
+              <div key={id} style={{ marginBottom: "1.5rem" }}>
+                <h4>Ontology Content (ID: {id})</h4>
+                <pre
+                  style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+                >
+                  {content}
+                </pre>
+              </div>
+            ))}
           </div>
         </div>
 

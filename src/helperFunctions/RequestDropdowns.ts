@@ -1,4 +1,4 @@
-import { collection, getDocs } from "firebase/firestore";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase"; // adjust path based on your setup
 
 export interface Option {
@@ -6,22 +6,38 @@ export interface Option {
   label: string;
 }
 
-export interface OntologyOption {
-  label: string;
-  value: string;
-}
+export type Ontology = {
+  id: string;
+  content: string;
+};
 
-export async function fetchOntologyOptions(): Promise<OntologyOption[]> {
-  const snapshot = await getDocs(collection(db, "ontologies")); // assuming collection name is "ontologies"
+export const fetchOntologies = async (): Promise<Ontology[]> => {
+  const db = getFirestore();
+  const colRef = collection(db, "ontologies");
+  const snapshot = await getDocs(colRef);
 
-  return snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      label: data.name || "Unnamed",
-      value: doc.id,
-    };
-  });
-}
+  const ontologiesData = await Promise.all(
+    snapshot.docs.map(async (doc) => {
+      const data = doc.data();
+      if (!data.fileURL) {
+        return { id: doc.id, content: "No fileURL found" };
+      }
+      try {
+        const response = await fetch(data.fileURL);
+        if (!response.ok) throw new Error("Failed to fetch file");
+        const text = await response.text();
+        return { id: doc.id, content: text };
+      } catch (e: any) {
+        return {
+          id: doc.id,
+          content: `Error fetching file: ${e.message}`,
+        };
+      }
+    })
+  );
+
+  return ontologiesData;
+};
 
 export const getFeatureDropdownValue = (
   type: "action" | "purpose"
