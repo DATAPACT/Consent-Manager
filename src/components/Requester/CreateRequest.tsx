@@ -153,7 +153,7 @@ function CreateRequest() {
               </label>
 
               <select
-                className="form-select"
+                className={`${styles.formInput} form-select`}
                 size={5}
                 aria-label="Ontology select"
                 onDoubleClick={(e) => handleDoubleClick(e.currentTarget.value)}
