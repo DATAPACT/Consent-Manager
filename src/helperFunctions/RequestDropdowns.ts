@@ -8,6 +8,7 @@ export interface Option {
 
 export type Ontology = {
   id: string;
+  name: string;
   content: string;
 };
 
@@ -19,17 +20,21 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
   const ontologiesData = await Promise.all(
     snapshot.docs.map(async (doc) => {
       const data = doc.data();
+      const name = data.name || doc.id; // fallback to ID if name is missing
+
       if (!data.fileURL) {
-        return { id: doc.id, content: "No fileURL found" };
+        return { id: doc.id, name, content: "No fileURL found" };
       }
+
       try {
         const response = await fetch(data.fileURL);
         if (!response.ok) throw new Error("Failed to fetch file");
         const text = await response.text();
-        return { id: doc.id, content: text };
+        return { id: doc.id, name, content: text };
       } catch (e: any) {
         return {
           id: doc.id,
+          name,
           content: `Error fetching file: ${e.message}`,
         };
       }
@@ -60,7 +65,6 @@ export const getFeatureDropdownValue = (
     ];
   }
 
-  // Optionally return an empty array or throw an error if type is invalid
   return [];
 };
 

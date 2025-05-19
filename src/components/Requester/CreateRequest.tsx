@@ -19,6 +19,12 @@ import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
 
+  // steps
+  const [step, setStep] = useState(0);
+  const nextStep = () => setStep((s) => s + 1);
+  const prevStep = () => setStep((s) => s - 1);
+  const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
+
   // onotlogies
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
@@ -107,72 +113,100 @@ function CreateRequest() {
 
       <hr />
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className={`${styles.formLabel} form-label`}>
-            Request name
-          </label>
-          <input
-            name="requestName"
-            value={formData.requestName}
-            type="text"
-            className={`${styles.formInput} form-control`}
-            id="requestName"
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className={`${styles.formLabel} form-label`}>Ontologies</label>
-
-          <select
-            className="form-select"
-            size={5}
-            aria-label="Ontology select"
-            onDoubleClick={(e) => handleDoubleClick(e.currentTarget.value)}
+      {/* progress bar */}
+      <div className="mb-4">
+        <div className="progress ">
+          <div
+            className={`${styles.progressBar} progress-bar`}
+            role="progressbar"
+            style={{ width: `${((step + 1) / stepTitles.length) * 100}%` }}
+            aria-valuenow={((step + 1) / stepTitles.length) * 100}
+            aria-valuemin={0}
+            aria-valuemax={100}
           >
-            <option className="mb-2" disabled selected>
-              Double-click to select
-            </option>
-            {ontologies.map(({ id }) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
+            {stepTitles[step]}
+          </div>
+        </div>
+      </div>
 
-          <div style={{ marginTop: "1rem" }}>
-            <span
-              className="border bg-light px-2 py-1 me-2 text-muted"
-              style={{ cursor: "pointer" }}
-            >
-              Default ontology <span style={{ marginLeft: 5 }}></span>
-            </span>
-            {selectedOntologies.map(({ id }) => (
-              <span
-                key={id}
-                className="border px-2 py-1 me-2"
-                style={{ cursor: "pointer" }}
-                onClick={() => removeOntology(id)}
+      <form onSubmit={handleSubmit}>
+        {/* Step 1 */}
+        {step === 0 && (
+          <>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
+                Request name
+              </label>
+              <input
+                name="requestName"
+                value={formData.requestName}
+                type="text"
+                className={`${styles.formInput} form-control`}
+                id="requestName"
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
+                Ontologies
+              </label>
+
+              <select
+                className="form-select"
+                size={5}
+                aria-label="Ontology select"
+                onDoubleClick={(e) => handleDoubleClick(e.currentTarget.value)}
+                disabled={ontologies.length === 0}
               >
-                {id} <span style={{ marginLeft: 5 }}>&times;</span>
-              </span>
-            ))}
-          </div>
+                {ontologies.length === 0 ? (
+                  <option disabled>Loading custom ontologies...</option>
+                ) : (
+                  <>
+                    <option className="mb-2" disabled selected>
+                      Double-click to select
+                    </option>
+                    {ontologies.map(({ id, name }) => (
+                      <option key={id} value={id}>
+                        {name}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
 
-          <div className="alert alert-warning mt-3" role="alert">
-            Select one or more ontologies. If the ontology you're looking for
-            isn't listed,{" "}
-            <Link
-              to="/requesterBase/ontologies"
-              className="text-decoration-underline"
-            >
-              go to the Ontologies page
-            </Link>{" "}
-            to upload it.
-          </div>
+              <div style={{ marginTop: "1rem" }}>
+                <span
+                  className="border bg-light px-2 py-1 me-2 text-muted"
+                  style={{ cursor: "pointer" }}
+                >
+                  Default ontology <span style={{ marginLeft: 5 }}></span>
+                </span>
+                {selectedOntologies.map(({ id, name }) => (
+                  <span
+                    key={id}
+                    className="border px-2 py-1 me-2"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => removeOntology(id)}
+                  >
+                    {name} <span style={{ marginLeft: 5 }}>&times;</span>
+                  </span>
+                ))}
+              </div>
 
-          <div style={{ marginTop: "2rem" }}>
+              <div className="alert alert-warning mt-3" role="alert">
+                Select one or more ontologies. If the ontology you're looking
+                for isn't listed,{" "}
+                <Link
+                  to="/requesterBase/ontologies"
+                  className="text-decoration-underline"
+                >
+                  go to the Ontologies page
+                </Link>{" "}
+                to upload it.
+              </div>
+
+              {/* <div style={{ marginTop: "2rem" }}>
             {selectedOntologies.map(({ id, content }) => (
               <div key={id} style={{ marginBottom: "1.5rem" }}>
                 <h4>Ontology Content (ID: {id})</h4>
@@ -183,484 +217,520 @@ function CreateRequest() {
                 </pre>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Render multiple permissions */}
-        {permissions.map((permission, index) => (
-          <div key={permission.id} className="mb-3 mt-4">
-            <div className="border p-4">
-              <div className="d-flex mb-2">
-                <div className="me-auto">
-                  <h5>Permission {index + 1}</h5>
-                </div>
-                <div>
-                  {/* Remove permission button (disables for the first permission) */}
-                  {permission.id !== permissions[0].id && (
-                    <a
-                      href="#"
-                      className="text-danger text-decoration-none"
-                      type="button"
-                      onClick={() => removePermission(permission.id)}
-                    >
-                      Delete permission
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label className={`${styles.formLabel} form-label`}>
-                  Dataset
-                </label>
-                <input
-                  value={permission.dataset}
-                  onChange={(e) => updateDataset(permission.id, e.target.value)}
-                  type="text"
-                  className={`${styles.formInput} form-control`}
-                  placeholder="Dataset URL"
-                  required
-                />
-              </div>
-
-              {/* Dataset Refinements */}
-              {permission.datasetRefinements.map((item) => (
-                <div className="row mt-2 mb-3" key={item.id}>
-                  <div className="d-flex mb-3 mt-3">
-                    <h6 className="me-auto">Dataset Refinement</h6>
-                    <i
-                      className="fa-solid fa-trash"
-                      onClick={() =>
-                        removeDatasetRefinement(permission.id, item.id)
-                      }
-                      style={{ cursor: "pointer" }}
-                    ></i>
-                  </div>
-                  <div className="col">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Attribute
-                    </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      value={item.attribute || ""}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          permission.id,
-                          item.id,
-                          "attribute",
-                          e.target.value
-                        )
-                      }
-                      required
-                    >
-                      {getAttributeDropdownValue().map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Instance
-                    </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      value={item.instance || ""}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          permission.id,
-                          item.id,
-                          "instance",
-                          e.target.value
-                        )
-                      }
-                      required
-                    >
-                      {getOperandDropdownValue().map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Value
-                    </label>
-                    <input
-                      type="text"
-                      className={`${styles.formInput} form-control`}
-                      value={item.value || ""}
-                      onChange={(e) =>
-                        updateDatasetRefinement(
-                          permission.id,
-                          item.id,
-                          "value",
-                          e.target.value
-                        )
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addDatasetRefinement(permission.id)}
-                className={`${styles.secondaryButton} btn btn-sm mt-3`}
-                disabled={!permission.dataset} // Disable button if dataset URL is empty
-              >
-                Add dataset refinement
-              </button>
-
-              <div className="row mt-4">
-                <div className="col">
-                  {/* Action Select */}
-                  <div className="mb-3">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Action
-                    </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      aria-label="Default select example"
-                      value={permission.action}
-                      onChange={(e) =>
-                        updateAction(permission.id, e.target.value)
-                      }
-                      required
-                    >
-                      {getFeatureDropdownValue("action").map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Action Refinements */}
-                  {permission.actionRefinements.map((item) => (
-                    <div className="row mt-2 mb-3" key={item.id}>
-                      <div className="d-flex mb-3 mt-3">
-                        <h6 className="me-auto">Action Refinement</h6>
-                        <i
-                          className="fa-solid fa-trash"
-                          onClick={() =>
-                            removeActionRefinement(permission.id, item.id)
-                          }
-                          style={{ cursor: "pointer" }}
-                        ></i>
-                      </div>
-                      <div className="col">
-                        <label className={`${styles.formLabel} form-label`}>
-                          Attribute
-                        </label>
-                        <select
-                          className={`${styles.formInput} form-select`}
-                          value={item.attribute || ""}
-                          onChange={(e) =>
-                            updateActionRefinement(
-                              permission.id,
-                              item.id,
-                              "attribute",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          {getAttributeDropdownValue().map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col">
-                        <label className={`${styles.formLabel} form-label`}>
-                          Instance
-                        </label>
-                        <select
-                          className={`${styles.formInput} form-select`}
-                          value={item.instance || ""}
-                          onChange={(e) =>
-                            updateActionRefinement(
-                              permission.id,
-                              item.id,
-                              "instance",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          {getOperandDropdownValue().map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col">
-                        <label className={`${styles.formLabel} form-label`}>
-                          Value
-                        </label>
-                        <input
-                          value={item.value || ""}
-                          onChange={(e) =>
-                            updateActionRefinement(
-                              permission.id,
-                              item.id,
-                              "value",
-                              e.target.value
-                            )
-                          }
-                          type="text"
-                          className={`${styles.formInput} form-control`}
-                          required
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addActionRefinement(permission.id)}
-                    className={`${styles.secondaryButton} btn btn-sm mt-3`}
-                    disabled={!permission.action} // Disable button if no action is selected
-                  >
-                    Add action refinement
-                  </button>
-                </div>
-
-                <div className="col">
-                  {/* Purpose Select */}
-                  <div className="mb-3">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Purpose
-                    </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      aria-label="Default select example"
-                      value={permission.purpose}
-                      onChange={(e) =>
-                        updatePurpose(permission.id, e.target.value)
-                      }
-                      required
-                    >
-                      {getFeatureDropdownValue("purpose").map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Purpose Refinements */}
-                  {permission.purposeRefinements.map((item) => (
-                    <div className="row mt-2 mb-3" key={item.id}>
-                      <div className="d-flex mb-3 mt-3">
-                        <h6 className="me-auto">Purpose Refinement</h6>
-                        <i
-                          className="fa-solid fa-trash"
-                          onClick={() =>
-                            removePurposeRefinement(permission.id, item.id)
-                          }
-                          style={{ cursor: "pointer" }}
-                        ></i>
-                      </div>
-                      <div className="col">
-                        <label className={`${styles.formLabel} form-label`}>
-                          Attribute
-                        </label>
-                        <select
-                          className={`${styles.formInput} form-select`}
-                          value={item.attribute || ""}
-                          onChange={(e) =>
-                            updatePurposeRefinement(
-                              permission.id,
-                              item.id,
-                              "attribute",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          {getAttributeDropdownValue().map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col">
-                        <label className={`${styles.formLabel} form-label`}>
-                          Instance
-                        </label>
-                        <select
-                          className={`${styles.formInput} form-select`}
-                          value={item.instance || ""}
-                          onChange={(e) =>
-                            updatePurposeRefinement(
-                              permission.id,
-                              item.id,
-                              "instance",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          {getOperandDropdownValue().map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col">
-                        <label className={`${styles.formLabel} form-label`}>
-                          Value
-                        </label>
-                        <input
-                          type="text"
-                          className={`${styles.formInput} form-control`}
-                          value={item.value || ""}
-                          onChange={(e) =>
-                            updatePurposeRefinement(
-                              permission.id,
-                              item.id,
-                              "value",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addPurposeRefinement(permission.id)}
-                    className={`${styles.secondaryButton} btn btn-sm mt-3`}
-                    disabled={!permission.purpose} // Disable button if no action is selected
-                  >
-                    Add purpose refinement
-                  </button>
-                </div>
-              </div>
-
-              {/* Constraints Refinements */}
-              {permission.constraintRefinements.map((item) => (
-                <div className="row mt-3 mb-3" key={item.id}>
-                  <div className="d-flex mb-3 mt-3">
-                    <h6 className="me-auto">Constraint</h6>
-                    <i
-                      className="fa-solid fa-trash"
-                      onClick={() =>
-                        removeConstraintRefinement(permission.id, item.id)
-                      }
-                      style={{ cursor: "pointer" }}
-                    ></i>
-                  </div>
-                  <div className="col">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Attribute
-                    </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      value={item.attribute || ""}
-                      onChange={(e) =>
-                        updateConstraintsRefinement(
-                          permission.id,
-                          item.id,
-                          "attribute",
-                          e.target.value
-                        )
-                      }
-                      required
-                    >
-                      {getAttributeDropdownValue().map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Instance
-                    </label>
-                    <select
-                      className={`${styles.formInput} form-select`}
-                      value={item.instance || ""}
-                      onChange={(e) =>
-                        updateConstraintsRefinement(
-                          permission.id,
-                          item.id,
-                          "instance",
-                          e.target.value
-                        )
-                      }
-                      required
-                    >
-                      {getOperandDropdownValue().map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className={`${styles.formLabel} form-label`}>
-                      Value
-                    </label>
-                    <input
-                      type="text"
-                      className={`${styles.formInput} form-control`}
-                      value={item.value || ""}
-                      onChange={(e) =>
-                        updateConstraintsRefinement(
-                          permission.id,
-                          item.id,
-                          "value",
-                          e.target.value
-                        )
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addConstraintRefinement(permission.id)}
-                className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
-              >
-                Add constraint
-              </button>
+          </div> */}
             </div>
-          </div>
-        ))}
+          </>
+        )}
 
-        <button
-          type="button"
-          onClick={addPermission}
-          className={`${styles.secondaryButton} btn w-100`}
-        >
-          Add Permission
-        </button>
-        <br />
+        {/* Step 2 */}
+        {step === 1 && (
+          <>
+            {/* Render multiple permissions */}
+            {permissions.map((permission, index) => (
+              <div key={permission.id} className="mb-3 mt-4">
+                <div className="border p-4">
+                  <div className="d-flex mb-2">
+                    <div className="me-auto">
+                      <h5>Permission {index + 1}</h5>
+                    </div>
+                    <div>
+                      {/* Remove permission button (disables for the first permission) */}
+                      {permission.id !== permissions[0].id && (
+                        <a
+                          href="#"
+                          className="text-danger text-decoration-none"
+                          type="button"
+                          onClick={() => removePermission(permission.id)}
+                        >
+                          Delete permission
+                        </a>
+                      )}
+                    </div>
+                  </div>
 
-        <p className="text-muted mt-4">
-          Bofore you create your request please make sure that all your
-          permissions and refinements are correct. Wrong values can lead to
-          rejection by the data owner.
-        </p>
+                  <div className="mb-3">
+                    <label className={`${styles.formLabel} form-label`}>
+                      Dataset
+                    </label>
+                    <input
+                      value={permission.dataset}
+                      onChange={(e) =>
+                        updateDataset(permission.id, e.target.value)
+                      }
+                      type="text"
+                      className={`${styles.formInput} form-control`}
+                      placeholder="Dataset URL"
+                      required
+                    />
+                  </div>
 
-        <button
-          className={`${styles.primaryButton} btn mt-3 w-20`}
-          type="submit"
-        >
-          Create Request
-        </button>
+                  {/* Dataset Refinements */}
+                  {permission.datasetRefinements.map((item) => (
+                    <div className="row mt-2 mb-3" key={item.id}>
+                      <div className="d-flex mb-3 mt-3">
+                        <h6 className="me-auto">Dataset Refinement</h6>
+                        <i
+                          className="fa-solid fa-trash"
+                          onClick={() =>
+                            removeDatasetRefinement(permission.id, item.id)
+                          }
+                          style={{ cursor: "pointer" }}
+                        ></i>
+                      </div>
+                      <div className="col">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Attribute
+                        </label>
+                        <select
+                          className={`${styles.formInput} form-select`}
+                          value={item.attribute || ""}
+                          onChange={(e) =>
+                            updateDatasetRefinement(
+                              permission.id,
+                              item.id,
+                              "attribute",
+                              e.target.value
+                            )
+                          }
+                          required
+                        >
+                          {getAttributeDropdownValue().map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Instance
+                        </label>
+                        <select
+                          className={`${styles.formInput} form-select`}
+                          value={item.instance || ""}
+                          onChange={(e) =>
+                            updateDatasetRefinement(
+                              permission.id,
+                              item.id,
+                              "instance",
+                              e.target.value
+                            )
+                          }
+                          required
+                        >
+                          {getOperandDropdownValue().map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="col">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Value
+                        </label>
+                        <input
+                          type="text"
+                          className={`${styles.formInput} form-control`}
+                          value={item.value || ""}
+                          onChange={(e) =>
+                            updateDatasetRefinement(
+                              permission.id,
+                              item.id,
+                              "value",
+                              e.target.value
+                            )
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addDatasetRefinement(permission.id)}
+                    className={`${styles.secondaryButton} btn btn-sm mt-3`}
+                    disabled={!permission.dataset} // Disable button if dataset URL is empty
+                  >
+                    Add dataset refinement
+                  </button>
+
+                  <div className="row mt-4">
+                    <div className="col">
+                      {/* Action Select */}
+                      <div className="mb-3">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Action
+                        </label>
+                        <select
+                          className={`${styles.formInput} form-select`}
+                          aria-label="Default select example"
+                          value={permission.action}
+                          onChange={(e) =>
+                            updateAction(permission.id, e.target.value)
+                          }
+                          required
+                        >
+                          {getFeatureDropdownValue("action").map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Action Refinements */}
+                      {permission.actionRefinements.map((item) => (
+                        <div className="row mt-2 mb-3" key={item.id}>
+                          <div className="d-flex mb-3 mt-3">
+                            <h6 className="me-auto">Action Refinement</h6>
+                            <i
+                              className="fa-solid fa-trash"
+                              onClick={() =>
+                                removeActionRefinement(permission.id, item.id)
+                              }
+                              style={{ cursor: "pointer" }}
+                            ></i>
+                          </div>
+                          <div className="col">
+                            <label className={`${styles.formLabel} form-label`}>
+                              Attribute
+                            </label>
+                            <select
+                              className={`${styles.formInput} form-select`}
+                              value={item.attribute || ""}
+                              onChange={(e) =>
+                                updateActionRefinement(
+                                  permission.id,
+                                  item.id,
+                                  "attribute",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              {getAttributeDropdownValue().map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col">
+                            <label className={`${styles.formLabel} form-label`}>
+                              Instance
+                            </label>
+                            <select
+                              className={`${styles.formInput} form-select`}
+                              value={item.instance || ""}
+                              onChange={(e) =>
+                                updateActionRefinement(
+                                  permission.id,
+                                  item.id,
+                                  "instance",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              {getOperandDropdownValue().map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col">
+                            <label className={`${styles.formLabel} form-label`}>
+                              Value
+                            </label>
+                            <input
+                              value={item.value || ""}
+                              onChange={(e) =>
+                                updateActionRefinement(
+                                  permission.id,
+                                  item.id,
+                                  "value",
+                                  e.target.value
+                                )
+                              }
+                              type="text"
+                              className={`${styles.formInput} form-control`}
+                              required
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => addActionRefinement(permission.id)}
+                        className={`${styles.secondaryButton} btn btn-sm mt-3`}
+                        disabled={!permission.action} // Disable button if no action is selected
+                      >
+                        Add action refinement
+                      </button>
+                    </div>
+
+                    <div className="col">
+                      {/* Purpose Select */}
+                      <div className="mb-3">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Purpose
+                        </label>
+                        <select
+                          className={`${styles.formInput} form-select`}
+                          aria-label="Default select example"
+                          value={permission.purpose}
+                          onChange={(e) =>
+                            updatePurpose(permission.id, e.target.value)
+                          }
+                          required
+                        >
+                          {getFeatureDropdownValue("purpose").map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Purpose Refinements */}
+                      {permission.purposeRefinements.map((item) => (
+                        <div className="row mt-2 mb-3" key={item.id}>
+                          <div className="d-flex mb-3 mt-3">
+                            <h6 className="me-auto">Purpose Refinement</h6>
+                            <i
+                              className="fa-solid fa-trash"
+                              onClick={() =>
+                                removePurposeRefinement(permission.id, item.id)
+                              }
+                              style={{ cursor: "pointer" }}
+                            ></i>
+                          </div>
+                          <div className="col">
+                            <label className={`${styles.formLabel} form-label`}>
+                              Attribute
+                            </label>
+                            <select
+                              className={`${styles.formInput} form-select`}
+                              value={item.attribute || ""}
+                              onChange={(e) =>
+                                updatePurposeRefinement(
+                                  permission.id,
+                                  item.id,
+                                  "attribute",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              {getAttributeDropdownValue().map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col">
+                            <label className={`${styles.formLabel} form-label`}>
+                              Instance
+                            </label>
+                            <select
+                              className={`${styles.formInput} form-select`}
+                              value={item.instance || ""}
+                              onChange={(e) =>
+                                updatePurposeRefinement(
+                                  permission.id,
+                                  item.id,
+                                  "instance",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              {getOperandDropdownValue().map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col">
+                            <label className={`${styles.formLabel} form-label`}>
+                              Value
+                            </label>
+                            <input
+                              type="text"
+                              className={`${styles.formInput} form-control`}
+                              value={item.value || ""}
+                              onChange={(e) =>
+                                updatePurposeRefinement(
+                                  permission.id,
+                                  item.id,
+                                  "value",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => addPurposeRefinement(permission.id)}
+                        className={`${styles.secondaryButton} btn btn-sm mt-3`}
+                        disabled={!permission.purpose} // Disable button if no action is selected
+                      >
+                        Add purpose refinement
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Constraints Refinements */}
+                  {permission.constraintRefinements.map((item) => (
+                    <div className="row mt-3 mb-3" key={item.id}>
+                      <div className="d-flex mb-3 mt-3">
+                        <h6 className="me-auto">Constraint</h6>
+                        <i
+                          className="fa-solid fa-trash"
+                          onClick={() =>
+                            removeConstraintRefinement(permission.id, item.id)
+                          }
+                          style={{ cursor: "pointer" }}
+                        ></i>
+                      </div>
+                      <div className="col">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Attribute
+                        </label>
+                        <select
+                          className={`${styles.formInput} form-select`}
+                          value={item.attribute || ""}
+                          onChange={(e) =>
+                            updateConstraintsRefinement(
+                              permission.id,
+                              item.id,
+                              "attribute",
+                              e.target.value
+                            )
+                          }
+                          required
+                        >
+                          {getAttributeDropdownValue().map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Instance
+                        </label>
+                        <select
+                          className={`${styles.formInput} form-select`}
+                          value={item.instance || ""}
+                          onChange={(e) =>
+                            updateConstraintsRefinement(
+                              permission.id,
+                              item.id,
+                              "instance",
+                              e.target.value
+                            )
+                          }
+                          required
+                        >
+                          {getOperandDropdownValue().map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col">
+                        <label className={`${styles.formLabel} form-label`}>
+                          Value
+                        </label>
+                        <input
+                          type="text"
+                          className={`${styles.formInput} form-control`}
+                          value={item.value || ""}
+                          onChange={(e) =>
+                            updateConstraintsRefinement(
+                              permission.id,
+                              item.id,
+                              "value",
+                              e.target.value
+                            )
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addConstraintRefinement(permission.id)}
+                    className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
+                  >
+                    Add constraint
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addPermission}
+              className={`${styles.secondaryButton} btn w-100`}
+            >
+              Add Permission
+            </button>
+          </>
+        )}
+
+        {/* Step 3 */}
+        {step === 2 && (
+          <>
+            <p className="text-muted mt-4">
+              Bofore you submit your request please make sure that all your
+              permissions and refinements are correct. Wrong values can lead to
+              rejection by the data owner.
+            </p>
+          </>
+        )}
+
+        <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
+          {step > 0 && (
+            <button
+              type="button"
+              className={`${styles.secondaryButton} btn mt-3 w-20`}
+              onClick={prevStep}
+            >
+              Previous
+            </button>
+          )}
+
+          {step < 2 && (
+            <button
+              type="button"
+              className={`${styles.primaryButton} btn mt-3 w-20`}
+              onClick={nextStep}
+            >
+              Next
+            </button>
+          )}
+
+          {step === 2 && (
+            <button
+              className={`${styles.primaryButton} btn mt-3 w-20`}
+              type="submit"
+            >
+              Create Request
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
