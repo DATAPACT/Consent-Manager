@@ -43,40 +43,44 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
   return ontologiesData;
 };
 
-export const getFeatureDropdownValue = (
-  ontology: Ontology,
+// dropdown options of the default ontology
+export const getDefaultDropdownOptions = (
   type: "action" | "purpose"
 ): Option[] => {
   if (type === "action") {
-    const defaultOntologyOptions: Option[] = [
+    return [
       { value: "", label: "Choose action" },
       { value: "read", label: "Read" },
       { value: "write", label: "Write" },
       { value: "delete", label: "Delete" },
     ];
-
-    const ontologyOption: Option = {
-      value: ontology.id,
-      label: `${ontology.name} (Action)`,
-    };
-
-    return [...defaultOntologyOptions, ontologyOption];
   }
 
   if (type === "purpose") {
-    const defaultOntologyOptions: Option[] = [
+    return [
       { value: "", label: "Choose purpose" },
       { value: "marketing", label: "Marketing" },
       { value: "legal", label: "Legal" },
       { value: "logistics", label: "Logistics" },
     ];
+  }
 
-    const ontologyOption: Option = {
-      value: ontology.id,
-      label: `${ontology.name} (Purpose)`,
-    };
+  return [];
+};
 
-    return [...defaultOntologyOptions, ontologyOption];
+// dropdown options of the custom ontologies
+export const getFeatureDropdownValue = (
+  ontology: Ontology,
+  type: "action" | "purpose"
+): Option[] => {
+  if (type === "action") {
+    // write the query here
+    return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
+  }
+
+  if (type === "purpose") {
+    // write the query here
+    return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
   }
 
   return [];
