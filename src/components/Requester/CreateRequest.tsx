@@ -99,6 +99,13 @@ function CreateRequest() {
     updateConstraintsRefinement,
   } = usePermissions();
 
+  const allFieldsFilled = permissions.every(
+    (permission) =>
+      permission.dataset.trim() !== "" &&
+      permission.action.trim() !== "" &&
+      permission.purpose.trim() !== ""
+  );
+
   return (
     <div className={`${styles.dashboard} container w-50`}>
       <Link
@@ -221,6 +228,14 @@ function CreateRequest() {
             ))}
           </div> */}
             </div>
+            <button
+              type="button"
+              className={`${styles.primaryButton} btn mt-3 w-20`}
+              onClick={nextStep}
+              disabled={!formData.requestName.trim()}
+            >
+              Next
+            </button>
           </>
         )}
 
@@ -526,7 +541,7 @@ function CreateRequest() {
 
                           {/* Ontology-based options */}
                           {selectedOntologies.flatMap((ontology) =>
-                            getFeatureDropdownValue(ontology, "purpose").map(
+                            getFeatureDropdownValue(ontology, "action").map(
                               (opt) => (
                                 <option key={opt.value} value={opt.value}>
                                   {opt.label}
@@ -729,6 +744,22 @@ function CreateRequest() {
             >
               Add Permission
             </button>
+
+            <button
+              type="button"
+              className={`${styles.secondaryButton} btn mt-3 w-20`}
+              onClick={prevStep}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className={`${styles.primaryButton} btn mt-3 w-20 ms-2`}
+              onClick={nextStep}
+              disabled={!allFieldsFilled}
+            >
+              Next
+            </button>
           </>
         )}
 
@@ -742,11 +773,6 @@ function CreateRequest() {
               <br /> If you're not sure please contact the data owner or see our{" "}
               <a href="#">Guidline seciton</a>.
             </p>
-          </>
-        )}
-
-        <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
-          {step > 0 && (
             <button
               type="button"
               className={`${styles.secondaryButton} btn mt-3 w-20`}
@@ -754,27 +780,14 @@ function CreateRequest() {
             >
               Previous
             </button>
-          )}
-
-          {step < 2 && (
             <button
-              type="button"
-              className={`${styles.primaryButton} btn mt-3 w-20`}
-              onClick={nextStep}
-            >
-              Next
-            </button>
-          )}
-
-          {step === 2 && (
-            <button
-              className={`${styles.primaryButton} btn mt-3 w-20`}
+              className={`${styles.primaryButton} btn mt-3 w-20 ms-2`}
               type="submit"
             >
               Create Request
             </button>
-          )}
-        </div>
+          </>
+        )}
       </form>
     </div>
   );
