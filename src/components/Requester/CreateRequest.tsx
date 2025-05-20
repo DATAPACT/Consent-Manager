@@ -130,7 +130,7 @@ function CreateRequest() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Step 1 */}
+        {/* Step 1: name and ontologies */}
         {step === 0 && (
           <>
             <div className="mb-3">
@@ -203,7 +203,8 @@ function CreateRequest() {
                 >
                   go to the Ontologies page
                 </Link>{" "}
-                to upload it.
+                to upload it. The default ontology will always be used, even if
+                you aren't able to select it.
               </div>
 
               {/* <div style={{ marginTop: "2rem" }}>
@@ -222,7 +223,7 @@ function CreateRequest() {
           </>
         )}
 
-        {/* Step 2 */}
+        {/* Step 2: permissions */}
         {step === 1 && (
           <>
             {/* Render multiple permissions */}
@@ -372,11 +373,20 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {getFeatureDropdownValue("action").map((option) => (
+                          {/* {getFeatureDropdownValue("action").map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
-                          ))}
+                          ))} */}
+                          {selectedOntologies.flatMap((ontology) =>
+                            getFeatureDropdownValue(ontology, "action").map(
+                              (opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              )
+                            )
+                          )}
                         </select>
                       </div>
 
@@ -487,11 +497,20 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {getFeatureDropdownValue("purpose").map((option) => (
+                          {/* {getFeatureDropdownValue("purpose").map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
-                          ))}
+                          ))} */}
+                          {selectedOntologies.flatMap((ontology) =>
+                            getFeatureDropdownValue(ontology, "purpose").map(
+                              (opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              )
+                            )
+                          )}
                         </select>
                       </div>
 
@@ -694,9 +713,11 @@ function CreateRequest() {
         {step === 2 && (
           <>
             <p className="text-muted mt-4">
-              Bofore you submit your request please make sure that all your
+              Bofore you create your request please make sure that all your
               permissions and refinements are correct. Wrong values can lead to
-              rejection by the data owner.
+              rejection by the data owner. <br />
+              <br /> If you're not sure please contact the data owner or see our{" "}
+              <a href="#">Guidline seciton</a>.
             </p>
           </>
         )}

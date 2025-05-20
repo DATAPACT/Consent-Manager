@@ -1,5 +1,4 @@
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase"; // adjust path based on your setup
 
 export interface Option {
   value: string;
@@ -44,25 +43,40 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
   return ontologiesData;
 };
 
+// export const getFeatureDropdownValue = (
+//   type: "action" | "purpose"
+// ): Option[] => {
+//   if (type === "action") {
+//     return [
+//       { value: "", label: "Choose action" },
+//       { value: "read", label: "Read" },
+//       { value: "write", label: "Write" },
+//       { value: "delete", label: "Delete" },
+//     ];
+//   }
+
+//   if (type === "purpose") {
+//     return [
+//       { value: "", label: "Choose purpose" },
+//       { value: "marketing", label: "Marketing" },
+//       { value: "legal", label: "Legal" },
+//       { value: "logistics", label: "Logistics" },
+//     ];
+//   }
+
+//   return [];
+// };
+
 export const getFeatureDropdownValue = (
+  ontology: Ontology,
   type: "action" | "purpose"
 ): Option[] => {
   if (type === "action") {
-    return [
-      { value: "", label: "Choose action" },
-      { value: "read", label: "Read" },
-      { value: "write", label: "Write" },
-      { value: "delete", label: "Delete" },
-    ];
+    return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
   }
 
   if (type === "purpose") {
-    return [
-      { value: "", label: "Choose purpose" },
-      { value: "marketing", label: "Marketing" },
-      { value: "legal", label: "Legal" },
-      { value: "logistics", label: "Logistics" },
-    ];
+    return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
   }
 
   return [];
