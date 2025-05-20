@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import jsPDF from "jspdf";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -68,6 +69,71 @@ function OwnerApprovedRequestsDetails() {
 
     fetchRequestDetails();
   }, [requestId]);
+
+  const handleDownload = () => {
+    if (!requestDetails) return;
+
+    const pdf = new jsPDF();
+    const lineHeight = 10;
+    let y = 10;
+
+    const addLine = (text: string = "") => {
+      if (y > 270) {
+        pdf.addPage();
+        y = 10;
+      }
+      pdf.text(text, 10, y);
+      y += lineHeight;
+    };
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(10);
+    addLine(`Request: ${requestDetails.requestName}`);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    addLine(`Requester Name: ${requestDetails.requester.requesterName}`);
+    addLine(`Requester Email: ${requestDetails.requester.requesterEmail}`);
+    addLine("");
+
+    requestDetails.permissions.forEach((perm, index) => {
+      addLine(`--- Requirement ${index + 1} ---`);
+      addLine(`Dataset: ${perm.dataset}`);
+      addLine(`Action: ${perm.action}`);
+      addLine(`Purpose: ${perm.purpose}`);
+
+      if (perm.datasetRefinements.length > 0) {
+        addLine("Dataset Conditions:");
+        perm.datasetRefinements.forEach((ref) => {
+          addLine(`- ${ref.attribute} > ${ref.value}`);
+        });
+      }
+
+      if (perm.actionRefinements.length > 0) {
+        addLine("Action Permissions:");
+        perm.actionRefinements.forEach((ref) => {
+          addLine(`- ${ref.attribute} > ${ref.value}`);
+        });
+      }
+
+      if (perm.purposeRefinements.length > 0) {
+        addLine("Purpose Permissions:");
+        perm.purposeRefinements.forEach((ref) => {
+          addLine(`- ${ref.attribute} > ${ref.value}`);
+        });
+      }
+
+      if (perm.constraintRefinements.length > 0) {
+        addLine("Constraints:");
+        perm.constraintRefinements.forEach((ref) => {
+          addLine(`- ${ref.attribute} ${ref.instance} ${ref.value}`);
+        });
+      }
+
+      addLine("");
+    });
+
+    pdf.save(`${requestDetails.requestName || "request"}.pdf`);
+  };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
@@ -170,7 +236,10 @@ function OwnerApprovedRequestsDetails() {
           </div>
         ))}
 
-        <button className={`${styles.primaryButton} btn mt-3`}>
+        <button
+          className={`${styles.primaryButton} btn mt-3`}
+          onClick={handleDownload}
+        >
           Download request
         </button>
       </div>
