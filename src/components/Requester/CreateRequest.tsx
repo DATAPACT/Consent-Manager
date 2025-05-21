@@ -212,7 +212,7 @@ function CreateRequest() {
                   go to the Ontologies page
                 </Link>{" "}
                 to upload it. The default ontology will always be used, even if
-                you aren't able to select it.
+                you don't select any ontologies.
               </div>
 
               {/* <div style={{ marginTop: "2rem" }}>
