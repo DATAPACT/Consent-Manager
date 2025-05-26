@@ -121,9 +121,28 @@ function CreateRequest() {
 
       <hr />
 
-      {/* progress bar */}
+      {/* progress bar with step titles */}
       <div className="mb-4">
-        <div className="progress ">
+        <div className="d-flex justify-content-between mb-1">
+          {stepTitles.map((title, index) => (
+            <div
+              key={index}
+              className="text-center flex-fill"
+              style={{ fontSize: "0.875rem" }}
+            >
+              <div
+                style={{
+                  color: index <= step ? "#000" : "#ccc",
+                  fontWeight: index === step ? "bold" : "normal",
+                }}
+              >
+                {title}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="progress mt-3">
           <div
             className={`${styles.progressBar} progress-bar`}
             role="progressbar"
