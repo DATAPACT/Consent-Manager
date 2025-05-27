@@ -70,17 +70,30 @@ export const getDefaultDropdownOptions = (
 
 // dropdown options of the custom ontologies
 export const getFeatureDropdownValue = (
-  ontology: Ontology,
+  ontologies: Ontology[],
   type: "action" | "purpose"
 ): Option[] => {
+  // Combine all ontology content into one string
+  const combinedContent = ontologies.map((o) => o.content).join(" ");
+
+  // WRITE YOUR QUERY HERE (this is just an example)
+  const parser = combinedContent
+    .split(/\W+/)
+    .filter((word) => word.toLowerCase().startsWith("a"));
+
+  // Map parsed words to dropdown options with type-based keys
   if (type === "action") {
-    // write the query here
-    return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
+    return parser.map((word) => ({
+      value: word,
+      label: word,
+    }));
   }
 
   if (type === "purpose") {
-    // write the query here
-    return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
+    return parser.map((word) => ({
+      value: word,
+      label: word,
+    }));
   }
 
   return [];

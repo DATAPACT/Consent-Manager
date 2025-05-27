@@ -424,14 +424,15 @@ function CreateRequest() {
                           ))}
 
                           {/* Ontology-based options */}
-                          {selectedOntologies.flatMap((ontology) =>
-                            getFeatureDropdownValue(ontology, "action").map(
-                              (opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              )
-                            )
+                          {selectedOntologies.flatMap(() =>
+                            getFeatureDropdownValue(
+                              selectedOntologies,
+                              "action"
+                            ).map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))
                           )}
                         </select>
                       </div>
@@ -549,7 +550,7 @@ function CreateRequest() {
                             </option>
                           ))} */}
                           {/* Default options first */}
-                          {getDefaultDropdownOptions("action").map((opt) => (
+                          {getDefaultDropdownOptions("purpose").map((opt) => (
                             <option
                               key={`default-${opt.value}`}
                               value={opt.value}
@@ -559,14 +560,15 @@ function CreateRequest() {
                           ))}
 
                           {/* Ontology-based options */}
-                          {selectedOntologies.flatMap((ontology) =>
-                            getFeatureDropdownValue(ontology, "action").map(
-                              (opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              )
-                            )
+                          {selectedOntologies.flatMap(() =>
+                            getFeatureDropdownValue(
+                              selectedOntologies,
+                              "purpose"
+                            ).map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))
                           )}
                         </select>
                       </div>
