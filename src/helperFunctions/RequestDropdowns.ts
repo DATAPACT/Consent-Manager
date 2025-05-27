@@ -1,4 +1,5 @@
 import { getFirestore, collection, getDocs } from "firebase/firestore";
+import * as $rdf from "rdflib";
 
 export interface Option {
   value: string;
@@ -69,29 +70,77 @@ export const getDefaultDropdownOptions = (
 };
 
 // dropdown options of the custom ontologies
-export const getFeatureDropdownValue = (
+// export const getFeatureDropdownValue = (
+//   ontologies: Ontology[],
+//   type: "action" | "purpose"
+// ): Option[] => {
+//   const combinedContent = ontologies.map((o) => o.content).join(" ");
+
+//   const parser = combinedContent
+//     .split(/\W+/)
+//     .filter((word) => word.toLowerCase().startsWith("a"));
+
+//   if (type === "action") {
+//     return parser.map((word) => ({
+//       value: word,
+//       label: word,
+//     }));
+//   }
+
+//   if (type === "purpose") {
+//     return parser.map((word) => ({
+//       value: word,
+//       label: word,
+//     }));
+//   }
+
+//   return [];
+// };
+
+export const getFeatureDropdownValue = async (
   ontologies: Ontology[],
   type: "action" | "purpose"
-): Option[] => {
-  // Combine all ontology content into one string
-  const combinedContent = ontologies.map((o) => o.content).join(" ");
+): Promise<Option[]> => {
+  const store = $rdf.graph();
 
-  // WRITE YOUR QUERY HERE (this is just an example)
-  const parser = combinedContent
-    .split(/\W+/)
-    .filter((word) => word.toLowerCase().startsWith("a"));
+  // Parse each ontology content into the store
+  for (const ontology of ontologies) {
+    try {
+      $rdf.parse(
+        ontology.content,
+        store,
+        "http://example.org/base#", // base URI (can be anything)
+        "text/turtle" // change format if your content is different (e.g., 'application/rdf+xml')
+      );
+    } catch (e) {
+      console.error("Failed to parse ontology:", e);
+    }
+  }
 
-  // Map parsed words to dropdown options with type-based keys
+  // Extract all literals in the graph starting with 'a'
+  const literals = new Set<string>();
+  store.statements.forEach((st) => {
+    if (st.object.termType === "Literal") {
+      const value = st.object.value.toLowerCase();
+      if (value.startsWith("a")) {
+        literals.add(st.object.value);
+      }
+    }
+  });
+
+  const words = Array.from(literals);
+
+  // Map to dropdown options
   if (type === "action") {
-    return parser.map((word) => ({
-      value: word,
+    return words.map((word, index) => ({
+      value: `action-${index}`,
       label: word,
     }));
   }
 
   if (type === "purpose") {
-    return parser.map((word) => ({
-      value: word,
+    return words.map((word, index) => ({
+      value: `purpose-${index}`,
       label: word,
     }));
   }
