@@ -68,31 +68,6 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
   return ontologyDocs.filter(Boolean) as Ontology[];
 };
 
-// dropdown options of the default ontology
-export const getDefaultDropdownOptions = (
-  type: "action" | "purpose"
-): Option[] => {
-  if (type === "action") {
-    return [
-      { value: "", label: "Choose action" },
-      { value: "read", label: "Read" },
-      { value: "write", label: "Write" },
-      { value: "delete", label: "Delete" },
-    ];
-  }
-
-  if (type === "purpose") {
-    return [
-      { value: "", label: "Choose purpose" },
-      { value: "marketing", label: "Marketing" },
-      { value: "legal", label: "Legal" },
-      { value: "logistics", label: "Logistics" },
-    ];
-  }
-
-  return [];
-};
-
 // dropdown options of the custom ontologies
 export const getFeatureDropdownValue = (
   ontology: Ontology,

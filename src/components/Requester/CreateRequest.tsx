@@ -7,7 +7,6 @@ import { addRequest } from "../../helperFunctions/AddRequest";
 // dropdowns
 import {
   getFeatureDropdownValue,
-  getDefaultDropdownOptions,
   getAttributeDropdownValue,
   getOperandDropdownValue,
   fetchOntologies,
@@ -420,12 +419,6 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {/* {getFeatureDropdownValue("action").map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))} */}
-
                           {/* Ontology-based options */}
                           {selectedOntologies.flatMap((ontology) =>
                             getFeatureDropdownValue(ontology, "action").map(
@@ -546,21 +539,6 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {/* {getFeatureDropdownValue("purpose").map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))} */}
-                          {/* Default options first */}
-                          {getDefaultDropdownOptions("purpose").map((opt) => (
-                            <option
-                              key={`default-${opt.value}`}
-                              value={opt.value}
-                            >
-                              {opt.label}
-                            </option>
-                          ))}
-
                           {/* Ontology-based options */}
                           {selectedOntologies.flatMap((ontology) =>
                             getFeatureDropdownValue(ontology, "purpose").map(
