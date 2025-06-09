@@ -1,11 +1,5 @@
 import * as $rdf from "rdflib";
-import {
-  getFirestore,
-  collection,
-  getDoc,
-  doc,
-  getDocs,
-} from "firebase/firestore";
+import { getFirestore, getDoc, doc } from "firebase/firestore";
 import { auth } from "../firebase";
 
 export interface Option {
@@ -69,6 +63,7 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
 };
 
 // dropdown options of the custom ontologies
+// the default ontology is always fetched by default
 export const getFeatureDropdownValue = (
   ontology: Ontology,
   type: "action" | "purpose"
