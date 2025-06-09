@@ -64,68 +64,66 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
 
 // dropdown options of the custom ontologies
 // the default ontology is always fetched by default
-export const getFeatureDropdownValue = (
-  ontology: Ontology,
-  type: "action" | "purpose"
-): Option[] => {
-  if (type === "action") {
-    return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
-  }
-
-  if (type === "purpose") {
-    return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
-  }
-
-  return [];
-};
-
-// export const getFeatureDropdownValue = async (
-//   ontologies: Ontology[],
+// export const getFeatureDropdownValue = (
+//   ontology: Ontology,
 //   type: "action" | "purpose"
-// ): Promise<Option[]> => {
-//   const store = $rdf.graph();
-
-//   for (const ontology of ontologies) {
-//     try {
-//       $rdf.parse(
-//         ontology.content,
-//         store,
-//         "http://example.org/base#",
-//         "text/turtle"
-//       );
-//     } catch (e) {
-//       console.error("Failed to parse ontology:", e);
-//     }
-//   }
-
-//   const literals = new Set<string>();
-//   store.statements.forEach((st) => {
-//     if (st.object.termType === "Literal") {
-//       const value = st.object.value.toLowerCase();
-//       if (value.startsWith("a")) {
-//         literals.add(st.object.value);
-//       }
-//     }
-//   });
-
-//   const words = Array.from(literals);
-
+// ): Option[] => {
 //   if (type === "action") {
-//     return words.map((word, index) => ({
-//       value: `action-${index}`,
-//       label: word,
-//     }));
+//     return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
 //   }
 
 //   if (type === "purpose") {
-//     return words.map((word, index) => ({
-//       value: `purpose-${index}`,
-//       label: word,
-//     }));
+//     return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
 //   }
 
 //   return [];
 // };
+
+export const getFeatureDropdownValue = async (
+  ontologies: Ontology[],
+  type: "action" | "purpose"
+): Promise<Option[]> => {
+  const store = $rdf.graph();
+
+  const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+  const RDFS = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#");
+
+  for (const ontology of ontologies) {
+    try {
+      $rdf.parse(
+        ontology.content,
+        store,
+        "http://example.org/base#", // base URI for parsing
+        "text/turtle"
+      );
+    } catch (e) {
+      console.error("Failed to parse ontology:", e);
+    }
+  }
+
+  const labels = new Set<string>();
+
+  // Loop through all statements to find entities of type Action or Purpose
+  store.statements.forEach((st) => {
+    if (
+      st.predicate.equals(RDF("type")) &&
+      st.object.value.toLowerCase().includes(type)
+    ) {
+      const subject = st.subject;
+      const labelStatements = store.match(subject, RDFS("label"), null);
+      labelStatements.forEach((lblSt) => {
+        if (lblSt.object.termType === "Literal") {
+          labels.add(lblSt.object.value);
+        }
+      });
+    }
+  });
+
+  return Array.from(labels).map((label, index) => ({
+    value: `${type}-${index}`,
+    label,
+  }));
+};
 
 export const getAttributeDropdownValue = (): Option[] => {
   return [

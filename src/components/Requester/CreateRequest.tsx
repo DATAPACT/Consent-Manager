@@ -11,6 +11,7 @@ import {
   getOperandDropdownValue,
   fetchOntologies,
   Ontology,
+  Option,
 } from "../../helperFunctions/RequestDropdowns";
 
 // permissions utils
@@ -28,6 +29,11 @@ function CreateRequest() {
   // onotlogies
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
+
+  const [actionOptions, setActionOptions] = useState<Option[]>([]);
+  const [purposeOptions, setPurposeOptions] = useState<Option[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -36,17 +42,21 @@ function CreateRequest() {
 
   useEffect(() => {
     const loadOntologies = async () => {
+      setIsLoading(true);
       try {
         const data = await fetchOntologies();
-        setOntologies(data);
+        console.log("Fetched ontologies:", data);
 
-        // Select the default ontology by default
+        setOntologies(data);
         const defaultOntology = data.find((o) => o.id === "default");
         if (defaultOntology) {
           setSelectedOntologies([defaultOntology]);
         }
       } catch (err: any) {
         setError(err.message);
+        console.error("Error fetching ontologies:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -420,15 +430,11 @@ function CreateRequest() {
                           required
                         >
                           {/* Ontology-based options */}
-                          {selectedOntologies.flatMap((ontology) =>
-                            getFeatureDropdownValue(ontology, "action").map(
-                              (opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              )
-                            )
-                          )}
+                          {actionOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
@@ -540,15 +546,11 @@ function CreateRequest() {
                           required
                         >
                           {/* Ontology-based options */}
-                          {selectedOntologies.flatMap((ontology) =>
-                            getFeatureDropdownValue(ontology, "purpose").map(
-                              (opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              )
-                            )
-                          )}
+                          {actionOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
