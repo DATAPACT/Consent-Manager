@@ -60,19 +60,17 @@ function CreateRequest() {
 
   useEffect(() => {
     const loadDropdownValues = async () => {
-      const actions = await Promise.all(
-        selectedOntologies.map((ontology) =>
-          getFeatureDropdownValue(ontology, "action")
-        )
+      const actions = await getFeatureDropdownValue(
+        selectedOntologies,
+        "action"
       );
-      const purposes = await Promise.all(
-        selectedOntologies.map((ontology) =>
-          getFeatureDropdownValue(ontology, "purpose")
-        )
+      const purposes = await getFeatureDropdownValue(
+        selectedOntologies,
+        "purpose"
       );
 
-      setActionOptions(actions.flat());
-      setPurposeOptions(purposes.flat());
+      setActionOptions(actions);
+      setPurposeOptions(purposes);
     };
 
     loadDropdownValues();

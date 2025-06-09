@@ -65,18 +65,20 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
 // dropdown options of the custom ontologies
 // the default ontology is always fetched by default
 export const getFeatureDropdownValue = async (
-  ontology: Ontology,
+  ontologies: Ontology[],
   type: "action" | "purpose"
 ): Promise<Option[]> => {
-  if (type === "action") {
-    return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
+  const result: Option[] = [];
+
+  for (const ontology of ontologies) {
+    if (type === "action") {
+      result.push({ value: ontology.id, label: `${ontology.name} (Action)` });
+    } else if (type === "purpose") {
+      result.push({ value: ontology.id, label: `${ontology.name} (Purpose)` });
+    }
   }
 
-  if (type === "purpose") {
-    return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
-  }
-
-  return [];
+  return result;
 };
 
 // export const getFeatureDropdownValue = async (
