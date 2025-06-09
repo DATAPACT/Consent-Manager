@@ -1,5 +1,12 @@
-import { getFirestore, collection, getDocs } from "firebase/firestore";
 import * as $rdf from "rdflib";
+import {
+  getFirestore,
+  collection,
+  getDoc,
+  doc,
+  getDocs,
+} from "firebase/firestore";
+import { auth } from "../firebase";
 
 export interface Option {
   value: string;
@@ -14,26 +21,43 @@ export type Ontology = {
 
 export const fetchOntologies = async (): Promise<Ontology[]> => {
   const db = getFirestore();
-  const colRef = collection(db, "ontologies");
-  const snapshot = await getDocs(colRef);
+  const currentUser = auth.currentUser;
 
-  const ontologiesData = await Promise.all(
-    snapshot.docs.map(async (doc) => {
-      const data = doc.data();
-      const name = data.name || doc.id; // fallback to ID if name is missing
+  if (!currentUser) throw new Error("User not authenticated");
+
+  // Fetch the requester's document
+  const requesterRef = doc(db, "requesters", currentUser.uid);
+  const requesterSnap = await getDoc(requesterRef);
+
+  if (!requesterSnap.exists()) throw new Error("Requester document not found");
+
+  const requesterData = requesterSnap.data();
+  const ontologyIds: string[] = requesterData.ontologies || [];
+
+  if (ontologyIds.length === 0) return [];
+
+  // Fetch only the ontologies the user belongs to
+  const ontologyDocs = await Promise.all(
+    ontologyIds.map(async (id) => {
+      const ontDocRef = doc(db, "ontologies", id);
+      const ontSnap = await getDoc(ontDocRef);
+      if (!ontSnap.exists()) return null;
+
+      const data = ontSnap.data();
+      const name = data.name || id;
 
       if (!data.fileURL) {
-        return { id: doc.id, name, content: "No fileURL found" };
+        return { id, name, content: "No fileURL found" };
       }
 
       try {
         const response = await fetch(data.fileURL);
         if (!response.ok) throw new Error("Failed to fetch file");
         const text = await response.text();
-        return { id: doc.id, name, content: text };
+        return { id, name, content: text };
       } catch (e: any) {
         return {
-          id: doc.id,
+          id,
           name,
           content: `Error fetching file: ${e.message}`,
         };
@@ -41,7 +65,7 @@ export const fetchOntologies = async (): Promise<Ontology[]> => {
     })
   );
 
-  return ontologiesData;
+  return ontologyDocs.filter(Boolean) as Ontology[];
 };
 
 // dropdown options of the default ontology
@@ -70,83 +94,80 @@ export const getDefaultDropdownOptions = (
 };
 
 // dropdown options of the custom ontologies
-// export const getFeatureDropdownValue = (
-//   ontologies: Ontology[],
-//   type: "action" | "purpose"
-// ): Option[] => {
-//   const combinedContent = ontologies.map((o) => o.content).join(" ");
-
-//   const parser = combinedContent
-//     .split(/\W+/)
-//     .filter((word) => word.toLowerCase().startsWith("a"));
-
-//   if (type === "action") {
-//     return parser.map((word) => ({
-//       value: word,
-//       label: word,
-//     }));
-//   }
-
-//   if (type === "purpose") {
-//     return parser.map((word) => ({
-//       value: word,
-//       label: word,
-//     }));
-//   }
-
-//   return [];
-// };
-
-export const getFeatureDropdownValue = async (
+export const getFeatureDropdownValue = (
   ontologies: Ontology[],
   type: "action" | "purpose"
-): Promise<Option[]> => {
-  const store = $rdf.graph();
+): Option[] => {
+  const combinedContent = ontologies.map((o) => o.content).join(" ");
 
-  // Parse each ontology content into the store
-  for (const ontology of ontologies) {
-    try {
-      $rdf.parse(
-        ontology.content,
-        store,
-        "http://example.org/base#", // base URI (can be anything)
-        "text/turtle" // change format if your content is different (e.g., 'application/rdf+xml')
-      );
-    } catch (e) {
-      console.error("Failed to parse ontology:", e);
-    }
-  }
+  const parser = combinedContent
+    .split(/\W+/)
+    .filter((word) => word.toLowerCase().startsWith("a"));
 
-  // Extract all literals in the graph starting with 'a'
-  const literals = new Set<string>();
-  store.statements.forEach((st) => {
-    if (st.object.termType === "Literal") {
-      const value = st.object.value.toLowerCase();
-      if (value.startsWith("a")) {
-        literals.add(st.object.value);
-      }
-    }
-  });
-
-  const words = Array.from(literals);
-
-  // Map to dropdown options
   if (type === "action") {
-    return words.map((word, index) => ({
-      value: `action-${index}`,
+    return parser.map((word) => ({
+      value: word,
       label: word,
     }));
   }
 
   if (type === "purpose") {
-    return words.map((word, index) => ({
-      value: `purpose-${index}`,
+    return parser.map((word) => ({
+      value: word,
       label: word,
     }));
   }
 
   return [];
 };
+
+// export const getFeatureDropdownValue = async (
+//   ontologies: Ontology[],
+//   type: "action" | "purpose"
+// ): Promise<Option[]> => {
+//   const store = $rdf.graph();
+
+//   for (const ontology of ontologies) {
+//     try {
+//       $rdf.parse(
+//         ontology.content,
+//         store,
+//         "http://example.org/base#",
+//         "text/turtle"
+//       );
+//     } catch (e) {
+//       console.error("Failed to parse ontology:", e);
+//     }
+//   }
+
+//   const literals = new Set<string>();
+//   store.statements.forEach((st) => {
+//     if (st.object.termType === "Literal") {
+//       const value = st.object.value.toLowerCase();
+//       if (value.startsWith("a")) {
+//         literals.add(st.object.value);
+//       }
+//     }
+//   });
+
+//   const words = Array.from(literals);
+
+//   if (type === "action") {
+//     return words.map((word, index) => ({
+//       value: `action-${index}`,
+//       label: word,
+//     }));
+//   }
+
+//   if (type === "purpose") {
+//     return words.map((word, index) => ({
+//       value: `purpose-${index}`,
+//       label: word,
+//     }));
+//   }
+
+//   return [];
+// };
 
 export const getAttributeDropdownValue = (): Option[] => {
   return [

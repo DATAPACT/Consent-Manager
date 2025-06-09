@@ -3,10 +3,17 @@ import styles from "../../css/Ontology.module.css";
 // libraries
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
-import { db, storage } from "../../firebase"; // Make sure you export `storage` from firebase.js
-import { doc, setDoc, Timestamp, collection } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // For file upload
-import { auth } from "../../firebase";
+import { db, storage, auth } from "../../firebase"; // Make sure auth and storage are exported
+import {
+  doc,
+  setDoc,
+  Timestamp,
+  collection,
+  updateDoc,
+  getDoc,
+  arrayUnion,
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const UploadOntology: React.FC = () => {
   const [name, setName] = useState("");
@@ -41,13 +48,26 @@ const UploadOntology: React.FC = () => {
       // Get file download URL
       const fileURL = await getDownloadURL(storageRef);
 
-      // Save metadata in Firestore
+      // Save ontology metadata
       await setDoc(docRef, {
         name,
         fileURL,
         uploadedAt: Timestamp.fromDate(new Date()),
         requesterId,
       });
+
+      // Update user's ontologies array
+      const userDocRef = doc(db, "requesters", requesterId);
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        await updateDoc(userDocRef, {
+          ontologies: arrayUnion(docRef.id),
+        });
+      } else {
+        setError("User document not found");
+        return;
+      }
 
       setName("");
       setFile(null);
@@ -117,7 +137,7 @@ const UploadOntology: React.FC = () => {
         </div>
       </form>
 
-      {error && <p className="text-danger">{error}</p>}
+      {error && <p className="text-danger mt-3">{error}</p>}
 
       <h5 className="mt-5">Uploading an ontology</h5>
       <p>
