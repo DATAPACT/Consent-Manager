@@ -18,35 +18,30 @@ const RequesterRegister: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission
+    e.preventDefault();
 
     if (password !== retypePassword) {
       setError("Passwords do not match.");
-      return; // Stop form submission if passwords don't match
+      return;
     }
 
     try {
-      // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-
       const user = userCredential.user;
 
-      // Create user data in Firestore under "requesters" collection
       await setDoc(doc(db, "requesters", user.uid), {
         name,
         email,
         role: "requester",
         createdAt: new Date(),
+        ontologies: ["default"],
       });
 
-      // After user is created, log them in to update the user context
       await login(email, password);
-
-      // Redirect to Dashboard
       navigate("/requesterBase/requesterDashboard");
     } catch (error: any) {
       setError(error.message);

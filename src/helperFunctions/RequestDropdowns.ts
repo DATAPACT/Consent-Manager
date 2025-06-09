@@ -95,28 +95,18 @@ export const getDefaultDropdownOptions = (
 
 // dropdown options of the custom ontologies
 export const getFeatureDropdownValue = (
-  ontologies: Ontology[],
+  ontology: Ontology,
   type: "action" | "purpose"
 ): Option[] => {
-  let options: Option[] = [];
-
   if (type === "action") {
-    options = ontologies.map((ontology) => ({
-      value: ontology.name,
-      label: ontology.name,
-    }));
+    return [{ value: ontology.id, label: `${ontology.name} (Action)` }];
   }
 
   if (type === "purpose") {
-    options = ontologies.map((ontology) => ({
-      value: ontology.name,
-      label: ontology.name,
-    }));
+    return [{ value: ontology.id, label: `${ontology.name} (Purpose)` }];
   }
 
-  console.log(`Dropdown options for type="${type}":`, options);
-
-  return options;
+  return [];
 };
 
 // export const getFeatureDropdownValue = async (
