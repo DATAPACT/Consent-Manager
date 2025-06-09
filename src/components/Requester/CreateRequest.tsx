@@ -30,38 +30,53 @@ function CreateRequest() {
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
 
-  const [actionOptions, setActionOptions] = useState<Option[]>([]);
-  const [purposeOptions, setPurposeOptions] = useState<Option[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     requestName: "",
   });
 
+  const [actionOptions, setActionOptions] = useState<Option[]>([]);
+  const [purposeOptions, setPurposeOptions] = useState<Option[]>([]);
+
   useEffect(() => {
     const loadOntologies = async () => {
-      setIsLoading(true);
       try {
         const data = await fetchOntologies();
-        console.log("Fetched ontologies:", data);
-
         setOntologies(data);
+
         const defaultOntology = data.find((o) => o.id === "default");
         if (defaultOntology) {
           setSelectedOntologies([defaultOntology]);
         }
       } catch (err: any) {
         setError(err.message);
-        console.error("Error fetching ontologies:", err);
-      } finally {
-        setIsLoading(false);
+        console.error(err);
       }
     };
 
     loadOntologies();
-  }, []);
+  }, []); // Empty dependencies to run once initially
+
+  useEffect(() => {
+    const loadDropdownValues = async () => {
+      const actions = await Promise.all(
+        selectedOntologies.map((ontology) =>
+          getFeatureDropdownValue(ontology, "action")
+        )
+      );
+      const purposes = await Promise.all(
+        selectedOntologies.map((ontology) =>
+          getFeatureDropdownValue(ontology, "purpose")
+        )
+      );
+
+      setActionOptions(actions.flat());
+      setPurposeOptions(purposes.flat());
+    };
+
+    loadDropdownValues();
+  }, [selectedOntologies]);
 
   const handleDoubleClick = (id: string) => {
     const existing = selectedOntologies.find((o) => o.id === id);
@@ -546,7 +561,7 @@ function CreateRequest() {
                           required
                         >
                           {/* Ontology-based options */}
-                          {actionOptions.map((opt) => (
+                          {purposeOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                               {opt.label}
                             </option>
