@@ -53,7 +53,6 @@ const UploadOntology: React.FC = () => {
         name,
         fileURL,
         uploadedAt: Timestamp.fromDate(new Date()),
-        requesterId,
       });
 
       // Update user's ontologies array

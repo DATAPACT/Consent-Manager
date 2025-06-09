@@ -98,27 +98,25 @@ export const getFeatureDropdownValue = (
   ontologies: Ontology[],
   type: "action" | "purpose"
 ): Option[] => {
-  const combinedContent = ontologies.map((o) => o.content).join(" ");
-
-  const parser = combinedContent
-    .split(/\W+/)
-    .filter((word) => word.toLowerCase().startsWith("a"));
+  let options: Option[] = [];
 
   if (type === "action") {
-    return parser.map((word) => ({
-      value: word,
-      label: word,
+    options = ontologies.map((ontology) => ({
+      value: ontology.name,
+      label: ontology.name,
     }));
   }
 
   if (type === "purpose") {
-    return parser.map((word) => ({
-      value: word,
-      label: word,
+    options = ontologies.map((ontology) => ({
+      value: ontology.name,
+      label: ontology.name,
     }));
   }
 
-  return [];
+  console.log(`Dropdown options for type="${type}":`, options);
+
+  return options;
 };
 
 // export const getFeatureDropdownValue = async (
