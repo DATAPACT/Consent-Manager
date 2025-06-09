@@ -4,7 +4,14 @@ import styles from "../../css/Dashboard.module.css";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { auth, db } from "../../firebase"; // Firebase import
-import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore queries
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore"; // Firestore queries
 
 function RequesterDashboard() {
   const [ontologyCount, setOntologyCount] = useState<number>(0); // State for ontology count
@@ -16,21 +23,30 @@ function RequesterDashboard() {
       if (!user) return;
 
       try {
-        // Fetch the count of ontologies for the logged-in user
-        const ontologiesQuery = query(
-          collection(db, "ontologies"),
-          where("requesterId", "==", user.uid)
-        );
-        const ontologySnapshot = await getDocs(ontologiesQuery);
-        setOntologyCount(ontologySnapshot.size); // Set the count of ontologies
+        // Fetch the requester document
+        const requesterRef = doc(db, "requesters", user.uid);
+        const requesterSnap = await getDoc(requesterRef);
 
-        // Fetch the count of requests for the logged-in user
+        if (!requesterSnap.exists()) {
+          setOntologyCount(0);
+          setRequestCount(0);
+          return;
+        }
+
+        const data = requesterSnap.data();
+        const ontologyIds: string[] = data.ontologies || [];
+
+        // Exclude the default ontology
+        const count = ontologyIds.filter((id) => id !== "default").length;
+        setOntologyCount(count);
+
+        // Fetch the user's requests
         const requestsQuery = query(
           collection(db, "requests"),
           where("requester.requesterId", "==", user.uid)
         );
         const requestSnapshot = await getDocs(requestsQuery);
-        setRequestCount(requestSnapshot.size); // Set the count of requests
+        setRequestCount(requestSnapshot.size);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
