@@ -11,6 +11,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  getDoc,
 } from "firebase/firestore"; // Import Firestore queries
 
 const Ontologies: React.FC = () => {
@@ -22,33 +23,46 @@ const Ontologies: React.FC = () => {
   >(null);
   const [isOntologyInUse, setIsOntologyInUse] = useState<boolean>(false); // Track if ontology is in use
 
-  // Fetch ontologies from Firestore
   useEffect(() => {
     const fetchOntologies = async () => {
       const user = auth.currentUser;
 
       if (!user) {
-        return; // If user is not logged in, do nothing
+        setLoading(false);
+        return;
       }
 
       try {
-        const q = query(
-          collection(db, "ontologies"),
-          where("requesterId", "==", user.uid) // Filter ontologies by requesterId
+        // Step 1: Get requester's document
+        const requesterRef = doc(db, "requesters", user.uid);
+        const requesterSnap = await getDoc(requesterRef);
+
+        if (!requesterSnap.exists()) {
+          setOntologies([]);
+          setLoading(false);
+          return;
+        }
+
+        const requesterData = requesterSnap.data();
+        const ontologyIds: string[] = requesterData.ontologies || [];
+
+        // Step 2: Fetch only ontologies listed in user's array
+        const ontologyDocs = await Promise.all(
+          ontologyIds.map(async (id) => {
+            const ontRef = doc(db, "ontologies", id);
+            const ontSnap = await getDoc(ontRef);
+            if (!ontSnap.exists()) return null;
+
+            return {
+              id,
+              ...ontSnap.data(),
+            };
+          })
         );
 
-        const querySnapshot = await getDocs(q);
-        const ontologiesData: any[] = [];
-        querySnapshot.forEach((doc) => {
-          ontologiesData.push({
-            id: doc.id,
-            ...doc.data(),
-          });
-        });
-
-        setOntologies(ontologiesData);
+        setOntologies(ontologyDocs.filter(Boolean)); // remove nulls
       } catch (error) {
-        console.error("Error fetching ontologies:", error);
+        console.error("Error fetching user ontologies:", error);
       } finally {
         setLoading(false);
       }
