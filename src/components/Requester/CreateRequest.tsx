@@ -40,6 +40,12 @@ function CreateRequest() {
       try {
         const data = await fetchOntologies();
         setOntologies(data);
+
+        // Select the default ontology by default
+        const defaultOntology = data.find((o) => o.id === "default");
+        if (defaultOntology) {
+          setSelectedOntologies([defaultOntology]);
+        }
       } catch (err: any) {
         setError(err.message);
       }
@@ -193,32 +199,38 @@ function CreateRequest() {
                     <option className="mb-2" disabled selected>
                       Double-click to select
                     </option>
-                    {ontologies.map(({ id, name }) => (
-                      <option key={id} value={id}>
-                        {name}
-                      </option>
-                    ))}
+                    {ontologies
+                      .filter((ontology) => ontology.id !== "default")
+                      .map(({ id, name }) => (
+                        <option key={id} value={id}>
+                          {name}
+                        </option>
+                      ))}
                   </>
                 )}
               </select>
 
               <div style={{ marginTop: "1rem" }}>
-                <span
-                  className="border bg-light px-2 py-1 me-2 text-muted"
-                  style={{ cursor: "pointer" }}
-                >
-                  Default ontology <span style={{ marginLeft: 5 }}></span>
-                </span>
-                {selectedOntologies.map(({ id, name }) => (
-                  <span
-                    key={id}
-                    className="border px-2 py-1 me-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => removeOntology(id)}
-                  >
-                    {name} <span style={{ marginLeft: 5 }}>&times;</span>
-                  </span>
-                ))}
+                {selectedOntologies.map(({ id, name }) =>
+                  id === "default" ? (
+                    <span
+                      key={id}
+                      className="border bg-light px-2 py-1 me-2 text-muted"
+                      style={{ cursor: "not-allowed" }}
+                    >
+                      {name}
+                    </span>
+                  ) : (
+                    <span
+                      key={id}
+                      className="border px-2 py-1 me-2"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => removeOntology(id)}
+                    >
+                      {name} <span style={{ marginLeft: 5 }}>&times;</span>
+                    </span>
+                  )
+                )}
               </div>
 
               <div className="alert alert-warning mt-3" role="alert">
@@ -413,7 +425,6 @@ function CreateRequest() {
                               {option.label}
                             </option>
                           ))} */}
-                          {/* Default options first */}
 
                           {/* Ontology-based options */}
                           {selectedOntologies.flatMap((ontology) =>
