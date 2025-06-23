@@ -181,45 +181,69 @@ function RequesterRequests() {
                 </p>
               </div>
             ) : (
-              <table className="table mt-4">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Date Created</th>
-                    <th className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {draftRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td className="py-3">{request.requestName}</td>
-                      <td className="py-3">{request.createdAt}</td>
-                      <td className="py-3 text-center">
-                        <Link
-                          className="btn btn-sm text-dark"
-                          to={`/requesterBase/editDraftRequest/${request.id}`}
-                        >
-                          <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                        </Link>
-                        <button
-                          className="btn btn-sm text-dark"
-                          onClick={() => setRequestToDelete(request.id)}
-                          data-bs-toggle="modal"
-                          data-bs-target="#deleteRequestModal"
-                        >
-                          <i className="fa-solid fa-trash fa-lg"></i>
-                        </button>
-                        <Link
-                          className="btn btn-sm text-dark"
-                          to={`/requesterBase/sendDraftRequest/${request.id}`}
-                        >
-                          <i className="fa-solid fa-file-import fa-lg"></i>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="mt-4">
+                {draftRequests.map((request) => (
+                  <div className="border mt-3" key={request.id}>
+                    <div className="d-flex p-3">
+                      <div
+                        className="me-auto p-2"
+                        style={{ fontWeight: "500" }}
+                      >
+                        {request.requestName}
+                      </div>
+                      <div className="p-2">{request.createdAt}</div>
+                      <div className="p-2">
+                        <div className="dropdown d-inline">
+                          <button
+                            className="btn btn-sm text-dark"
+                            type="button"
+                            id={`dropdownMenu-${request.id}`}
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="fa-solid fa-ellipsis-vertical"></i>
+                          </button>
+
+                          <ul
+                            className="dropdown-menu"
+                            aria-labelledby={`dropdownMenu-${request.id}`}
+                          >
+                            <li>
+                              <Link
+                                className="dropdown-item"
+                                to={`/requesterBase/editDraftRequest/${request.id}`}
+                              >
+                                <i className="fa-solid fa-pen-to-square me-2"></i>
+                                Edit
+                              </Link>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setRequestToDelete(request.id)}
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteRequestModal"
+                              >
+                                <i className="fa-solid fa-trash me-2"></i>
+                                Delete
+                              </button>
+                            </li>
+                            <li>
+                              <Link
+                                className="dropdown-item"
+                                to={`/requesterBase/sendDraftRequest/${request.id}`}
+                              >
+                                <i className="fa-solid fa-file-import me-2"></i>
+                                Send
+                              </Link>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
