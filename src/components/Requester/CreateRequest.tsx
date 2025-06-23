@@ -98,7 +98,11 @@ function CreateRequest() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await addRequest({ ...formData, permissions });
+    const result = await addRequest({
+      ...formData,
+      selectedOntologies,
+      permissions,
+    });
     if (result.success) {
       navigate("/requesterBase/RequesterRequests");
     } else {

@@ -12,6 +12,10 @@ interface RequestData {
     actionRefinements: Refinement[];
     constraintRefinements: Refinement[];
   }[];
+  selectedOntologies: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export const addRequest = async (data: RequestData) => {
@@ -19,6 +23,7 @@ export const addRequest = async (data: RequestData) => {
     const auth = getAuth();
     const user = auth.currentUser;
     const now = new Date();
+
     const days = [
       "Sunday",
       "Monday",
@@ -47,18 +52,19 @@ export const addRequest = async (data: RequestData) => {
       throw new Error("User not authenticated");
     }
 
-    // Fetch requester name from Firestore using UID
     const requesterDoc = await getDoc(doc(db, "requesters", user.uid));
     const requesterData = requesterDoc.exists() ? requesterDoc.data() : null;
-
     const requesterName = requesterData?.name || user.displayName || "Unknown";
 
-    // default request values
     const requestWithDefaults = {
       ...data,
+      selectedOntologies: data.selectedOntologies.map(({ id, name }) => ({
+        id,
+        name,
+      })),
       requester: {
         requesterId: user.uid,
-        requesterName: requesterName,
+        requesterName,
         requesterEmail: user.email || "Unknown",
       },
       createdAt: `${days[now.getDay()]} ${now
@@ -80,7 +86,6 @@ export const addRequest = async (data: RequestData) => {
       collection(db, "requests"),
       requestWithDefaults
     );
-
     return { id: docRef.id, success: true };
   } catch (error) {
     console.error("Error adding request:", error);

@@ -309,6 +309,7 @@ export const usePermissions = () => {
 
   return {
     permissions,
+    setPermissions,
     addPermission,
     removePermission,
     addDatasetRefinement,
