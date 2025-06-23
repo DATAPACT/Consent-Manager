@@ -34,7 +34,7 @@ import Unauthorized from "./components/Unauthorized";
 import RequesterSentRequestsDetails from "./components/Requester/RequesterSentRequestDetails";
 import RequesterProfile from "./components/Requester/Profile/RequesterProfile";
 import Test from "./Test";
-
+import ImportRequest from "./components/Requester/ImportRequest";
 // Context
 import { AuthProvider } from "./AuthContext";
 
@@ -98,6 +98,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="ontologies" element={<Ontologies />} />
             <Route path="requesterRequests" element={<RequesterRequests />} />
             <Route path="createRequest" element={<CreateRequest />} />
+            <Route path="importRequest" element={<ImportRequest />} />
             <Route
               path="sendDraftRequest/:requestId"
               element={<SendDraftRequest />}

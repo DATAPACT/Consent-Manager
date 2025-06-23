@@ -117,12 +117,35 @@ function RequesterRequests() {
             <p>Manage and organize your requests.</p>
           </div>
           <div className="align-self-center">
-            <Link
-              className={`${styles.primaryButton} btn`}
-              to="/requesterBase/createRequest"
-            >
-              Create request
-            </Link>
+            <div className="dropdown">
+              <button
+                className={`${styles.primaryButton} btn dropdown-toggle`}
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                New request
+              </button>
+              <ul className="dropdown-menu">
+                <li>
+                  <Link
+                    className="dropdown-item"
+                    to="/requesterBase/createRequest"
+                  >
+                    <i className="fa-solid fa-plus me-2"></i> Create new request
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    className="dropdown-item"
+                    to="/requesterBase/importRequest"
+                  >
+                    <i className="fa-solid fa-arrow-up-from-bracket me-2"></i>{" "}
+                    Import existing request
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
