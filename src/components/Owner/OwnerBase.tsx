@@ -9,7 +9,6 @@ function OwnerBase() {
   return (
     <>
       <OwnerNavbar />
-      <Link to="/userDetails">user details</Link>
       <Outlet />
       <Footer />
     </>

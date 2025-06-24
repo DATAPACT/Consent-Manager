@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
     setUser(result.user);
 
-    // 2. Firestore fallback for role (optional if using user_type from API)
+    // 2. Firestore fallback for role
     await fetchUserRoleAndData(result.user.uid);
 
     // 3. API login
@@ -129,18 +129,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("API login failed");
       }
 
-      const data = await res.json(); // ✅ API returns a JSON object
-
-      // ✅ Store just the token string
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user_id", data.user_id);
-      localStorage.setItem("user_type", data.user_type); // e.g. "provider"
-
-      // Optional: set the role based on API response instead of Firestore
-      setRole(data.user_type);
+      const token = await res.text(); // response is a string (JWT)
+      localStorage.setItem("token", token);
     } catch (err) {
       console.error("Failed to login to API:", err);
-      await signOut(auth); // logout Firebase too
+      // Optional: logout Firebase if API login fails
+      await signOut(auth);
       throw err;
     }
   };
