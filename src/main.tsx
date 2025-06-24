@@ -38,6 +38,8 @@ import ImportRequest from "./components/Requester/ImportRequest";
 // Context
 import { AuthProvider } from "./AuthContext";
 
+import AllUsers from "./API/AllUsers";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
@@ -52,6 +54,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/ownerOtp" element={<OwnerOtp />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/test" element={<Test />} />
+          <Route path="/allUsers" element={<AllUsers />} />
 
           {/* owner */}
           <Route

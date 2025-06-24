@@ -18,24 +18,23 @@ const OwnerRegister: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission
+    e.preventDefault();
 
     if (password !== retypePassword) {
       setError("Passwords do not match.");
-      return; // Stop form submission if passwords don't match
+      return;
     }
 
     try {
-      // Create user in Firebase Authentication
+      // 1. Register user with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-
       const user = userCredential.user;
 
-      // Create user data in Firestore under "owners" collection
+      // 2. Save to Firestore (optional - if still needed)
       await setDoc(doc(db, "owners", user.uid), {
         name,
         email,
@@ -43,10 +42,36 @@ const OwnerRegister: React.FC = () => {
         createdAt: new Date(),
       });
 
-      // After user is created, log them in to update the user context
-      await login(email, password);
+      // 3. Register the user with your backend API
+      const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
 
-      // Redirect to Dashboard
+      const response = await fetch(
+        `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username_email: email,
+            password: password,
+            name: name,
+            type: "provider", // Use "consumer" for the consumer form
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("API registration failed:", errData);
+        setError(
+          "API registration failed: " + (errData?.detail || "Unknown error")
+        );
+        return;
+      }
+
+      // 4. Log in and redirect
+      await login(email, password);
       navigate("/ownerBase/ownerDashboard");
     } catch (error: any) {
       setError(error.message);

@@ -101,9 +101,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const login = async (email: string, password: string) => {
+    // 1. Firebase login
     const result = await signInWithEmailAndPassword(auth, email, password);
     setUser(result.user);
+
+    // 2. Firestore fallback for role
     await fetchUserRoleAndData(result.user.uid);
+
+    // 3. API login
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    try {
+      const res = await fetch(
+        "https://dips.soton.ac.uk/negotiation-api/user/login/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: formData.toString(),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("API login failed");
+      }
+
+      const token = await res.json(); // response is a string (JWT)
+      localStorage.setItem("token", token);
+    } catch (err) {
+      console.error("Failed to login to API:", err);
+      // Optional: logout Firebase if API login fails
+      await signOut(auth);
+      throw err;
+    }
   };
 
   const logout = async () => {
