@@ -1,7 +1,6 @@
 // src/components/UserList.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 
 interface User {
   _id: string;
@@ -9,15 +8,25 @@ interface User {
   role: string;
 }
 
-const AllUsers: React.FC = () => {
+const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token || typeof token !== "string") {
+        console.error("No token found or token is not a string");
+        setError("Not authenticated. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Using token:", token); // ✅ Must show full JWT
+
       try {
-        const token = localStorage.getItem("token");
         const res = await axios.get(
           "https://dips.soton.ac.uk/negotiation-api/users_list",
           {
@@ -26,11 +35,14 @@ const AllUsers: React.FC = () => {
             },
           }
         );
-
         setUsers(res.data);
       } catch (err: any) {
-        console.error(err);
-        setError("Failed to fetch users.");
+        console.error("Error response:", err.response?.data || err);
+        if (err.response?.status === 401) {
+          setError("Unauthorized. You don't have access to this resource.");
+        } else {
+          setError("Failed to fetch users.");
+        }
       } finally {
         setLoading(false);
       }
@@ -44,7 +56,6 @@ const AllUsers: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <Link to="/">Go to home</Link>
       <h4>All Users</h4>
       <ul className="list-group mt-3">
         {users.map((user) => (
@@ -57,4 +68,4 @@ const AllUsers: React.FC = () => {
   );
 };
 
-export default AllUsers;
+export default UserList;

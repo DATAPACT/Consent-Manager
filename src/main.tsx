@@ -35,6 +35,7 @@ import RequesterSentRequestsDetails from "./components/Requester/RequesterSentRe
 import RequesterProfile from "./components/Requester/Profile/RequesterProfile";
 import Test from "./Test";
 import ImportRequest from "./components/Requester/ImportRequest";
+import UserDetails from "./API/UserDetails";
 // Context
 import { AuthProvider } from "./AuthContext";
 
@@ -55,6 +56,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/test" element={<Test />} />
           <Route path="/allUsers" element={<AllUsers />} />
+          <Route path="/userDetails" element={<UserDetails />} />
 
           {/* owner */}
           <Route
