@@ -1,6 +1,4 @@
-import { db } from "../firebase";
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { createRequest } from "../services/api";
 import { Refinement } from "./PermissionsUtils";
 
 interface RequestData {
@@ -18,75 +16,32 @@ interface RequestData {
   }[];
 }
 
-export const addRequest = async (data: RequestData) => {
+interface UserContext {
+  uid: string;
+  email: string | null;
+  userData: {
+    name: string;
+    [key: string]: any;
+  };
+}
+
+export const addRequest = async (data: RequestData, user: UserContext) => {
   try {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const now = new Date();
-
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
     if (!user) {
       throw new Error("User not authenticated");
     }
 
-    const requesterDoc = await getDoc(doc(db, "requesters", user.uid));
-    const requesterData = requesterDoc.exists() ? requesterDoc.data() : null;
-    const requesterName = requesterData?.name || user.displayName || "Unknown";
-
-    const requestWithDefaults = {
+    const requestWithRequester = {
       ...data,
-      selectedOntologies: data.selectedOntologies.map(({ id, name }) => ({
-        id,
-        name,
-      })),
       requester: {
         requesterId: user.uid,
-        requesterName,
+        requesterName: user.userData.name || "Unknown",
         requesterEmail: user.email || "Unknown",
       },
-      createdAt: `${days[now.getDay()]} ${now
-        .getDate()
-        .toString()
-        .padStart(2, "0")} ${months[now.getMonth()]} ${now.getFullYear()} ${now
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
-      sentAt: "",
-      status: "draft",
-      owners: [],
-      ownersAccepted: [],
-      ownersRejected: [],
-      ownersPending: [],
     };
 
-    const docRef = await addDoc(
-      collection(db, "requests"),
-      requestWithDefaults
-    );
-    return { id: docRef.id, success: true };
+    const result = await createRequest(requestWithRequester);
+    return result;
   } catch (error) {
     console.error("Error adding request:", error);
     return { error, success: false };

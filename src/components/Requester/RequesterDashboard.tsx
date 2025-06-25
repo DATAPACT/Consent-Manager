@@ -3,57 +3,36 @@ import styles from "../../css/Dashboard.module.css";
 // libraries
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth, db } from "../../firebase"; // Firebase import
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  getDoc,
-} from "firebase/firestore"; // Firestore queries
+import { getRequesterDashboard } from "../../services/api";
+import { useAuth } from "../../AuthContext";
 
 function RequesterDashboard() {
-  const [ontologyCount, setOntologyCount] = useState<number>(0); // State for ontology count
-  const [requestCount, setRequestCount] = useState<number>(0); // State for request count
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const user = auth.currentUser;
       if (!user) return;
 
       try {
-        // Fetch the requester document
-        const requesterRef = doc(db, "requesters", user.uid);
-        const requesterSnap = await getDoc(requesterRef);
-
-        if (!requesterSnap.exists()) {
-          setOntologyCount(0);
-          setRequestCount(0);
-          return;
+        const result = await getRequesterDashboard(user.uid);
+        if (result.success) {
+          setDashboardData(result.data);
         }
-
-        const data = requesterSnap.data();
-        const ontologyIds: string[] = data.ontologies || [];
-
-        // Exclude the default ontology
-        const count = ontologyIds.filter((id) => id !== "default").length;
-        setOntologyCount(count);
-
-        // Fetch the user's requests
-        const requestsQuery = query(
-          collection(db, "requests"),
-          where("requester.requesterId", "==", user.uid)
-        );
-        const requestSnapshot = await getDocs(requestsQuery);
-        setRequestCount(requestSnapshot.size);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -70,8 +49,7 @@ function RequesterDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Ontologies</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2">{ontologyCount}</h3>{" "}
-                {/* Dynamic ontology count */}
+                <h3 className="mt-2">{dashboardData?.statistics?.ontologiesCount || 0}</h3>
                 <small className="text-muted">ontologies.</small>
                 <p className="card-text mt-2">
                   View, edit, and organize your ontologies. Upload new ones to
@@ -91,8 +69,7 @@ function RequesterDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Requests</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2">{requestCount}</h3>{" "}
-                {/* Dynamic request count */}
+                <h3 className="mt-2">{dashboardData?.statistics?.totalRequests || 0}</h3>
                 <small className="text-muted">requests.</small>
                 <p className="card-text mt-2">
                   Send new requests, review approved ones, or create a new

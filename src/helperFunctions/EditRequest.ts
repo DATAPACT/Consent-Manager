@@ -1,5 +1,4 @@
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { getRequest, updateRequest as updateRequestAPI } from "../services/api";
 
 interface RequestData {
   name: string;
@@ -10,18 +9,29 @@ interface RequestData {
 export async function getRequestById(
   id: string
 ): Promise<RequestData & { id: string }> {
-  const ref = doc(db, "requests", id);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) throw new Error("Request not found");
-
-  const data = snap.data() as RequestData; // ✅ explicitly tell TypeScript the shape
-
-  return { id: snap.id, ...data };
+  try {
+    const result = await getRequest(id);
+    if (result.success) {
+      return { id: result.id, ...result.data };
+    } else {
+      throw new Error("Request not found");
+    }
+  } catch (error) {
+    console.error("Error fetching request:", error);
+    throw new Error("Request not found");
+  }
 }
 
 export async function updateRequest(id: string, payload: RequestData) {
-  const ref = doc(db, "requests", id);
-  await updateDoc(ref, payload as any); // ✅ fix type mismatch
-  return { success: true };
+  try {
+    const result = await updateRequestAPI(id, payload);
+    if (result.success) {
+      return { success: true };
+    } else {
+      throw new Error("Update failed");
+    }
+  } catch (error) {
+    console.error("Error updating request:", error);
+    throw error;
+  }
 }

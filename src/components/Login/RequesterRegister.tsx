@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase"; // Import Firebase utils
+import { register } from "../../services/api";
 import { useAuth } from "../../AuthContext"; // Import the AuthContext
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
@@ -26,55 +24,25 @@ const RequesterRegister: React.FC = () => {
     }
 
     try {
-      // 1. Register user with Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      // Register user through Express API
+      const result = await register({
         email,
-        password
-      );
-      const user = userCredential.user;
-
-      // 2. Save to Firestore (optional - if still needed)
-      await setDoc(doc(db, "requesters", user.uid), {
+        password,
         name,
-        email,
         role: "requester",
-        createdAt: new Date(),
+        type: "consumer", // For external API registration
+        masterPassword: "5hnd..jk4ne!kwjs?wnsmmf"
       });
 
-      // 3. Register the user with your backend API
-      const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
-
-      const response = await fetch(
-        `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username_email: email,
-            password: password,
-            name: name,
-            type: "consumer", // Use "consumer" for the consumer form
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errData = await response.json();
-        console.error("API registration failed:", errData);
-        setError(
-          "API registration failed: " + (errData?.detail || "Unknown error")
-        );
-        return;
+      if (result.success) {
+        // Log in after successful registration
+        await login(email, password);
+        navigate("/requesterBase/requesterDashboard");
+      } else {
+        setError(result.error || "Registration failed");
       }
-
-      // 4. Log in and redirect
-      await login(email, password);
-      navigate("/requesterBase/requesterDashboard");
     } catch (error: any) {
-      setError(error.message);
+      setError(error.message || "Registration failed");
     }
   };
 

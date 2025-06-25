@@ -1,0 +1,203 @@
+import express from 'express';
+import { collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../config/firebase.js';
+
+const router = express.Router();
+
+interface Refinement {
+  name: string;
+  value: string;
+}
+
+interface RequestData {
+  requestName: string;
+  permissions: {
+    dataset: string;
+    datasetRefinements: Refinement[];
+    purposeRefinements: Refinement[];
+    actionRefinements: Refinement[];
+    constraintRefinements: Refinement[];
+  }[];
+  selectedOntologies: {
+    id: string;
+    name: string;
+  }[];
+  requester?: {
+    requesterId: string;
+    requesterName: string;
+    requesterEmail: string;
+  };
+}
+
+// POST /api/requests - Create a new request
+router.post('/', async (req, res) => {
+  try {
+    const data: RequestData = req.body;
+    const now = new Date();
+
+    const days = [
+      "Sunday", "Monday", "Tuesday", "Wednesday", 
+      "Thursday", "Friday", "Saturday"
+    ];
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    // If requester info is not provided in the request body, 
+    // you'll need to implement authentication middleware
+    if (!data.requester) {
+      return res.status(400).json({ 
+        error: "Requester information is required",
+        success: false 
+      });
+    }
+
+    const requestWithDefaults = {
+      ...data,
+      selectedOntologies: data.selectedOntologies.map(({ id, name }) => ({
+        id,
+        name,
+      })),
+      createdAt: `${days[now.getDay()]} ${now
+        .getDate()
+        .toString()
+        .padStart(2, "0")} ${months[now.getMonth()]} ${now.getFullYear()} ${now
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
+      sentAt: "",
+      status: "draft",
+      owners: [],
+      ownersAccepted: [],
+      ownersRejected: [],
+      ownersPending: [],
+    };
+
+    const docRef = await addDoc(
+      collection(db, "requests"),
+      requestWithDefaults
+    );
+
+    res.status(201).json({ 
+      id: docRef.id, 
+      success: true,
+      message: "Request created successfully"
+    });
+
+  } catch (error) {
+    console.error("Error adding request:", error);
+    res.status(500).json({ 
+      error: "Failed to create request",
+      success: false 
+    });
+  }
+});
+
+// GET /api/requests/:id - Get a specific request
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const docRef = await getDoc(doc(db, "requests", id));
+    
+    if (!docRef.exists()) {
+      return res.status(404).json({ 
+        error: "Request not found",
+        success: false 
+      });
+    }
+
+    res.json({ 
+      id: docRef.id,
+      data: docRef.data(),
+      success: true 
+    });
+
+  } catch (error) {
+    console.error("Error fetching request:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch request",
+      success: false 
+    });
+  }
+});
+
+// PUT /api/requests/:id - Update a request
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Check if request exists
+    const docRef = doc(db, "requests", id);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      return res.status(404).json({ 
+        error: "Request not found",
+        success: false 
+      });
+    }
+
+    // Update the request
+    await updateDoc(docRef, updateData);
+
+    res.json({ 
+      id,
+      success: true,
+      message: "Request updated successfully"
+    });
+
+  } catch (error) {
+    console.error("Error updating request:", error);
+    res.status(500).json({ 
+      error: "Failed to update request",
+      success: false 
+    });
+  }
+});
+
+// GET /api/requests - Get requests with filters
+router.get('/', async (req, res) => {
+  try {
+    const { uid, role, status } = req.query;
+
+    let requestsQuery = collection(db, "requests");
+    let constraints = [];
+
+    // Add filters based on query parameters
+    if (uid && role === 'requester') {
+      constraints.push(where('requester.requesterId', '==', uid));
+    }
+    if (uid && role === 'owner') {
+      constraints.push(where('owners', 'array-contains', uid));
+    }
+    if (status) {
+      constraints.push(where('status', '==', status));
+    }
+
+    if (constraints.length > 0) {
+      requestsQuery = query(requestsQuery, ...constraints);
+    }
+
+    const querySnapshot = await getDocs(requestsQuery);
+    const requests = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json({ 
+      requests,
+      success: true 
+    });
+
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch requests",
+      success: false 
+    });
+  }
+});
+
+export default router;

@@ -5,27 +5,30 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "./firebase"; // Adjust the path as needed
+import { login as apiLogin, logout as apiLogout, getUserDetails } from "./services/api";
 
-// --- Define user profile type from Firestore ---
-interface FirestoreUserProfile {
+// --- Define user profile type ---
+interface UserProfile {
   name: string;
   email?: string;
   [key: string]: any; // Allow extra fields if needed
 }
 
+// --- Define user type ---
+interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  role: string;
+  userData: UserProfile;
+  apiToken?: string;
+}
+
 // --- Define context type ---
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   role: string | null;
-  userData: FirestoreUserProfile | null;
+  userData: UserProfile | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -49,101 +52,82 @@ interface AuthProviderProps {
 
 // --- AuthProvider component ---
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [userData, setUserData] = useState<FirestoreUserProfile | null>(null);
+  const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-
-      if (currentUser) {
-        await fetchUserRoleAndData(currentUser.uid);
-      } else {
-        setRole(null);
-        setUserData(null);
+    // Check if user is already logged in (from localStorage)
+    const checkAuthState = async () => {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          setRole(parsedUser.role);
+          setUserData(parsedUser.userData);
+        } catch (err) {
+          console.error('Error parsing stored user:', err);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
       }
-
+      
       setLoading(false);
-    });
+    };
 
-    return unsubscribe;
+    checkAuthState();
   }, []);
 
-  const fetchUserRoleAndData = async (uid: string) => {
-    try {
-      const ownerRef = doc(db, "owners", uid);
-      const ownerSnap = await getDoc(ownerRef);
-
-      if (ownerSnap.exists()) {
-        setRole("owner");
-        setUserData(ownerSnap.data() as FirestoreUserProfile);
-        return;
-      }
-
-      const requesterRef = doc(db, "requesters", uid);
-      const requesterSnap = await getDoc(requesterRef);
-
-      if (requesterSnap.exists()) {
-        setRole("requester");
-        setUserData(requesterSnap.data() as FirestoreUserProfile);
-        return;
-      }
-
-      setRole(null);
-      setUserData(null);
-    } catch (err) {
-      console.error("Failed to fetch role and user data:", err);
-      setRole(null);
-      setUserData(null);
-    }
-  };
-
   const login = async (email: string, password: string) => {
-    // 1. Firebase login
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    setUser(result.user);
-
-    // 2. Firestore fallback for role
-    await fetchUserRoleAndData(result.user.uid);
-
-    // 3. API login
-    const formData = new URLSearchParams();
-    formData.append("username", email);
-    formData.append("password", password);
-
     try {
-      const res = await fetch(
-        "https://dips.soton.ac.uk/negotiation-api/user/login/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: formData.toString(),
+      // Use Express API for login
+      const result = await apiLogin(email, password);
+      
+      if (result.success) {
+        const authUser: AuthUser = {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          role: result.user.role,
+          userData: result.user.userData,
+          apiToken: result.user.apiToken
+        };
+
+        setUser(authUser);
+        setRole(result.user.role);
+        setUserData(result.user.userData);
+
+        // Store in localStorage for persistence
+        localStorage.setItem('user', JSON.stringify(authUser));
+        if (result.user.apiToken) {
+          localStorage.setItem('token', result.user.apiToken);
         }
-      );
-
-      if (!res.ok) {
-        throw new Error("API login failed");
+      } else {
+        throw new Error(result.error || 'Login failed');
       }
-
-      const token = await res.text(); // response is a string (JWT)
-      localStorage.setItem("token", token);
-    } catch (err) {
-      console.error("Failed to login to API:", err);
-      // Optional: logout Firebase if API login fails
-      await signOut(auth);
-      throw err;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    await signOut(auth);
-    setUser(null);
-    setRole(null);
-    setUserData(null);
+    try {
+      await apiLogout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear state and localStorage regardless of API call success
+      setUser(null);
+      setRole(null);
+      setUserData(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    }
   };
 
   if (loading) return null;

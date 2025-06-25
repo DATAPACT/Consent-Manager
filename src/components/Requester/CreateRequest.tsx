@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { useState, useEffect } from "react";
 
 import { addRequest } from "../../helperFunctions/AddRequest";
+import { useAuth } from "../../AuthContext";
 
 // dropdowns
 import {
@@ -19,6 +20,7 @@ import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
+  const { user } = useAuth();
 
   // steps
   const [step, setStep] = useState(0);
@@ -98,11 +100,18 @@ function CreateRequest() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      alert("User not authenticated");
+      return;
+    }
+
     const result = await addRequest({
       ...formData,
       selectedOntologies,
       permissions,
-    });
+    }, user);
+    
     if (result.success) {
       navigate("/requesterBase/RequesterRequests");
     } else {
