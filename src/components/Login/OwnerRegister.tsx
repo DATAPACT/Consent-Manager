@@ -84,7 +84,7 @@ const OwnerRegister: React.FC = () => {
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
         <h3>Register as a data owner</h3>
         <p className="mt-3">
-          Already have an account? <Link to="/ownerLogin">Login</Link>
+          Already have an account? <Link to="/login">Login</Link>
         </p>
         {error && (
           <div className="alert alert-danger" role="alert">

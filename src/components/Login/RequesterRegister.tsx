@@ -26,6 +26,7 @@ const RequesterRegister: React.FC = () => {
     }
 
     try {
+      // 1. Register user with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -33,14 +34,43 @@ const RequesterRegister: React.FC = () => {
       );
       const user = userCredential.user;
 
+      // 2. Save to Firestore (optional - if still needed)
       await setDoc(doc(db, "requesters", user.uid), {
         name,
         email,
         role: "requester",
         createdAt: new Date(),
-        ontologies: ["default"],
       });
 
+      // 3. Register the user with your backend API
+      const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
+
+      const response = await fetch(
+        `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username_email: email,
+            password: password,
+            name: name,
+            type: "consumer", // Use "consumer" for the consumer form
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("API registration failed:", errData);
+        setError(
+          "API registration failed: " + (errData?.detail || "Unknown error")
+        );
+        return;
+      }
+
+      // 4. Log in and redirect
       await login(email, password);
       navigate("/requesterBase/requesterDashboard");
     } catch (error: any) {
@@ -54,13 +84,14 @@ const RequesterRegister: React.FC = () => {
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
         <h3>Register as a data requester</h3>
         <p className="mt-3">
-          Already have an account? <Link to="/requesterLogin">Login</Link>
+          Already have an account? <Link to="/login">Login</Link>
         </p>
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
           </div>
         )}
+
         <form className="mt-4" onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>Name</label>
@@ -68,6 +99,7 @@ const RequesterRegister: React.FC = () => {
               type="text"
               value={name}
               className={`${styles.formInput} form-control`}
+              id="exampleInputEmail1"
               onChange={(e) => setName(e.target.value)}
               required
             />
@@ -80,6 +112,7 @@ const RequesterRegister: React.FC = () => {
               type="email"
               value={email}
               className={`${styles.formInput} form-control`}
+              id="exampleInputEmail1"
               onChange={(e) => setEmail(e.target.value)}
               required
             />
@@ -90,6 +123,7 @@ const RequesterRegister: React.FC = () => {
               type="password"
               value={password}
               className={`${styles.formInput} form-control`}
+              id="exampleInputPassword1"
               onChange={(e) => setPassword(e.target.value)}
               required
             />
@@ -100,14 +134,20 @@ const RequesterRegister: React.FC = () => {
             </label>
             <input
               type="password"
-              value={retypePassword} // Set value for re-type password field
               className={`${styles.formInput} form-control`}
-              onChange={(e) => setRetypePassword(e.target.value)} // Handle re-type password change
+              id="exampleInputPassword2"
+              value={retypePassword}
+              onChange={(e) => setRetypePassword(e.target.value)} // Handle re-type password
               required
             />
           </div>
           <div className="mb-3 form-check">
-            <input type="checkbox" className="form-check-input" required />
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="exampleCheck1"
+              required
+            />
             <label className="form-check-label">
               I have read and agree to the{" "}
               <Link className="text-decoration-none" to="/">
@@ -120,6 +160,7 @@ const RequesterRegister: React.FC = () => {
               .
             </label>
           </div>
+
           {/* Show error message */}
           <div className="mb-3 mt-4">
             <button type="submit" className={`${styles.primaryButton} btn`}>
