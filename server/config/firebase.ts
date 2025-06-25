@@ -1,20 +1,33 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { getStorage } from 'firebase/storage';
+// Use Firebase Admin SDK for server-side operations
+import admin from 'firebase-admin';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAfSTow8I3P8SOmCdFkEzjV-mEDMC8S1Og",
-  authDomain: "upconsent.firebaseapp.com",
-  projectId: "upconsent",
-  storageBucket: "upconsent.firebasestorage.app",
-  messagingSenderId: "792548440786",
-  appId: "1:792548440786:web:1ddc8697e82dcc1f124b0b",
-  measurementId: "G-KX76EJYGKE",
-};
+// Get the directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
-export default app;
+// Initialize Firebase Admin SDK
+if (!admin.apps.length) {
+  try {
+    // Load service account key from file
+    const serviceAccountPath = join(__dirname, '../../firebase-admin-key.json');
+    const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+    
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: "upconsent",
+      storageBucket: "upconsent.firebasestorage.app",
+    });
+    
+    console.log("Firebase Admin SDK initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize Firebase Admin SDK:", error);
+    throw new Error("Firebase Admin SDK configuration required for server operations");
+  }
+}
+
+export const db = admin.firestore();
+export const storage = admin.storage();
+export default admin;

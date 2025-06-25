@@ -1,20 +1,14 @@
 import styles from "../../css/Ontology.module.css";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db, auth } from "../../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
+import { getRequests, deleteRequest } from "../../services/api";
+import { useAuth } from "../../AuthContext";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
 
 function RequesterRequests() {
+  const { user } = useAuth();
   const [draftRequests, setDraftRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
@@ -25,53 +19,32 @@ function RequesterRequests() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const requestsRef = collection(db, "requests");
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
+        if (!user) {
           setError("User not logged in.");
           setLoading(false);
           return;
         }
 
-        // Fetch draft requests
-        const draftQuery = query(
-          requestsRef,
-          where("requester.requesterId", "==", userId),
-          where("status", "==", "draft")
-        );
-        const draftSnapshot = await getDocs(draftQuery);
-        const draftRequests = draftSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        // Fetch all requests for this user via Express API
+        const result = await getRequests({
+          uid: user.uid,
+          role: 'requester'
+        });
 
-        // Fetch sent requests
-        const sentQuery = query(
-          requestsRef,
-          where("requester.requesterId", "==", userId),
-          where("status", "==", "sent")
-        );
-        const sentSnapshot = await getDocs(sentQuery);
-        const sentRequests = sentSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        // Fetch approved requests
-        const approvedQuery = query(
-          requestsRef,
-          where("requester.requesterId", "==", userId),
-          where("status", "==", "approved")
-        );
-        const approvedSnapshot = await getDocs(approvedQuery);
-        const approvedRequests = approvedSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setDraftRequests(draftRequests);
-        setSentRequests(sentRequests);
-        setApprovedRequests(approvedRequests);
+        if (result.success) {
+          const allRequests = result.requests;
+          
+          // Separate requests by status
+          const drafts = allRequests.filter((req: any) => req.status === 'draft');
+          const sent = allRequests.filter((req: any) => req.status === 'sent');
+          const approved = allRequests.filter((req: any) => req.status === 'approved');
+          
+          setDraftRequests(drafts);
+          setSentRequests(sent);
+          setApprovedRequests(approved);
+        } else {
+          setError("Failed to fetch requests.");
+        }
         setLoading(false);
       } catch (error) {
         console.error("Error fetching requests:", error);
@@ -81,16 +54,20 @@ function RequesterRequests() {
     };
 
     fetchRequests();
-  }, []);
+  }, [user]);
 
   const handleDelete = async () => {
     if (requestToDelete) {
       try {
-        await deleteDoc(doc(db, "requests", requestToDelete));
-        setDraftRequests((prev) =>
-          prev.filter((request) => request.id !== requestToDelete)
-        );
-        setRequestToDelete(null);
+        const result = await deleteRequest(requestToDelete);
+        if (result.success) {
+          setDraftRequests((prev) =>
+            prev.filter((request) => request.id !== requestToDelete)
+          );
+          setRequestToDelete(null);
+        } else {
+          setError("Failed to delete the request.");
+        }
       } catch (error) {
         console.error("Error deleting request:", error);
         setError("An error occurred while deleting the request.");

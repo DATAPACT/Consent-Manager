@@ -190,8 +190,19 @@ export const getRequests = async (filters: {
 };
 
 // Ontologies API
-export const uploadOntology = async (formData: FormData) => {
+export const uploadOntology = async (data: {
+  requesterUid: string;
+  ontologyName: string;
+  ontologyDescription: string;
+  ontologyFile: File;
+}) => {
   try {
+    const formData = new FormData();
+    formData.append('requesterUid', data.requesterUid);
+    formData.append('ontologyName', data.ontologyName);
+    formData.append('ontologyDescription', data.ontologyDescription);
+    formData.append('ontologyFile', data.ontologyFile);
+
     const response = await fetch(`${API_BASE_URL}/ontologies`, {
       method: 'POST',
       body: formData, // Don't set Content-Type, let browser set it for multipart/form-data
@@ -317,6 +328,23 @@ export const getApprovedRequestsForOwner = async (uid: string) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching approved requests:', error);
+    throw error;
+  }
+};
+
+export const deleteRequest = async (id: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting request:', error);
     throw error;
   }
 };

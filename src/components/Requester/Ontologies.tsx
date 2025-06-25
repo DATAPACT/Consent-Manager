@@ -3,16 +3,8 @@ import styles from "../../css/Ontology.module.css";
 // libraries
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth, db } from "../../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  doc,
-  getDoc,
-} from "firebase/firestore";
+import { useAuth } from "../../AuthContext";
+import { getOntologies, deleteOntology, getRequests } from "../../services/api";
 
 const Ontologies: React.FC = () => {
   const [ontologies, setOntologies] = useState<any[]>([]);
@@ -22,64 +14,52 @@ const Ontologies: React.FC = () => {
     string | null
   >(null);
   const [isOntologyInUse, setIsOntologyInUse] = useState<boolean>(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchOntologies = async () => {
-      const user = auth.currentUser;
       if (!user) {
         setLoading(false);
         return;
       }
 
       try {
-        const requesterRef = doc(db, "requesters", user.uid);
-        const requesterSnap = await getDoc(requesterRef);
-
-        if (!requesterSnap.exists()) {
+        const result = await getOntologies(user.uid);
+        
+        if (result.success) {
+          // Filter out default ontology and any ontologies without names
+          const userOntologies = result.ontologies
+            .filter((ontology: any) => ontology.id !== "default" && ontology.name);
+          
+          setOntologies(userOntologies);
+        } else {
+          console.error("Failed to fetch ontologies:", result.error);
           setOntologies([]);
-          setLoading(false);
-          return;
         }
-
-        const requesterData = requesterSnap.data();
-        const ontologyIds: string[] = requesterData.ontologies || [];
-
-        const ontologyDocs = await Promise.all(
-          ontologyIds.map(async (id) => {
-            const ontRef = doc(db, "ontologies", id);
-            const ontSnap = await getDoc(ontRef);
-            if (!ontSnap.exists()) return null;
-
-            return {
-              id,
-              ...ontSnap.data(),
-            };
-          })
-        );
-
-        setOntologies(
-          ontologyDocs
-            .filter((ontology): ontology is { id: string } => ontology !== null)
-            .filter((ontology) => ontology.id !== "default")
-        );
       } catch (error) {
         console.error("Error fetching user ontologies:", error);
+        setOntologies([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchOntologies();
-  }, []);
+  }, [user]);
 
   const checkIfOntologyIsUsed = async (ontologyId: string) => {
     try {
-      const q = query(
-        collection(db, "requests"),
-        where("ontologies", "array-contains", ontologyId)
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.size > 0;
+      if (!user) return false;
+      
+      const result = await getRequests({ uid: user.uid, role: 'requester' });
+      
+      if (result.success) {
+        // Check if any request uses this ontology
+        return result.requests.some((request: any) => 
+          request.selectedOntologies?.some((ont: any) => ont.id === ontologyId)
+        );
+      }
+      return false;
     } catch (error) {
       console.error("Error checking ontology usage:", error);
       return false;
@@ -87,19 +67,26 @@ const Ontologies: React.FC = () => {
   };
 
   const handleDeleteOntology = async (ontologyId: string) => {
+    if (!user) return;
+    
     const isUsed = await checkIfOntologyIsUsed(ontologyId);
     if (isUsed) {
       setIsOntologyInUse(true);
     } else {
       try {
-        await deleteDoc(doc(db, "ontologies", ontologyId));
-        setOntologies(
-          ontologies.filter((ontology) => ontology.id !== ontologyId)
-        );
-        alert("Ontology deleted successfully!");
-      } catch (error) {
+        const result = await deleteOntology(ontologyId, user.uid);
+        
+        if (result.success) {
+          setOntologies(
+            ontologies.filter((ontology) => ontology.id !== ontologyId)
+          );
+          alert("Ontology deleted successfully!");
+        } else {
+          alert(`Error deleting ontology: ${result.error}`);
+        }
+      } catch (error: any) {
         console.error("Error deleting ontology:", error);
-        alert("Error deleting ontology.");
+        alert(`Error deleting ontology: ${error.message}`);
       }
     }
   };
@@ -160,7 +147,7 @@ const Ontologies: React.FC = () => {
                 <tr key={ontology.id}>
                   <td className="py-4">{ontology.name}</td>
                   <td className="py-4">
-                    {ontology.uploadedAt?.toDate().toLocaleString()}
+                    {ontology.uploadedAt ? new Date(ontology.uploadedAt).toLocaleString() : 'Unknown'}
                   </td>
                   <td className="py-4 text-center">
                     <button

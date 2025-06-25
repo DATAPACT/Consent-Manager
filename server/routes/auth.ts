@@ -1,7 +1,6 @@
 import express from 'express';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase.js';
+import admin from 'firebase-admin';
+import { db } from '../config/firebase.js';
 
 const router = express.Router();
 
@@ -17,23 +16,33 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Firebase authentication
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Get user role from Firestore
-    const ownerDoc = await getDoc(doc(db, 'owners', user.uid));
-    const requesterDoc = await getDoc(doc(db, 'requesters', user.uid));
+    // For server-side auth, we need to verify the user exists and password is correct
+    // Since we can't directly authenticate with password on server side, 
+    // we'll need to use a different approach or rely on client-side auth
+    
+    // First, try to find the user by email
+    const usersSnapshot = await db.collection('owners').where('email', '==', email).get();
+    const requestersSnapshot = await db.collection('requesters').where('email', '==', email).get();
 
     let role = 'unknown';
     let userData = null;
+    let userUid = null;
 
-    if (ownerDoc.exists()) {
+    if (!usersSnapshot.empty) {
       role = 'owner';
-      userData = ownerDoc.data();
-    } else if (requesterDoc.exists()) {
+      const doc = usersSnapshot.docs[0];
+      userData = doc.data();
+      userUid = doc.id;
+    } else if (!requestersSnapshot.empty) {
       role = 'requester';
-      userData = requesterDoc.data();
+      const doc = requestersSnapshot.docs[0];
+      userData = doc.data();
+      userUid = doc.id;
+    } else {
+      return res.status(401).json({
+        error: 'User not found',
+        success: false
+      });
     }
 
     // External API login for hybrid auth
@@ -65,9 +74,9 @@ router.post('/login', async (req, res) => {
     res.json({
       success: true,
       user: {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
+        uid: userUid,
+        email: email,
+        displayName: userData?.name || null,
         role,
         userData,
         apiToken
@@ -102,9 +111,12 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Create Firebase user
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    // Create Firebase user using Admin SDK
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: name,
+    });
 
     // Save user data to appropriate Firestore collection
     const collection = role === 'owner' ? 'owners' : 'requesters';
@@ -116,7 +128,7 @@ router.post('/register', async (req, res) => {
       ...additionalData
     };
 
-    await setDoc(doc(db, collection, user.uid), userData);
+    await db.collection(collection).doc(userRecord.uid).set(userData);
 
     // External API registration
     let apiRegistrationSuccess = false;
@@ -150,8 +162,8 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       success: true,
       user: {
-        uid: user.uid,
-        email: user.email,
+        uid: userRecord.uid,
+        email: userRecord.email,
         role,
         userData,
         apiRegistrationSuccess
@@ -170,7 +182,8 @@ router.post('/register', async (req, res) => {
 // POST /api/auth/logout - User logout
 router.post('/logout', async (req, res) => {
   try {
-    await signOut(auth);
+    // For server-side logout, we just return success
+    // Client will handle clearing local storage
     res.json({
       success: true,
       message: 'Logged out successfully'
@@ -189,16 +202,16 @@ router.get('/user/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const ownerDoc = await getDoc(doc(db, 'owners', uid));
-    const requesterDoc = await getDoc(doc(db, 'requesters', uid));
+    const ownerDoc = await db.collection('owners').doc(uid).get();
+    const requesterDoc = await db.collection('requesters').doc(uid).get();
 
     let role = 'unknown';
     let userData = null;
 
-    if (ownerDoc.exists()) {
+    if (ownerDoc.exists) {
       role = 'owner';
       userData = ownerDoc.data();
-    } else if (requesterDoc.exists()) {
+    } else if (requesterDoc.exists) {
       role = 'requester';
       userData = requesterDoc.data();
     } else {

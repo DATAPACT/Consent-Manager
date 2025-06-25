@@ -3,17 +3,8 @@ import styles from "../../css/Ontology.module.css";
 // libraries
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
-import { db, storage, auth } from "../../firebase"; // Make sure auth and storage are exported
-import {
-  doc,
-  setDoc,
-  Timestamp,
-  collection,
-  updateDoc,
-  getDoc,
-  arrayUnion,
-} from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useAuth } from "../../AuthContext";
+import { uploadOntology } from "../../services/api";
 
 const UploadOntology: React.FC = () => {
   const [name, setName] = useState("");
@@ -21,6 +12,7 @@ const UploadOntology: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,51 +22,32 @@ const UploadOntology: React.FC = () => {
       return;
     }
 
+    if (!user) {
+      setError("User not authenticated");
+      return;
+    }
+
     try {
       setLoading(true);
-      const requesterId = auth.currentUser?.uid;
 
-      if (!requesterId) {
-        setError("User not authenticated");
-        return;
-      }
-
-      const docRef = doc(collection(db, "ontologies"));
-      const storageRef = ref(storage, `ontologies/${docRef.id}/${file.name}`);
-
-      // Upload file to Firebase Storage
-      await uploadBytes(storageRef, file);
-
-      // Get file download URL
-      const fileURL = await getDownloadURL(storageRef);
-
-      // Save ontology metadata
-      await setDoc(docRef, {
-        name,
-        fileURL,
-        uploadedAt: Timestamp.fromDate(new Date()),
+      const result = await uploadOntology({
+        requesterUid: user.uid,
+        ontologyName: name,
+        ontologyDescription: "", // You can add a description field if needed
+        ontologyFile: file
       });
 
-      // Update user's ontologies array
-      const userDocRef = doc(db, "requesters", requesterId);
-      const userSnap = await getDoc(userDocRef);
-
-      if (userSnap.exists()) {
-        await updateDoc(userDocRef, {
-          ontologies: arrayUnion(docRef.id),
-        });
+      if (result.success) {
+        setName("");
+        setFile(null);
+        setError("");
+        alert("Ontology uploaded successfully!");
+        navigate("/requesterBase/Ontologies");
       } else {
-        setError("User document not found");
-        return;
+        setError(result.error || "Error uploading ontology");
       }
-
-      setName("");
-      setFile(null);
-      setError("");
-      alert("Ontology uploaded successfully!");
-      navigate("/requesterBase/Ontologies");
-    } catch (err) {
-      setError("Error uploading ontology");
+    } catch (err: any) {
+      setError(err.message || "Error uploading ontology");
       console.error(err);
     } finally {
       setLoading(false);

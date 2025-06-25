@@ -1,6 +1,5 @@
 import * as $rdf from "rdflib";
-import { getFirestore, getDoc, doc } from "firebase/firestore";
-import { auth } from "../firebase";
+import { getOntologies } from "../services/api";
 
 export interface Option {
   value: string;
@@ -13,53 +12,65 @@ export type Ontology = {
   content: string;
 };
 
-export const fetchOntologies = async (): Promise<Ontology[]> => {
-  const db = getFirestore();
-  const currentUser = auth.currentUser;
+export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]> => {
+  if (!requesterUid) throw new Error("User not authenticated");
 
-  if (!currentUser) throw new Error("User not authenticated");
+  try {
+    console.log("Fetching ontologies for user:", requesterUid);
+    
+    // Fetch ontologies for this requester via Express API
+    const result = await getOntologies(requesterUid);
+    
+    console.log("API response:", result);
+    
+    if (!result.success) {
+      throw new Error("Failed to fetch ontologies");
+    }
 
-  // Fetch the requester's document
-  const requesterRef = doc(db, "requesters", currentUser.uid);
-  const requesterSnap = await getDoc(requesterRef);
+    const ontologyData = result.ontologies || [];
+    console.log("Ontology data:", ontologyData);
 
-  if (!requesterSnap.exists()) throw new Error("Requester document not found");
+    if (ontologyData.length === 0) {
+      console.log("No ontologies found for user");
+      return [];
+    }
 
-  const requesterData = requesterSnap.data();
-  const ontologyIds: string[] = requesterData.ontologies || [];
+    // Process ontologies and fetch their content
+    const ontologyDocs = await Promise.all(
+      ontologyData.map(async (ontologyItem: any) => {
+        const { id, name, downloadURL } = ontologyItem;
+        console.log(`Processing ontology ${id}: ${name}, URL: ${downloadURL}`);
 
-  if (ontologyIds.length === 0) return [];
+        if (!downloadURL) {
+          console.warn(`No download URL for ontology ${id}`);
+          return { id, name, content: "No download URL found" };
+        }
 
-  // Fetch only the ontologies the user belongs to
-  const ontologyDocs = await Promise.all(
-    ontologyIds.map(async (id) => {
-      const ontDocRef = doc(db, "ontologies", id);
-      const ontSnap = await getDoc(ontDocRef);
-      if (!ontSnap.exists()) return null;
+        try {
+          console.log(`Fetching content from: ${downloadURL}`);
+          const response = await fetch(downloadURL);
+          if (!response.ok) throw new Error(`Failed to fetch file: ${response.status}`);
+          const text = await response.text();
+          console.log(`Successfully fetched content for ${id}, length: ${text.length}`);
+          return { id, name, content: text };
+        } catch (e: any) {
+          console.error(`Error fetching content for ${id}:`, e);
+          return {
+            id,
+            name,
+            content: `Error fetching file: ${e.message}`,
+          };
+        }
+      })
+    );
 
-      const data = ontSnap.data();
-      const name = data.name || id;
-
-      if (!data.fileURL) {
-        return { id, name, content: "No fileURL found" };
-      }
-
-      try {
-        const response = await fetch(data.fileURL);
-        if (!response.ok) throw new Error("Failed to fetch file");
-        const text = await response.text();
-        return { id, name, content: text };
-      } catch (e: any) {
-        return {
-          id,
-          name,
-          content: `Error fetching file: ${e.message}`,
-        };
-      }
-    })
-  );
-
-  return ontologyDocs.filter(Boolean) as Ontology[];
+    const filteredDocs = ontologyDocs.filter(Boolean) as Ontology[];
+    console.log("Final processed ontologies:", filteredDocs);
+    return filteredDocs;
+  } catch (error) {
+    console.error("Error in fetchOntologies:", error);
+    throw error;
+  }
 };
 
 // dropdown options of the custom ontologies

@@ -1,5 +1,5 @@
 import express from 'express';
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import admin from 'firebase-admin';
 import { db } from '../config/firebase.js';
 
 const router = express.Router();
@@ -10,8 +10,8 @@ router.get('/requester/:uid', async (req, res) => {
     const { uid } = req.params;
 
     // Get requester data
-    const requesterDoc = await getDoc(doc(db, 'requesters', uid));
-    if (!requesterDoc.exists()) {
+    const requesterDoc = await db.collection('requesters').doc(uid).get();
+    if (!requesterDoc.exists) {
       return res.status(404).json({
         error: 'Requester not found',
         success: false
@@ -21,19 +21,15 @@ router.get('/requester/:uid', async (req, res) => {
     const requesterData = requesterDoc.data();
 
     // Get ontologies count
-    const ontologiesQuery = query(
-      collection(db, 'ontologies'),
-      where('uploadedBy', '==', uid)
-    );
-    const ontologiesSnapshot = await getDocs(ontologiesQuery);
+    const ontologiesQuery = db.collection('ontologies')
+      .where('uploadedBy', '==', uid);
+    const ontologiesSnapshot = await ontologiesQuery.get();
     const ontologiesCount = ontologiesSnapshot.size;
 
     // Get requests count by status
-    const requestsQuery = query(
-      collection(db, 'requests'),
-      where('requester.requesterId', '==', uid)
-    );
-    const requestsSnapshot = await getDocs(requestsQuery);
+    const requestsQuery = db.collection('requests')
+      .where('requester.requesterId', '==', uid);
+    const requestsSnapshot = await requestsQuery.get();
     
     let draftCount = 0;
     let sentCount = 0;
@@ -94,8 +90,8 @@ router.get('/owner/:uid', async (req, res) => {
     const { uid } = req.params;
 
     // Get owner data
-    const ownerDoc = await getDoc(doc(db, 'owners', uid));
-    if (!ownerDoc.exists()) {
+    const ownerDoc = await db.collection('owners').doc(uid).get();
+    if (!ownerDoc.exists) {
       return res.status(404).json({
         error: 'Owner not found',
         success: false
@@ -105,11 +101,9 @@ router.get('/owner/:uid', async (req, res) => {
     const ownerData = ownerDoc.data();
 
     // Get requests where this owner is involved
-    const requestsQuery = query(
-      collection(db, 'requests'),
-      where('owners', 'array-contains', uid)
-    );
-    const requestsSnapshot = await getDocs(requestsQuery);
+    const requestsQuery = db.collection('requests')
+      .where('owners', 'array-contains', uid);
+    const requestsSnapshot = await requestsQuery.get();
 
     let pendingCount = 0;
     let approvedCount = 0;
@@ -161,12 +155,10 @@ router.get('/requests/pending-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const requestsQuery = query(
-      collection(db, 'requests'),
-      where('ownersPending', 'array-contains', uid)
-    );
+    const requestsQuery = db.collection('requests')
+      .where('ownersPending', 'array-contains', uid);
     
-    const querySnapshot = await getDocs(requestsQuery);
+    const querySnapshot = await requestsQuery.get();
     const pendingRequests = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -191,12 +183,10 @@ router.get('/requests/approved-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const requestsQuery = query(
-      collection(db, 'requests'),
-      where('ownersAccepted', 'array-contains', uid)
-    );
+    const requestsQuery = db.collection('requests')
+      .where('ownersAccepted', 'array-contains', uid);
     
-    const querySnapshot = await getDocs(requestsQuery);
+    const querySnapshot = await requestsQuery.get();
     const approvedRequests = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()

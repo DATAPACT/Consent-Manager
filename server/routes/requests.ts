@@ -1,5 +1,5 @@
 import express from 'express';
-import { collection, addDoc, doc, getDoc, updateDoc, getDocs, query, where } from 'firebase/firestore';
+import admin from 'firebase-admin';
 import { db } from '../config/firebase.js';
 
 const router = express.Router();
@@ -74,10 +74,7 @@ router.post('/', async (req, res) => {
       ownersPending: [],
     };
 
-    const docRef = await addDoc(
-      collection(db, "requests"),
-      requestWithDefaults
-    );
+    const docRef = await db.collection("requests").add(requestWithDefaults);
 
     res.status(201).json({ 
       id: docRef.id, 
@@ -98,9 +95,9 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const docRef = await getDoc(doc(db, "requests", id));
+    const docRef = await db.collection("requests").doc(id).get();
     
-    if (!docRef.exists()) {
+    if (!docRef.exists) {
       return res.status(404).json({ 
         error: "Request not found",
         success: false 
@@ -129,10 +126,10 @@ router.put('/:id', async (req, res) => {
     const updateData = req.body;
 
     // Check if request exists
-    const docRef = doc(db, "requests", id);
-    const docSnap = await getDoc(docRef);
+    const docRef = db.collection("requests").doc(id);
+    const docSnap = await docRef.get();
     
-    if (!docSnap.exists()) {
+    if (!docSnap.exists) {
       return res.status(404).json({ 
         error: "Request not found",
         success: false 
@@ -140,7 +137,7 @@ router.put('/:id', async (req, res) => {
     }
 
     // Update the request
-    await updateDoc(docRef, updateData);
+    await docRef.update(updateData);
 
     res.json({ 
       id,
@@ -162,25 +159,20 @@ router.get('/', async (req, res) => {
   try {
     const { uid, role, status } = req.query;
 
-    let requestsQuery = collection(db, "requests");
-    let constraints = [];
+    let requestsQuery = db.collection("requests");
 
     // Add filters based on query parameters
     if (uid && role === 'requester') {
-      constraints.push(where('requester.requesterId', '==', uid));
+      requestsQuery = requestsQuery.where('requester.requesterId', '==', uid);
     }
     if (uid && role === 'owner') {
-      constraints.push(where('owners', 'array-contains', uid));
+      requestsQuery = requestsQuery.where('owners', 'array-contains', uid);
     }
     if (status) {
-      constraints.push(where('status', '==', status));
+      requestsQuery = requestsQuery.where('status', '==', status);
     }
 
-    if (constraints.length > 0) {
-      requestsQuery = query(requestsQuery, ...constraints);
-    }
-
-    const querySnapshot = await getDocs(requestsQuery);
+    const querySnapshot = await requestsQuery.get();
     const requests = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -195,6 +187,39 @@ router.get('/', async (req, res) => {
     console.error("Error fetching requests:", error);
     res.status(500).json({ 
       error: "Failed to fetch requests",
+      success: false 
+    });
+  }
+});
+
+// DELETE /api/requests/:id - Delete a request
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if request exists
+    const docRef = db.collection("requests").doc(id);
+    const docSnap = await docRef.get();
+    
+    if (!docSnap.exists) {
+      return res.status(404).json({ 
+        error: "Request not found",
+        success: false 
+      });
+    }
+
+    // Delete the request
+    await docRef.delete();
+
+    res.json({ 
+      success: true,
+      message: "Request deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting request:", error);
+    res.status(500).json({ 
+      error: "Failed to delete request",
       success: false 
     });
   }

@@ -43,8 +43,13 @@ function CreateRequest() {
 
   useEffect(() => {
     const loadOntologies = async () => {
+      if (!user) {
+        setError("User not authenticated");
+        return;
+      }
+
       try {
-        const data = await fetchOntologies();
+        const data = await fetchOntologies(user.uid);
         setOntologies(data);
 
         const defaultOntology = data.find((o) => o.id === "default");
@@ -58,7 +63,7 @@ function CreateRequest() {
     };
 
     loadOntologies();
-  }, []); // Empty dependencies to run once initially
+  }, [user]); // Depend on user to reload when auth state changes
 
   useEffect(() => {
     const loadDropdownValues = async () => {
