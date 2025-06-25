@@ -7,10 +7,27 @@ import multer from 'multer';
 const router = express.Router();
 
 // Configure multer for file uploads
+const getFileSizeLimit = () => {
+  const limit = process.env.FILE_UPLOAD_LIMIT || '10mb';
+  // Convert string like "100mb" to bytes
+  const match = limit.match(/^(\d+)(mb|gb|kb)?$/i);
+  if (!match) return 10 * 1024 * 1024; // Default 10MB
+  
+  const value = parseInt(match[1]);
+  const unit = (match[2] || 'mb').toLowerCase();
+  
+  switch (unit) {
+    case 'gb': return value * 1024 * 1024 * 1024;
+    case 'mb': return value * 1024 * 1024;
+    case 'kb': return value * 1024;
+    default: return value;
+  }
+};
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: getFileSizeLimit(),
   },
   fileFilter: (req, file, cb) => {
     // Accept ontology files (common formats)

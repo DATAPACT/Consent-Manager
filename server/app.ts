@@ -9,6 +9,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Configure payload limits from environment variables
+const JSON_LIMIT = process.env.JSON_LIMIT || '10mb';
+const URL_LIMIT = process.env.URL_LIMIT || '10mb';
+
+console.log(`Server starting with limits: JSON=${JSON_LIMIT}, URL=${URL_LIMIT}`);
+
 // Middleware
 app.use(helmet());
 app.use(cors({
@@ -16,8 +22,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(morgan('combined'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: JSON_LIMIT }));
+app.use(express.urlencoded({ extended: true, limit: URL_LIMIT }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
