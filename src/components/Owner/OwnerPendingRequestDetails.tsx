@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
+import { useIframe } from "../../IframeContext";
 import { getRequest, updateRequest } from "../../services/api";
 
 // css
@@ -42,6 +43,7 @@ interface Request {
 function OwnerPendingRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const navigate = useNavigate(); // Initialize useNavigate
+  const { isIframeMode, notifyParent } = useIframe();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -113,7 +115,17 @@ function OwnerPendingRequestsDetails() {
         );
 
         closeModal("approveRequestModal");
-        navigate("/ownerBase/ownerDashboard");
+        
+        if (isIframeMode) {
+          // Notify parent window about approval
+          notifyParent({
+            action: 'request_approved',
+            requestId: requestId,
+            requestName: requestDetails.requestName
+          });
+        } else {
+          navigate("/ownerBase/ownerDashboard");
+        }
       } else {
         setError("Error approving request.");
       }
@@ -161,7 +173,17 @@ function OwnerPendingRequestsDetails() {
         );
 
         closeModal("rejectRequestModal");
-        navigate("/ownerBase/ownerDashboard");
+        
+        if (isIframeMode) {
+          // Notify parent window about rejection
+          notifyParent({
+            action: 'request_rejected',
+            requestId: requestId,
+            requestName: requestDetails.requestName
+          });
+        } else {
+          navigate("/ownerBase/ownerDashboard");
+        }
       } else {
         setError("Error rejecting request.");
       }
@@ -188,15 +210,17 @@ function OwnerPendingRequestsDetails() {
 
   return (
     <>
-      <div className={`${styles.dashboard} container w-50`}>
-        <Link
-          className="text-decoration-none"
-          to="/ownerBase/ownerPendingRequests"
-          role="button"
-        >
-          <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
-        </Link>
-        <h3 className="mt-4">{requestDetails.requestName}</h3>
+      <div className={`${styles.dashboard} container w-50`} style={isIframeMode ? { marginTop: '20px' } : {}}>
+        {!isIframeMode && (
+          <Link
+            className="text-decoration-none"
+            to="/ownerBase/ownerPendingRequests"
+            role="button"
+          >
+            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+          </Link>
+        )}
+        <h3 className={isIframeMode ? "mt-2" : "mt-4"}>{requestDetails.requestName}</h3>
         <h5 className="mt-4 mb-3">Requester details</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
@@ -297,14 +321,16 @@ function OwnerPendingRequestsDetails() {
               Approve
             </button>
           </div>
-          <div className="ms-3">
-            <Link
-              className={`${styles.secondaryButton} btn`}
-              to={`/ownerBase/ownerPendingRequestModify/${requestId}`}
-            >
-              Modify
-            </Link>
-          </div>
+          {!isIframeMode && (
+            <div className="ms-3">
+              <Link
+                className={`${styles.secondaryButton} btn`}
+                to={`/ownerBase/ownerPendingRequestModify/${requestId}`}
+              >
+                Modify
+              </Link>
+            </div>
+          )}
           <div className="ms-auto">
             <button
               className={`${styles.dangerButton} btn`}
@@ -315,6 +341,7 @@ function OwnerPendingRequestsDetails() {
             </button>
           </div>
         </div>
+        {isIframeMode && <div style={{ height: '30px' }}></div>}
       </div>
 
       {/* Approval Confirmation Modal */}

@@ -82,8 +82,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           console.log('Authentication set from URL parameters:', parsedUser);
           
-          // Clean up URL parameters
-          const newUrl = window.location.pathname;
+          // Clean up URL parameters but preserve mode parameter
+          const mode = urlParams.get('mode');
+          let newUrl = window.location.pathname;
+          if (mode) {
+            newUrl += `?mode=${mode}`;
+          }
           window.history.replaceState({}, document.title, newUrl);
           
           setLoading(false);

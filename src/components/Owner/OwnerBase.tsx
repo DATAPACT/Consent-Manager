@@ -5,12 +5,17 @@ import OwnerNavbar from "../UerNavbar/OwnerNavbar";
 // libraries
 import { Link, Outlet } from "react-router-dom";
 
+// context
+import { useIframe } from "../../IframeContext";
+
 function OwnerBase() {
+  const { isIframeMode } = useIframe();
+
   return (
     <>
-      <OwnerNavbar />
+      {!isIframeMode && <OwnerNavbar />}
       <Outlet />
-      <Footer />
+      {!isIframeMode && <Footer />}
     </>
   );
 }

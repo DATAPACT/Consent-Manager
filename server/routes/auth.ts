@@ -52,6 +52,7 @@ router.post('/login', async (req, res) => {
       formData.append('username', email);
       formData.append('password', password);
 
+      console.log('Attempting external API login for:', email);
       const externalApiUrl = process.env.EXTERNAL_API_BASE_URL || 'https://dips.soton.ac.uk/negotiation-api';
       const apiResponse = await fetch(`${externalApiUrl}/user/login/`, {
         method: 'POST',
@@ -61,15 +62,19 @@ router.post('/login', async (req, res) => {
         body: formData.toString(),
       });
 
+      console.log('External API response status:', apiResponse.status);
+      
       if (apiResponse.ok) {
         // The response is a plain text JWT token, not JSON
         apiToken = await apiResponse.text();
-        console.log('External API login successful, token received');
+        console.log('External API login successful, token received:', apiToken.substring(0, 50) + '...');
       } else {
+        const errorText = await apiResponse.text();
         console.log('External API login failed with status:', apiResponse.status);
+        console.log('Error response:', errorText);
       }
     } catch (apiError) {
-      console.log('External API login failed:', apiError);
+      console.log('External API login failed with exception:', apiError);
     }
 
     res.json({
@@ -80,7 +85,7 @@ router.post('/login', async (req, res) => {
         displayName: userData?.name || null,
         role,
         userData,
-        apiToken: apiToken || null // Just return the plain JWT token
+        apiToken // Always return a token
       }
     });
 
@@ -135,9 +140,10 @@ router.post('/register', async (req, res) => {
     let apiRegistrationSuccess = false;
     try {
       const externalApiUrl = process.env.EXTERNAL_API_BASE_URL || 'https://dips.soton.ac.uk/negotiation-api';
-      const masterPasswordParam = masterPassword || "5hnd..jk4ne!kwjs?wnsmmf";
+      const masterPasswordParam = masterPassword || process.env.EXTERNAL_API_MASTER_PASSWORD || "5hnd..jk4ne!kwjs?wnsmmf";
+      const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
       const apiResponse = await fetch(
-        `${externalApiUrl}/user/register?master_password_input=${masterPasswordParam}`,
+        `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
         {
           method: 'POST',
           headers: {
@@ -152,10 +158,23 @@ router.post('/register', async (req, res) => {
         }
       );
 
+      console.log('External API registration request:', {
+        url: `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
+        email: email,
+        name: name,
+        type: type || "consumer"
+      });
+      
       apiRegistrationSuccess = apiResponse.ok;
-      if (!apiResponse.ok) {
+      if (apiResponse.ok) {
+        const successData = await apiResponse.json();
+        console.log('External API registration successful:', successData);
+      } else {
         const errorData = await apiResponse.json();
-        console.log('External API registration failed:', errorData);
+        console.log('External API registration failed:', {
+          status: apiResponse.status,
+          error: errorData
+        });
       }
     } catch (apiError) {
       console.log('External API registration failed:', apiError);
@@ -272,11 +291,127 @@ router.get('/owners', async (req, res) => {
   }
 });
 
+// DELETE /api/auth/user/:email - Delete user from both Firebase and external API
+router.delete('/user/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { masterPassword } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        error: 'Email is required',
+        success: false
+      });
+    }
+
+    console.log('Deleting user:', email);
+
+    // First, get the user's UID from Firebase to delete from Firestore
+    let userRecord = null;
+    let userUid = null;
+    
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+      userUid = userRecord.uid;
+    } catch (authError) {
+      console.log('User not found in Firebase Auth:', authError);
+    }
+
+    // Delete from external API first (if it exists there)
+    let externalApiDeleteSuccess = false;
+    try {
+      const externalApiUrl = process.env.EXTERNAL_API_BASE_URL || 'https://dips.soton.ac.uk/negotiation-api';
+      const masterPasswordParam = masterPassword || process.env.EXTERNAL_API_MASTER_PASSWORD || "5hnd..jk4ne!kwjs?wnsmmf";
+      const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
+      
+      // First, get the user ID from external API by email (we may need to login first to get user ID)
+      // For now, we'll try to delete by email directly if the API supports it
+      const deleteResponse = await fetch(
+        `${externalApiUrl}/user/${email}?master_password_input=${encodedMasterPassword}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('External API delete response status:', deleteResponse.status);
+      
+      if (deleteResponse.ok) {
+        console.log('User deleted from external API successfully');
+        externalApiDeleteSuccess = true;
+      } else {
+        const errorText = await deleteResponse.text();
+        console.log('External API delete failed:', errorText);
+      }
+    } catch (apiError) {
+      console.log('External API delete failed with exception:', apiError);
+    }
+
+    // Delete from Firebase Auth
+    let firebaseAuthDeleted = false;
+    if (userRecord) {
+      try {
+        await admin.auth().deleteUser(userUid);
+        firebaseAuthDeleted = true;
+        console.log('User deleted from Firebase Auth');
+      } catch (authDeleteError) {
+        console.log('Failed to delete user from Firebase Auth:', authDeleteError);
+      }
+    }
+
+    // Delete from Firestore (check both collections)
+    let firestoreDeleted = false;
+    if (userUid) {
+      try {
+        const ownerDoc = db.collection('owners').doc(userUid);
+        const requesterDoc = db.collection('requesters').doc(userUid);
+        
+        const ownerExists = (await ownerDoc.get()).exists;
+        const requesterExists = (await requesterDoc.get()).exists;
+        
+        if (ownerExists) {
+          await ownerDoc.delete();
+          firestoreDeleted = true;
+          console.log('User deleted from owners collection');
+        }
+        
+        if (requesterExists) {
+          await requesterDoc.delete();
+          firestoreDeleted = true;
+          console.log('User deleted from requesters collection');
+        }
+      } catch (firestoreError) {
+        console.log('Failed to delete user from Firestore:', firestoreError);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'User deletion completed',
+      details: {
+        externalApiDeleted: externalApiDeleteSuccess,
+        firebaseAuthDeleted,
+        firestoreDeleted,
+        userFoundInFirebase: userRecord !== null
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to delete user',
+      success: false
+    });
+  }
+});
+
 // GET /api/auth/token/:token - Authenticate with external API token and redirect
 router.get('/token/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    const { redirect } = req.query;
+    const { redirect, mode } = req.query;
 
     if (!token) {
       return res.status(400).json({
@@ -369,9 +504,10 @@ router.get('/token/:token', async (req, res) => {
           const encodedToken = encodeURIComponent(token);
           
           // Redirect with auth data as URL parameters
-          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+          const frontendUrl = '${process.env.FRONTEND_URL || 'http://localhost:5173'}';
           const redirectUrl = frontendUrl + '${redirect || `/ownerBase/ownerDashboard`}';
-          const authUrl = redirectUrl + '?auth_user=' + encodedUserData + '&auth_token=' + encodedToken;
+          const modeParam = '${mode ? `&mode=${mode}` : ''}';
+          const authUrl = redirectUrl + '?auth_user=' + encodedUserData + '&auth_token=' + encodedToken + modeParam;
           
           console.log('Redirecting to:', authUrl);
           window.location.href = authUrl;

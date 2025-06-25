@@ -38,13 +38,15 @@ import ImportRequest from "./components/Requester/ImportRequest";
 import UserDetails from "./API/UserDetails";
 // Context
 import { AuthProvider } from "./AuthContext";
+import { IframeProvider } from "./IframeContext";
 
 import AllUsers from "./API/AllUsers";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
-      <Router>
+      <IframeProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/getStarted" element={<GetStarted />} />
@@ -128,7 +130,8 @@ createRoot(document.getElementById("root")!).render(
             />
           </Route>
         </Routes>
-      </Router>
+        </Router>
+      </IframeProvider>
     </AuthProvider>
   </StrictMode>
 );
