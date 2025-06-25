@@ -58,8 +58,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage)
+    // Check if user is already logged in (from localStorage) or URL parameters
     const checkAuthState = async () => {
+      // First check for URL parameters (from iframe auth)
+      const urlParams = new URLSearchParams(window.location.search);
+      const authUser = urlParams.get('auth_user');
+      const authToken = urlParams.get('auth_token');
+      
+      if (authUser && authToken) {
+        try {
+          console.log('Found auth parameters in URL, setting localStorage...');
+          const parsedUser = JSON.parse(decodeURIComponent(authUser));
+          const decodedToken = decodeURIComponent(authToken);
+          
+          // Store in localStorage
+          localStorage.setItem('user', JSON.stringify(parsedUser));
+          localStorage.setItem('token', decodedToken);
+          
+          // Set in context
+          setUser(parsedUser);
+          setRole(parsedUser.role);
+          setUserData(parsedUser.userData);
+          
+          console.log('Authentication set from URL parameters:', parsedUser);
+          
+          // Clean up URL parameters
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+          
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.error('Error parsing auth parameters:', err);
+        }
+      }
+      
+      // Fallback to localStorage check
       const storedUser = localStorage.getItem('user');
       const storedToken = localStorage.getItem('token');
       
@@ -69,6 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(parsedUser);
           setRole(parsedUser.role);
           setUserData(parsedUser.userData);
+          console.log('Authentication restored from localStorage:', parsedUser);
         } catch (err) {
           console.error('Error parsing stored user:', err);
           localStorage.removeItem('user');

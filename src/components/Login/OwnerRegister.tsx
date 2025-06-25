@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase"; // Import Firebase utils
-import { useAuth } from "../../AuthContext"; // Import the AuthContext
+import { useAuth } from "../../AuthContext";
+import { register } from "../../services/api";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
@@ -26,53 +24,49 @@ const OwnerRegister: React.FC = () => {
     }
 
     try {
-      // 1. Register user with Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      // 1. Register user with Express API
+      const result = await register({
         email,
-        password
-      );
-      const user = userCredential.user;
-
-      // 2. Save to Firestore (optional - if still needed)
-      await setDoc(doc(db, "owners", user.uid), {
+        password,
         name,
-        email,
         role: "owner",
-        createdAt: new Date(),
       });
 
-      // 3. Register the user with your backend API
-      const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
+      if (result.success) {
+        // 2. Register the user with external API (University of Southampton)
+        const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
 
-      const response = await fetch(
-        `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username_email: email,
-            password: password,
-            name: name,
-            type: "provider", // Use "consumer" for the consumer form
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errData = await response.json();
-        console.error("API registration failed:", errData);
-        setError(
-          "API registration failed: " + (errData?.detail || "Unknown error")
+        const response = await fetch(
+          `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username_email: email,
+              password: password,
+              name: name,
+              type: "provider", // Use "consumer" for the consumer form
+            }),
+          }
         );
-        return;
-      }
 
-      // 4. Log in and redirect
-      await login(email, password);
-      navigate("/ownerBase/ownerDashboard");
+        if (!response.ok) {
+          const errData = await response.json();
+          console.error("API registration failed:", errData);
+          setError(
+            "API registration failed: " + (errData?.detail || "Unknown error")
+          );
+          return;
+        }
+
+        // 3. Log in and redirect
+        await login(email, password);
+        navigate("/ownerBase/ownerDashboard");
+      } else {
+        setError(result.error || "Registration failed");
+      }
     } catch (error: any) {
       setError(error.message);
     }

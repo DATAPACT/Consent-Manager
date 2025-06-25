@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { getOntologies } from "./services/api";
 
 type Ontology = {
   id: string;
@@ -14,24 +14,27 @@ const Test = () => {
   useEffect(() => {
     const fetchOntologies = async () => {
       try {
-        const db = getFirestore();
-        const colRef = collection(db, "ontologies");
-        const snapshot = await getDocs(colRef);
+        // Fetch ontologies without specific user filter to get all ontologies
+        const result = await getOntologies();
+        
+        if (!result.success) {
+          throw new Error(result.error || "Failed to fetch ontologies");
+        }
 
         const ontologiesData = await Promise.all(
-          snapshot.docs.map(async (doc) => {
-            const data = doc.data();
-            if (!data.fileURL) {
-              return { id: doc.id, content: "No fileURL found" };
+          result.ontologies.map(async (ontologyItem: any) => {
+            const { id, downloadURL } = ontologyItem;
+            if (!downloadURL) {
+              return { id, content: "No download URL found" };
             }
             try {
-              const response = await fetch(data.fileURL);
+              const response = await fetch(downloadURL);
               if (!response.ok) throw new Error("Failed to fetch file");
               const text = await response.text();
-              return { id: doc.id, content: text };
+              return { id, content: text };
             } catch (e: any) {
               return {
-                id: doc.id,
+                id,
                 content: `Error fetching file: ${e.message}`,
               };
             }

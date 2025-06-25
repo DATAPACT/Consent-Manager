@@ -1,5 +1,5 @@
 // API service to interact with the Express backend
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 interface Refinement {
   name: string;
@@ -103,6 +103,21 @@ export const getUserDetails = async (uid: string) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching user details:', error);
+    throw error;
+  }
+};
+
+export const getAllOwners = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/owners`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching all owners:', error);
     throw error;
   }
 };

@@ -1,8 +1,7 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { getRequest, getUserDetails } from "../../services/api";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -60,11 +59,10 @@ function RequesterSentRequestsDetails() {
       const owners = requestDetails.owners;
       const ownerDetailsPromises = owners.map(async (ownerId) => {
         try {
-          // Fetch user details for each owner ID from the "owners" collection
-          const userDocRef = doc(db, "owners", ownerId);
-          const userDocSnap = await getDoc(userDocRef);
+          // Fetch user details for each owner ID using the API
+          const result = await getUserDetails(ownerId);
 
-          if (userDocSnap.exists()) {
+          if (result.success && result.user) {
             // Determine the status based on the owner's arrays
             let status = "Waiting for response"; // Default status
             if (requestDetails.ownersAccepted.includes(ownerId)) {
@@ -77,8 +75,8 @@ function RequesterSentRequestsDetails() {
 
             // Return the user details (name, email, and status)
             return {
-              name: userDocSnap.data().name,
-              email: userDocSnap.data().email,
+              name: result.user.name || result.user.displayName || "Unknown",
+              email: result.user.email || "N/A",
               status,
             };
           } else {
@@ -109,11 +107,10 @@ function RequesterSentRequestsDetails() {
       }
 
       try {
-        const requestDocRef = doc(db, "requests", requestId);
-        const docSnap = await getDoc(requestDocRef);
-
-        if (docSnap.exists()) {
-          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
+        const result = await getRequest(requestId);
+        
+        if (result.success) {
+          setRequestDetails(result.request as Request);
         } else {
           setError("Request not found.");
         }

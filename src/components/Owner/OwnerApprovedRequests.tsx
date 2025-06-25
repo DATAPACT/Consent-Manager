@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { db, auth } from "../../firebase"; // Import Firebase Auth
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { useAuth } from "../../AuthContext";
+import { getRequests, deleteRequest } from "../../services/api";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -26,7 +18,7 @@ function OwnerApprovedRequests() {
   const [approvedRequests, setApprovedRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // State for selected request to delete
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
@@ -34,36 +26,34 @@ function OwnerApprovedRequests() {
   );
 
   useEffect(() => {
-    // Listen for authentication state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        setUserId(null);
-      }
-    });
-
-    return () => unsubscribe(); // Cleanup listener on unmount
-  }, []);
-
-  useEffect(() => {
     const fetchApprovedRequests = async () => {
-      if (!userId) return;
+      if (!user) {
+        setError("User not logged in.");
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       setError("");
 
       try {
-        const requestsRef = collection(db, "requests");
-        const q = query(requestsRef, where("status", "==", "sent"));
-        const querySnapshot = await getDocs(q);
+        // Get all sent requests for owners
+        const result = await getRequests({ 
+          uid: user.uid, 
+          role: 'owner',
+          status: 'sent'
+        });
 
-        // Filter requests where the logged-in user is in the 'ownersAccepted' array
-        const filteredRequests: Request[] = querySnapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
-          .filter((req) => req.ownersAccepted.includes(userId)); // Correctly filter by ownersAccepted
+        if (result.success) {
+          // Filter requests where the logged-in user is in the 'ownersAccepted' array
+          const filteredRequests = result.requests.filter((request: any) =>
+            request.ownersAccepted && request.ownersAccepted.includes(user.uid)
+          );
 
-        setApprovedRequests(filteredRequests);
+          setApprovedRequests(filteredRequests);
+        } else {
+          setError("Failed to fetch approved requests.");
+        }
       } catch (err) {
         setError("Error fetching approved requests.");
       }
@@ -72,18 +62,22 @@ function OwnerApprovedRequests() {
     };
 
     fetchApprovedRequests();
-  }, [userId]); // Run when userId is set
+  }, [user]); // Run when user is set
 
   const handleRevokeRequest = async () => {
     if (!selectedRequestId) return;
 
     try {
-      const requestRef = doc(db, "requests", selectedRequestId);
-      await deleteDoc(requestRef); // Delete the request from Firestore
-      setApprovedRequests(
-        approvedRequests.filter((req) => req.id !== selectedRequestId)
-      ); // Update UI
-      setSelectedRequestId(null); // Clear selected request
+      const result = await deleteRequest(selectedRequestId);
+      
+      if (result.success) {
+        setApprovedRequests(
+          approvedRequests.filter((req) => req.id !== selectedRequestId)
+        ); // Update UI
+        setSelectedRequestId(null); // Clear selected request
+      } else {
+        setError("Failed to revoke the request.");
+      }
     } catch (error) {
       console.error("Error deleting request:", error);
       setError("Failed to revoke the request.");

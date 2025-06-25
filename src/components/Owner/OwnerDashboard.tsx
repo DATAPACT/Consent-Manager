@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import styles from "../../css/Dashboard.module.css";
 import { Link } from "react-router-dom";
-import { db, auth } from "../../firebase"; // Firebase config
-import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore methods
+import { useAuth } from "../../AuthContext";
+import { getRequests } from "../../services/api";
 
 interface Request {
   id: string;
@@ -14,35 +14,46 @@ interface Request {
 function OwnerDashboard() {
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
   const [approvedRequestsCount, setApprovedRequestsCount] = useState<number>(0);
+  const [expiredRequestsCount, setExpiredRequestsCount] = useState<number>(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchRequests = async () => {
+      if (!user) {
+        console.log("User not logged in");
+        return;
+      }
+
       try {
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
-          console.log("User not logged in");
-          return;
+        // Get all sent requests for owners
+        const result = await getRequests({ 
+          uid: user.uid, 
+          role: 'owner',
+          status: 'sent'
+        });
+
+        if (result.success) {
+          // Filter for pending requests (user is in ownersPending array)
+          const pendingRequests = result.requests.filter((request: any) =>
+            request.ownersPending && request.ownersPending.includes(user.uid)
+          );
+
+          // Filter for approved requests (user is in ownersAccepted array)
+          const approvedRequests = result.requests.filter((request: any) =>
+            request.ownersAccepted && request.ownersAccepted.includes(user.uid)
+          );
+
+          // Filter for expired/rejected requests (user is in ownersRejected array)
+          const expiredRequests = result.requests.filter((request: any) =>
+            request.ownersRejected && request.ownersRejected.includes(user.uid)
+          );
+
+          setPendingRequestsCount(pendingRequests.length);
+          setApprovedRequestsCount(approvedRequests.length);
+          setExpiredRequestsCount(expiredRequests.length);
+        } else {
+          console.error("Failed to fetch requests:", result.error);
         }
-
-        const requestsRef = collection(db, "requests");
-
-        // Query for all requests with the status "sent" (for pending requests)
-        const pendingQuery = query(requestsRef, where("status", "==", "sent"));
-        const pendingSnapshot = await getDocs(pendingQuery);
-        const pendingRequests = pendingSnapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
-          .filter((request) => request.ownersPending.includes(userId)); // Filter by ownersPending
-
-        setPendingRequestsCount(pendingRequests.length);
-
-        // Query for all requests with the status "approved"
-        const approvedQuery = query(requestsRef, where("status", "==", "sent"));
-        const approvedSnapshot = await getDocs(approvedQuery);
-        const approvedRequests = approvedSnapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() } as Request))
-          .filter((request) => request.ownersAccepted.includes(userId)); // Filter by ownersApproved
-
-        setApprovedRequestsCount(approvedRequests.length);
       } catch (error) {
         console.error("Error fetching requests:", error);
       }
@@ -107,7 +118,7 @@ function OwnerDashboard() {
               <div className="card-body">
                 <h4 className="card-title">Expired requests</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2 text-danger">3</h3>
+                <h3 className="mt-2 text-danger">{expiredRequestsCount}</h3>
                 <small className="text-muted">expired requests.</small>
                 <p className="card-text mt-2">
                   Requests you have been granted. You can review, modify, or

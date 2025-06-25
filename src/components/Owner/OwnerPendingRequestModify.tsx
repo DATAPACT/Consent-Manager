@@ -4,8 +4,7 @@ import styles from "../../css/CreateRequest.module.css";
 // libraries
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { db } from "../../firebase";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Import updateDoc and deleteDoc
+import { getRequest } from "../../services/api";
 
 interface Request {
   id: string;
@@ -34,11 +33,10 @@ function OwnerPendingRequestModify() {
       }
 
       try {
-        const requestDocRef = doc(db, "requests", requestId);
-        const docSnap = await getDoc(requestDocRef);
-
-        if (docSnap.exists()) {
-          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
+        const result = await getRequest(requestId);
+        
+        if (result.success) {
+          setRequestDetails(result.request as Request);
         } else {
           setError("Request not found.");
         }

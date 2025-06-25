@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom"; // Import useNavigate
-import { db } from "../../firebase";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore"; // Import updateDoc and deleteDoc
-import { getAuth } from "firebase/auth";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext";
+import { getRequest, updateRequest } from "../../services/api";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -57,11 +56,10 @@ function OwnerPendingRequestsDetails() {
       }
 
       try {
-        const requestDocRef = doc(db, "requests", requestId);
-        const docSnap = await getDoc(requestDocRef);
-
-        if (docSnap.exists()) {
-          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
+        const result = await getRequest(requestId);
+        
+        if (result.success) {
+          setRequestDetails(result.data as Request);
         } else {
           setError("Request not found.");
         }
@@ -76,24 +74,15 @@ function OwnerPendingRequestsDetails() {
     fetchRequestDetails();
   }, [requestId]);
 
+  const { user } = useAuth();
+
   // Approve Request
   const approveRequest = async () => {
-    if (!requestDetails) return;
+    if (!requestDetails || !user) return;
 
     setUpdating(true);
     try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-
-      if (!user) {
-        setError("User not authenticated.");
-        setUpdating(false);
-        return;
-      }
-
       const loggedInUserId = user.uid;
-
-      const requestDocRef = doc(db, "requests", requestId!);
 
       // Remove the logged-in user's ID from ownersPending array
       const updatedOwnersPending = requestDetails.ownersPending.filter(
@@ -106,27 +95,28 @@ function OwnerPendingRequestsDetails() {
         loggedInUserId,
       ];
 
-      // Update Firestore with the new ownersPending and ownersAccepted arrays
-      await updateDoc(requestDocRef, {
-        ownersPending: updatedOwnersPending, // Update ownersPending (remove user)
-        ownersAccepted: updatedOwnersAccepted, // Add user to ownersAccepted
+      // Update request with the new ownersPending and ownersAccepted arrays
+      const result = await updateRequest(requestId!, {
+        ownersPending: updatedOwnersPending,
+        ownersAccepted: updatedOwnersAccepted,
       });
 
-      // Log success
-      console.log("User moved to ownersAccepted");
+      if (result.success) {
+        // Update the state with the new ownersPending and ownersAccepted arrays
+        setRequestDetails(
+          (prev) =>
+            prev && {
+              ...prev,
+              ownersPending: updatedOwnersPending,
+              ownersAccepted: updatedOwnersAccepted,
+            }
+        );
 
-      // Update the state with the new ownersPending and ownersAccepted arrays
-      setRequestDetails(
-        (prev) =>
-          prev && {
-            ...prev,
-            ownersPending: updatedOwnersPending,
-            ownersAccepted: updatedOwnersAccepted,
-          }
-      );
-
-      closeModal("approveRequestModal");
-      navigate("/ownerBase/ownerDashboard");
+        closeModal("approveRequestModal");
+        navigate("/ownerBase/ownerDashboard");
+      } else {
+        setError("Error approving request.");
+      }
     } catch (error) {
       console.error("Error approving request:", error);
       setError("Error approving request.");
@@ -136,22 +126,11 @@ function OwnerPendingRequestsDetails() {
 
   // Reject Request
   const rejectRequest = async () => {
-    if (!requestDetails) return;
+    if (!requestDetails || !user) return;
 
     setUpdating(true);
     try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-
-      if (!user) {
-        setError("User not authenticated.");
-        setUpdating(false);
-        return;
-      }
-
       const loggedInUserId = user.uid;
-
-      const requestDocRef = doc(db, "requests", requestId!);
 
       // Remove the logged-in user's ID from ownersPending array
       const updatedOwnersPending = requestDetails.ownersPending.filter(
@@ -164,27 +143,28 @@ function OwnerPendingRequestsDetails() {
         loggedInUserId,
       ];
 
-      // Update Firestore with the new ownersPending and ownersRejected arrays
-      await updateDoc(requestDocRef, {
-        ownersPending: updatedOwnersPending, // Update ownersPending (remove user)
-        ownersRejected: updatedOwnersRejected, // Add user to ownersRejected
+      // Update request with the new ownersPending and ownersRejected arrays
+      const result = await updateRequest(requestId!, {
+        ownersPending: updatedOwnersPending,
+        ownersRejected: updatedOwnersRejected,
       });
 
-      // Log success
-      console.log("User moved to ownersRejected");
+      if (result.success) {
+        // Update the state with the new ownersPending and ownersRejected arrays
+        setRequestDetails(
+          (prev) =>
+            prev && {
+              ...prev,
+              ownersPending: updatedOwnersPending,
+              ownersRejected: updatedOwnersRejected,
+            }
+        );
 
-      // Update the state with the new ownersPending and ownersRejected arrays
-      setRequestDetails(
-        (prev) =>
-          prev && {
-            ...prev,
-            ownersPending: updatedOwnersPending,
-            ownersRejected: updatedOwnersRejected,
-          }
-      );
-
-      closeModal("rejectRequestModal");
-      navigate("/ownerBase/ownerDashboard");
+        closeModal("rejectRequestModal");
+        navigate("/ownerBase/ownerDashboard");
+      } else {
+        setError("Error rejecting request.");
+      }
     } catch (error) {
       console.error("Error rejecting request:", error);
       setError("Error rejecting request.");

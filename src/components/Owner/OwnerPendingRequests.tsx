@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link } from "react-router-dom";
-import { db, auth } from "../../firebase"; // Firebase setup
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { useAuth } from "../../AuthContext";
+import { getRequests } from "../../services/api";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -20,40 +20,44 @@ function OwnerPendingRequests() {
   const [pendingRequests, setPendingRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchRequests = async () => {
+      if (!user) {
+        setError("User not logged in.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const requestsRef = collection(db, "requests");
-        const q = query(requestsRef, where("status", "==", "sent")); // Modify this to check for "sent" status
-        const querySnapshot = await getDocs(q);
-        const allRequests: Request[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Request[];
+        // Get all sent requests for owners
+        const result = await getRequests({ 
+          uid: user.uid, 
+          role: 'owner',
+          status: 'sent'
+        });
 
-        const userId = auth.currentUser?.uid; // Get logged-in user's ID
-        if (!userId) {
-          setError("User not logged in.");
-          setLoading(false);
-          return;
+        if (result.success) {
+          // Filter requests where user is in ownersPending array
+          const userPendingRequests = result.requests.filter((request: any) =>
+            request.ownersPending && request.ownersPending.includes(user.uid)
+          );
+
+          setPendingRequests(userPendingRequests);
+        } else {
+          setError("Failed to fetch requests.");
         }
-
-        // Filter requests based on ownersPending array
-        const userRequests = allRequests.filter((request) =>
-          request.ownersPending.includes(userId)
-        );
-
-        setPendingRequests(userRequests); // Set the filtered requests
         setLoading(false);
       } catch (error) {
         setError("An error occurred while fetching the requests.");
+        console.error("Error fetching requests:", error);
         setLoading(false);
       }
     };
 
     fetchRequests();
-  }, []); // Empty dependency array ensures the effect runs once when the component mounts
+  }, [user]); // Depend on user to reload when auth state changes
 
   if (loading) {
     return <LoadingSpinner />;

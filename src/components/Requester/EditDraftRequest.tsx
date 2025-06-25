@@ -9,8 +9,7 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { getRequest, updateRequest } from "../../services/api";
 
 import {
   getFeatureDropdownValue,
@@ -100,10 +99,9 @@ function EditDraftRequest() {
   useEffect(() => {
     const loadRequest = async () => {
       try {
-        const docRef = doc(db, "requests", requestId!);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        const result = await getRequest(requestId!);
+        if (result.success) {
+          const data = result.request;
           setFormData({ requestName: data.requestName || "" });
           setSelectedOntologies(data.selectedOntologies || []);
           setPermissions(data.permissions || []);
@@ -120,13 +118,18 @@ function EditDraftRequest() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateDoc(doc(db, "requests", requestId!), {
+      const result = await updateRequest(requestId!, {
         ...formData,
         selectedOntologies,
         permissions,
         updatedAt: new Date().toISOString(),
       });
-      navigate("/requesterBase/requesterRequests");
+      
+      if (result.success) {
+        navigate("/requesterBase/requesterRequests");
+      } else {
+        alert("Error updating request");
+      }
     } catch (err) {
       console.error("Error updating request:", err);
       alert("Error updating request");

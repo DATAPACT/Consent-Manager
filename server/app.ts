@@ -15,10 +15,23 @@ const URL_LIMIT = process.env.URL_LIMIT || '10mb';
 
 console.log(`Server starting with limits: JSON=${JSON_LIMIT}, URL=${URL_LIMIT}`);
 
-// Middleware
-app.use(helmet());
+// Configure helmet with conditional iframe support
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/auth/token')) {
+    // Skip helmet entirely for auth endpoints to allow iframe embedding
+    next();
+  } else {
+    // Default helmet for other routes
+    helmet()(req, res, next);
+  }
+});
+// Configure CORS from environment variables
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'https://dips.soton.ac.uk', 'http://localhost', 'http://127.0.0.1'];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://dips.soton.ac.uk'],
+  origin: corsOrigins,
   credentials: true
 }));
 app.use(morgan('combined'));

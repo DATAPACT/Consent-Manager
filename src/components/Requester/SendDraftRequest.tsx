@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { db } from "../../firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  getDoc,
-} from "firebase/firestore";
+import { getRequest, updateRequest, getAllOwners } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
 function SendDraftRequest() {
@@ -54,26 +47,20 @@ function SendDraftRequest() {
   useEffect(() => {
     const fetchOwnersAndRequest = async () => {
       try {
-        const ownersSnapshot = await getDocs(collection(db, "owners"));
-        const owners: { email: string; id: string; name?: string }[] = [];
-        ownersSnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.email) {
-            owners.push({
-              email: data.email,
-              id: doc.id,
-              name: data.name || "Unknown",
-            });
-          }
-        });
-        setAllOwners(owners);
+        // Fetch all owners using the new API endpoint
+        const ownersResult = await getAllOwners();
+        if (ownersResult.success) {
+          setAllOwners(ownersResult.owners);
+        } else {
+          console.error("Failed to fetch owners:", ownersResult.error);
+          setAllOwners([]);
+        }
 
         if (requestId) {
-          const requestRef = doc(db, "requests", requestId);
-          const requestSnap = await getDoc(requestRef);
-
-          if (requestSnap.exists()) {
-            const requestData = requestSnap.data();
+          const result = await getRequest(requestId);
+          
+          if (result.success) {
+            const requestData = result.request;
             setOwnersPending(requestData.ownersPending || []);
             setOwnersAccepted(requestData.ownersAccepted || []);
             setOwnersRejected(requestData.ownersRejected || []);
@@ -81,6 +68,7 @@ function SendDraftRequest() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setAllOwners([]);
       }
     };
 
@@ -143,9 +131,8 @@ function SendDraftRequest() {
 
     try {
       const ownerIds = selectedOwners.map((o) => o.id);
-      const requestRef = doc(db, "requests", requestId);
-
-      await updateDoc(requestRef, {
+      
+      const result = await updateRequest(requestId, {
         owners: [...ownersPending, ...ownerIds],
         ownersPending: [...ownersPending, ...ownerIds],
         status: "sent",
@@ -160,8 +147,12 @@ function SendDraftRequest() {
           .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       });
 
-      alert("Request sent successfully!");
-      navigate("/requesterBase/requesterRequests");
+      if (result.success) {
+        alert("Request sent successfully!");
+        navigate("/requesterBase/requesterRequests");
+      } else {
+        alert("Error sending request. Please try again.");
+      }
     } catch (error) {
       console.error("Error sending request:", error);
       alert("Error sending request. Please try again.");

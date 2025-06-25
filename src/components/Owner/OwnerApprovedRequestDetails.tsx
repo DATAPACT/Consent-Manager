@@ -1,8 +1,7 @@
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { getRequest } from "../../services/api";
 import jsPDF from "jspdf";
 
 // components
@@ -51,11 +50,10 @@ function OwnerApprovedRequestsDetails() {
       }
 
       try {
-        const requestDocRef = doc(db, "requests", requestId);
-        const docSnap = await getDoc(requestDocRef);
-
-        if (docSnap.exists()) {
-          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
+        const result = await getRequest(requestId);
+        
+        if (result.success) {
+          setRequestDetails(result.request as Request);
         } else {
           setError("Request not found.");
         }
