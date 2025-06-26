@@ -153,7 +153,7 @@ router.post('/register', async (req, res) => {
             username_email: email,
             password: password,
             name: name,
-            type: type || "consumer"
+            type: role === "requester" ? "consumer" : "provider"
           }),
         }
       );
@@ -473,14 +473,39 @@ router.get('/token/:token', async (req, res) => {
     
     console.log('Extracted email from JWT:', userEmail);
     
+    // Determine role by checking Firestore collections (same logic as login endpoint)
+    const usersSnapshot = await db.collection('owners').where('email', '==', userEmail).get();
+    const requestersSnapshot = await db.collection('requesters').where('email', '==', userEmail).get();
+
+    let role = 'owner'; // Default fallback
+    let userData = null;
+    let userUid = null;
+    let displayName = 'Marketing Audit User';
+
+    if (!usersSnapshot.empty) {
+      role = 'owner';
+      const doc = usersSnapshot.docs[0];
+      userData = doc.data();
+      userUid = doc.id;
+      displayName = userData?.name || 'Marketing Audit User';
+    } else if (!requestersSnapshot.empty) {
+      role = 'requester';
+      const doc = requestersSnapshot.docs[0];
+      userData = doc.data();
+      userUid = doc.id;
+      displayName = userData?.name || 'Marketing Audit User';
+    }
+
+    console.log('Determined role for token auth:', role, 'for email:', userEmail);
+    
     // Create a user object that matches the React AuthUser interface exactly
     const authUser = {
-      uid: 'external_user_' + Buffer.from(userEmail).toString('base64').substr(0, 10),
+      uid: userUid || 'external_user_' + Buffer.from(userEmail).toString('base64').substr(0, 10),
       email: userEmail,
-      displayName: 'Marketing Audit User',
-      role: 'owner',
-      userData: {
-        name: 'Marketing Audit User',
+      displayName: displayName,
+      role: role,
+      userData: userData || {
+        name: displayName,
         email: userEmail
       },
       apiToken: actualJwtToken // Use the actual JWT token

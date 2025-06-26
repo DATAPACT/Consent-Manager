@@ -2,6 +2,7 @@ import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequest, getUserDetails } from "../../services/api";
+import { useIframe } from "../../IframeContext";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -39,6 +40,7 @@ interface Request {
 
 function RequesterSentRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
+  const { isIframeMode } = useIframe();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -110,7 +112,7 @@ function RequesterSentRequestsDetails() {
         const result = await getRequest(requestId);
         
         if (result.success) {
-          setRequestDetails(result.request as Request);
+          setRequestDetails(result.data as Request);
         } else {
           setError("Request not found.");
         }
@@ -152,15 +154,17 @@ function RequesterSentRequestsDetails() {
     return <div className="text-danger">No request details available.</div>;
   return (
     <>
-      <div className={`${styles.dashboard} container w-50`}>
-        <Link
-          className="text-decoration-none"
-          to="/requesterBase/requesterRequests"
-          role="button"
-        >
-          <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
-        </Link>
-        <h3 className="mt-4">{requestDetails.requestName}</h3>
+      <div className={`${styles.dashboard} container w-50`} style={isIframeMode ? { marginTop: '20px' } : {}}>
+        {!isIframeMode && (
+          <Link
+            className="text-decoration-none"
+            to="/requesterBase/requesterRequests"
+            role="button"
+          >
+            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+          </Link>
+        )}
+        <h3 className={isIframeMode ? "mt-2" : "mt-4"}>{requestDetails.requestName}</h3>
 
         <ul className="nav nav-tabs mt-4" id="myTab" role="tablist">
           <li className="nav-item" role="presentation">
