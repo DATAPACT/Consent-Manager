@@ -29,6 +29,8 @@ interface RequestData {
     requesterName: string;
     requesterEmail: string;
   };
+  policy?: any; // ODRL policy JSON
+  metadata?: any; // Additional metadata like audit request ID
 }
 
 // POST /api/requests - Create a new request

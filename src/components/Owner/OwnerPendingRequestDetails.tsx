@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { useIframe } from "../../IframeContext";
 import { getRequest, updateRequest } from "../../services/api";
+import { getRequestPermissions, hasODRLPolicy } from "../../utils/policyParser";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -24,6 +25,21 @@ interface Permission {
   purpose: string;
   purposeRefinements: Refinement[];
   constraintRefinements: Refinement[];
+  constraints?: Array<{
+    leftOperand: string;
+    operator: string;
+    rightOperand: any;
+    description: string;
+  }>;
+  assignees?: Array<{
+    source: string;
+    refinements?: Array<{
+      leftOperand: string;
+      operator: string;
+      rightOperand: any;
+      description: string;
+    }>;
+  }>;
 }
 
 interface Request {
@@ -34,6 +50,7 @@ interface Request {
     requesterEmail: string;
   };
   permissions: Permission[];
+  policy?: any; // ODRL policy
   status: string;
   ownersAccepted: string[];
   ownersRejected: string[];
@@ -231,7 +248,11 @@ function OwnerPendingRequestsDetails() {
           {requestDetails.requester.requesterEmail}
         </p>
 
-        {requestDetails.permissions?.map((permission, ruleIndex) => (
+        {(() => {
+          // Parse permissions from ODRL policy or fallback to legacy permissions
+          const parsedPermissions = getRequestPermissions(requestDetails);
+          
+          return parsedPermissions.map((permission, ruleIndex) => (
           <div key={ruleIndex} className="mb-4 mt-4">
             <h5>Permission {ruleIndex + 1}</h5>
             <h5 className="mt-4">What’s being requested</h5>
@@ -247,6 +268,37 @@ function OwnerPendingRequestsDetails() {
               <strong>Purpose:</strong> This request is for{" "}
               <strong>{permission.purpose}</strong> reasons.
             </p>
+            
+            {/* Show generic ODRL constraints */}
+            {permission.constraints && permission.constraints.length > 0 && (
+              <div className="mt-3">
+                <h6>Policy Constraints:</h6>
+                <ul className="list-unstyled ms-3">
+                  {permission.constraints.map((constraint, i) => (
+                    <li key={i} className="mb-1">
+                      <small className="text-muted">• {constraint.description}</small>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Show generic ODRL assignees */}
+            {permission.assignees && permission.assignees.length > 0 && (
+              <div className="mt-3">
+                <h6>Assigned To:</h6>
+                {permission.assignees.map((assignee, i) => (
+                  <div key={i} className="ms-3">
+                    <p className="mb-1"><strong>{assignee.source}</strong></p>
+                    {assignee.refinements && assignee.refinements.map((ref, j) => (
+                      <p key={j} className="mb-1 ms-2">
+                        <small className="text-muted">└ {ref.description}</small>
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {permission.datasetRefinements?.length > 0 && (
               <div>
@@ -305,7 +357,8 @@ function OwnerPendingRequestsDetails() {
               </div>
             )}
           </div>
-        ))}
+        ));
+        })()}
 
         <div className="alert alert-warning" role="alert">
           If you are unsure whether to accept, reject or make any modifications
