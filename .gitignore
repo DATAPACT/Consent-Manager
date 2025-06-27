@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 firebase-admin.key.json
+
+# Debug files
+debug-negotiations/
+*.debug.json
+check_*.cjs
+test_*.cjs
+verify_*.cjs

@@ -68,6 +68,55 @@ router.post('/login', async (req, res) => {
         // The response is a plain text JWT token, not JSON
         apiToken = await apiResponse.text();
         console.log('External API login successful, token received:', apiToken.substring(0, 50) + '...');
+        
+        // Check if user has MongoDB user ID, if not, get it from external API
+        if (!userData?.mongoUserId && apiToken) {
+          console.log('🔍 User missing MongoDB ID, fetching from external API...');
+          
+          try {
+            // Get user details from external API using the token
+            const userDetailsResponse = await fetch(`${externalApiUrl}/user/details/`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${apiToken}`,
+              },
+            });
+            
+            if (userDetailsResponse.ok) {
+              const userDetails = await userDetailsResponse.json();
+              console.log('📋 User details from external API:', userDetails);
+              
+              // Extract MongoDB user ID
+              const mongoUserId = userDetails.user_id || userDetails.id || userDetails._id;
+              
+              if (mongoUserId) {
+                console.log('🎯 MongoDB user ID found:', mongoUserId);
+                
+                // Update Firebase user document with MongoDB user ID
+                const collection = role === 'owner' ? 'owners' : 'requesters';
+                await db.collection(collection).doc(userUid).update({
+                  mongoUserId: mongoUserId,
+                  apiRegistrationSuccess: true,
+                  mongoIdAddedOnLogin: true,
+                  mongoIdAddedDate: new Date().toISOString()
+                });
+                
+                console.log('✅ MongoDB user ID stored in Firebase during login');
+                
+                // Update userData in memory for the response
+                userData = { ...userData, mongoUserId };
+              } else {
+                console.warn('⚠️ No MongoDB user ID found in external API user details');
+              }
+            } else {
+              console.warn('⚠️ Failed to get user details from external API:', userDetailsResponse.status);
+            }
+          } catch (userDetailsError) {
+            console.warn('⚠️ Error fetching user details from external API:', userDetailsError);
+          }
+        } else if (userData?.mongoUserId) {
+          console.log('✅ User already has MongoDB user ID:', userData.mongoUserId);
+        }
       } else {
         const errorText = await apiResponse.text();
         console.log('External API login failed with status:', apiResponse.status);
@@ -138,6 +187,7 @@ router.post('/register', async (req, res) => {
 
     // External API registration
     let apiRegistrationSuccess = false;
+    let mongoUserId = null;
     try {
       const externalApiUrl = process.env.EXTERNAL_API_BASE_URL || 'https://dips.soton.ac.uk/negotiation-api';
       const masterPasswordParam = masterPassword || process.env.EXTERNAL_API_MASTER_PASSWORD || "5hnd..jk4ne!kwjs?wnsmmf";
@@ -162,13 +212,30 @@ router.post('/register', async (req, res) => {
         url: `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
         email: email,
         name: name,
-        type: type || "consumer"
+        type: role === "requester" ? "consumer" : "provider"
       });
       
       apiRegistrationSuccess = apiResponse.ok;
       if (apiResponse.ok) {
         const successData = await apiResponse.json();
         console.log('External API registration successful:', successData);
+        
+        // Extract MongoDB user ID from the response
+        if (successData && (successData.user_id || successData.id || successData._id)) {
+          mongoUserId = successData.user_id || successData.id || successData._id;
+          console.log('🎯 MongoDB user ID received:', mongoUserId);
+          
+          // Update the Firebase user document with the MongoDB user ID
+          await db.collection(collection).doc(userRecord.uid).update({
+            mongoUserId: mongoUserId,
+            apiRegistrationSuccess: true,
+            apiRegistrationDate: new Date().toISOString()
+          });
+          
+          console.log('✅ MongoDB user ID stored in Firebase for user:', userRecord.uid);
+        } else {
+          console.warn('⚠️ No user ID found in API response:', successData);
+        }
       } else {
         const errorData = await apiResponse.json();
         console.log('External API registration failed:', {
@@ -187,7 +254,8 @@ router.post('/register', async (req, res) => {
         email: userRecord.email,
         role,
         userData,
-        apiRegistrationSuccess
+        apiRegistrationSuccess,
+        mongoUserId
       }
     });
 
@@ -497,6 +565,55 @@ router.get('/token/:token', async (req, res) => {
     }
 
     console.log('Determined role for token auth:', role, 'for email:', userEmail);
+    
+    // Check if user has MongoDB user ID, if not, get it from external API
+    if (userData && !userData.mongoUserId && actualJwtToken && userUid) {
+      console.log('🔍 User missing MongoDB ID during token auth, fetching from external API...');
+      
+      try {
+        const externalApiUrl = process.env.EXTERNAL_API_BASE_URL || 'https://dips.soton.ac.uk/negotiation-api';
+        const userDetailsResponse = await fetch(`${externalApiUrl}/user/details/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${actualJwtToken}`,
+          },
+        });
+        
+        if (userDetailsResponse.ok) {
+          const userDetails = await userDetailsResponse.json();
+          console.log('📋 User details from external API (token auth):', userDetails);
+          
+          // Extract MongoDB user ID
+          const mongoUserId = userDetails.user_id || userDetails.id || userDetails._id;
+          
+          if (mongoUserId) {
+            console.log('🎯 MongoDB user ID found during token auth:', mongoUserId);
+            
+            // Update Firebase user document with MongoDB user ID
+            const collection = role === 'owner' ? 'owners' : 'requesters';
+            await db.collection(collection).doc(userUid).update({
+              mongoUserId: mongoUserId,
+              apiRegistrationSuccess: true,
+              mongoIdAddedOnTokenAuth: true,
+              mongoIdAddedDate: new Date().toISOString()
+            });
+            
+            console.log('✅ MongoDB user ID stored in Firebase during token auth');
+            
+            // Update userData in memory
+            userData = { ...userData, mongoUserId };
+          } else {
+            console.warn('⚠️ No MongoDB user ID found in external API user details (token auth)');
+          }
+        } else {
+          console.warn('⚠️ Failed to get user details from external API during token auth:', userDetailsResponse.status);
+        }
+      } catch (userDetailsError) {
+        console.warn('⚠️ Error fetching user details from external API during token auth:', userDetailsError);
+      }
+    } else if (userData?.mongoUserId) {
+      console.log('✅ User already has MongoDB user ID during token auth:', userData.mongoUserId);
+    }
     
     // Create a user object that matches the React AuthUser interface exactly
     const authUser = {

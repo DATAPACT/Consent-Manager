@@ -367,3 +367,154 @@ export const deleteRequest = async (id: string) => {
     throw error;
   }
 };
+
+// External API integration for negotiation
+export const createNegotiationFromRequest = async (
+  requestId: string, 
+  consumerId: string, 
+  providerId: string,
+  token: string
+) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/external/negotiation/create-with-initial`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ requestId, consumerId, providerId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating negotiation:', error);
+    throw error;
+  }
+};
+
+// Create negotiation in accepted state when consent is approved
+export const createAcceptedNegotiationFromRequest = async (
+  requestId: string, 
+  consumerId: string, 
+  providerId: string,
+  token: string
+) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/external/negotiation/create-accepted`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ requestId, consumerId, providerId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating accepted negotiation:', error);
+    throw error;
+  }
+};
+
+// Get external users list
+export const getExternalUsers = async (token: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/external/users`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching external users:', error);
+    throw error;
+  }
+};
+
+// Get external user details
+export const getExternalUserDetails = async (token: string, userId?: string) => {
+  try {
+    const url = userId 
+      ? `${API_BASE_URL}/external/user-details?user_id=${userId}`
+      : `${API_BASE_URL}/external/user-details`;
+      
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching external user details:', error);
+    throw error;
+  }
+};
+
+// Get negotiation ID by consent request ID
+export const getNegotiationByRequestId = async (requestId: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/external/negotiation/by-request/${requestId}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching negotiation by request ID:', error);
+    throw error;
+  }
+};
+
+// Redirect to negotiation display page
+export const redirectToNegotiationDisplay = async (negotiationId: string, accessToken: string, userId: string, userType: string) => {
+  console.log('🔗 Opening negotiation dashboard:', {
+    negotiationId,
+    userId,
+    userType,
+    hasToken: !!accessToken
+  });
+  
+  // Build URL with authentication parameters
+  const negotiationUrl = `https://dips.soton.ac.uk/negotiation/organization/negotiation?` +
+    `negotiation_id=${negotiationId}&` +
+    `access_token=${encodeURIComponent(accessToken)}&` +
+    `user_id=${userId}&` +
+    `user_type=${userType}`;
+  
+  console.log('🌐 Opening URL with auth parameters:', negotiationUrl);
+  
+  const newTab = window.open(negotiationUrl, '_blank');
+  
+  if (newTab) {
+    newTab.focus();
+    console.log('✅ Negotiation dashboard opened in new tab');
+    console.log('✅ Django will verify token and set session automatically');
+  } else {
+    console.warn('⚠️ New tab blocked - user needs to manually open');
+    console.log('🔗 URL to open manually:', negotiationUrl);
+    throw new Error('New tab blocked');
+  }
+};

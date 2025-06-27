@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { useIframe } from "../../IframeContext";
-import { getRequest, updateRequest } from "../../services/api";
+import { getRequest, updateRequest, createAcceptedNegotiationFromRequest, getNegotiationByRequestId, redirectToNegotiationDisplay } from "../../services/api";
 import { getRequestPermissions, hasODRLPolicy } from "../../utils/policyParser";
 
 // css
@@ -65,6 +65,9 @@ function OwnerPendingRequestsDetails() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [updating, setUpdating] = useState<boolean>(false);
+  const [negotiationInfo, setNegotiationInfo] = useState<any>(null);
+  const [checkingNegotiation, setCheckingNegotiation] = useState<boolean>(false);
+  const [autoRedirectAttempted, setAutoRedirectAttempted] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -79,6 +82,69 @@ function OwnerPendingRequestsDetails() {
         
         if (result.success) {
           setRequestDetails(result.data as Request);
+          
+          // Check if there's an existing negotiation for this request
+          try {
+            const negotiationResult = await getNegotiationByRequestId(requestId);
+            if (negotiationResult.success && negotiationResult.negotiationId) {
+              setNegotiationInfo(negotiationResult);
+              console.log('📋 Found existing negotiation:', negotiationResult);
+              
+              // Debug iframe and redirect conditions
+              console.log('🔍 Auto-redirect conditions check:', {
+                isIframeMode,
+                autoRedirectAttempted,
+                hasNegotiationId: !!negotiationResult.negotiationId,
+                userExists: !!user,
+                hasMongoUserId: !!user?.userData?.mongoUserId,
+                shouldAutoRedirect: isIframeMode && !autoRedirectAttempted
+              });
+              
+              // Auto-redirect to negotiation in iframe mode (only if not already attempted)
+              if (isIframeMode && !autoRedirectAttempted) {
+                console.log('🔄 Auto-redirecting to existing negotiation in iframe mode...');
+                setAutoRedirectAttempted(true);
+                
+                // Get user info and redirect immediately
+                const authUser = user;
+                if (authUser && authUser.userData?.mongoUserId) {
+                  const accessToken = authUser?.apiToken || localStorage.getItem('token');
+                  
+                  if (accessToken) {
+                    console.log('🚀 Auto-redirecting with provider token in iframe mode');
+                    const userType = authUser.role === 'owner' ? 'provider' : 'consumer';
+                    
+                    try {
+                      await redirectToNegotiationDisplay(
+                        negotiationResult.negotiationId,
+                        accessToken,
+                        authUser.userData.mongoUserId,
+                        userType
+                      );
+                      
+                      // Notify parent that we're redirecting
+                      notifyParent({
+                        action: 'negotiation_redirect',
+                        negotiationId: negotiationResult.negotiationId,
+                        requestId: requestId
+                      });
+                      
+                      return; // Exit early since we're redirecting
+                    } catch (redirectError) {
+                      console.error('❌ Auto-redirect failed:', redirectError);
+                      // Continue with normal flow if redirect fails
+                    }
+                  } else {
+                    console.warn('⚠️ No token available for auto-redirect');
+                  }
+                } else {
+                  console.warn('⚠️ No user info available for auto-redirect');
+                }
+              }
+            }
+          } catch (negotiationError) {
+            console.log('ℹ️ No existing negotiation found for this request');
+          }
         } else {
           setError("Request not found.");
         }
@@ -95,13 +161,146 @@ function OwnerPendingRequestsDetails() {
 
   const { user } = useAuth();
 
+  // Separate effect for auto-redirect when user and negotiation info are both available
+  useEffect(() => {
+    // Add small delay to ensure iframe mode is properly detected
+    const checkAndRedirect = () => {
+      if (isIframeMode && negotiationInfo && user && !autoRedirectAttempted) {
+      console.log('🔄 Triggering auto-redirect effect...');
+      console.log('🔍 Auto-redirect conditions check (separate effect):', {
+        isIframeMode,
+        hasNegotiationInfo: !!negotiationInfo,
+        hasUser: !!user,
+        hasMongoUserId: !!user?.userData?.mongoUserId,
+        autoRedirectAttempted,
+        negotiationId: negotiationInfo.negotiationId
+      });
+
+      setAutoRedirectAttempted(true);
+
+      const performAutoRedirect = async () => {
+        if (user.userData?.mongoUserId) {
+          const accessToken = user?.apiToken || localStorage.getItem('token');
+          
+          if (accessToken) {
+            console.log('🚀 Performing auto-redirect with provider token in iframe mode');
+            const userType = user.role === 'owner' ? 'provider' : 'consumer';
+            
+            try {
+              // Notify parent that we're opening negotiation in new tab
+              notifyParent({
+                action: 'negotiation_opened',
+                negotiationId: negotiationInfo.negotiationId,
+                requestId: requestId,
+                method: 'new_tab'
+              });
+              
+              // Small delay to ensure parent gets the message
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              await redirectToNegotiationDisplay(
+                negotiationInfo.negotiationId,
+                accessToken,
+                user.userData.mongoUserId,
+                userType
+              );
+              
+            } catch (redirectError) {
+              console.error('❌ Auto-redirect failed:', redirectError);
+              setAutoRedirectAttempted(false); // Allow retry
+              
+              // Show error message if tab was blocked
+              if (redirectError.message.includes('blocked')) {
+                setError('Please click "Open Negotiation Manually" below or check your browser\'s pop-up blocker settings.');
+              }
+            }
+          } else {
+            console.warn('⚠️ No token available for auto-redirect');
+          }
+        } else {
+          console.warn('⚠️ No MongoDB user ID available for auto-redirect');
+        }
+      };
+
+      performAutoRedirect();
+      }
+    };
+    
+    // Use a small timeout to ensure all context is ready
+    const timeoutId = setTimeout(checkAndRedirect, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isIframeMode, negotiationInfo, user, autoRedirectAttempted, requestId, notifyParent]);
+
+  // Function to redirect to negotiation display
+  const viewNegotiation = async () => {
+    if (!negotiationInfo?.negotiationId || !user) {
+      console.error('❌ Missing negotiation ID or user info');
+      return;
+    }
+
+    setCheckingNegotiation(true);
+    
+    try {
+      // Get the auth token from provider's context instead of localStorage
+      const accessToken = user?.apiToken || localStorage.getItem('token');
+      
+      if (!accessToken) {
+        setError('No authentication token found for provider');
+        setCheckingNegotiation(false);
+        return;
+      }
+      
+      console.log('🔑 Using provider token for negotiation view');
+
+      // Get MongoDB user ID (we know the user has one since they can approve)
+      const mongoUserId = user.userData?.mongoUserId;
+      
+      if (!mongoUserId) {
+        setError('MongoDB user ID not found. Please contact support.');
+        setCheckingNegotiation(false);
+        return;
+      }
+
+      // Determine user type based on role
+      const userType = user.role === 'owner' ? 'provider' : 'consumer';
+
+      console.log('🔗 Redirecting to negotiation with:', {
+        negotiationId: negotiationInfo.negotiationId,
+        mongoUserId,
+        userType
+      });
+
+      // Redirect to negotiation display (now async)
+      await redirectToNegotiationDisplay(
+        negotiationInfo.negotiationId,
+        accessToken,
+        mongoUserId,
+        userType
+      );
+      
+    } catch (error) {
+      console.error('❌ Error redirecting to negotiation:', error);
+      setError('Failed to open negotiation. Please try again.');
+      setCheckingNegotiation(false);
+    }
+  };
+
   // Approve Request
   const approveRequest = async () => {
-    if (!requestDetails || !user) return;
+    console.log('🔄 Starting approval process...');
+    
+    if (!requestDetails || !user) {
+      console.error('❌ Missing requestDetails or user:', { requestDetails: !!requestDetails, user: !!user });
+      return;
+    }
 
+    console.log('✅ Request details and user available, proceeding with approval');
     setUpdating(true);
+    
     try {
       const loggedInUserId = user.uid;
+      console.log('👤 Logged in user ID:', loggedInUserId);
 
       // Remove the logged-in user's ID from ownersPending array
       const updatedOwnersPending = requestDetails.ownersPending.filter(
@@ -114,11 +313,19 @@ function OwnerPendingRequestsDetails() {
         loggedInUserId,
       ];
 
+      console.log('📝 Updating request with new owner arrays:', {
+        updatedOwnersPending,
+        updatedOwnersAccepted,
+        requestId
+      });
+
       // Update request with the new ownersPending and ownersAccepted arrays
       const result = await updateRequest(requestId!, {
         ownersPending: updatedOwnersPending,
         ownersAccepted: updatedOwnersAccepted,
       });
+
+      console.log('📊 Update request result:', result);
 
       if (result.success) {
         // Update the state with the new ownersPending and ownersAccepted arrays
@@ -131,9 +338,138 @@ function OwnerPendingRequestsDetails() {
             }
         );
 
+        // Check for existing negotiation or create a new one if requester info is available
+        if (requestDetails.requester?.requesterId) {
+          // First check if there's already an existing negotiation
+          if (negotiationInfo?.negotiationId) {
+            console.log('📋 Using existing negotiation:', negotiationInfo.negotiationId);
+            
+            // Redirect to existing negotiation if in iframe mode
+            if (isIframeMode && user.userData?.mongoUserId) {
+              console.log('🔗 Redirecting to existing negotiation (iframe mode)...');
+              
+              // Use provider's token from AuthContext instead of localStorage
+              const negotiationToken = user?.apiToken || localStorage.getItem('token');
+              if (negotiationToken) {
+                console.log('🔑 Using provider token for existing negotiation redirect');
+                closeModal("approveRequestModal");
+                
+                const userType = user.role === 'owner' ? 'provider' : 'consumer';
+                await redirectToNegotiationDisplay(
+                  negotiationInfo.negotiationId,
+                  negotiationToken,
+                  user.userData.mongoUserId,
+                  userType
+                );
+                return; // Exit early to avoid further processing
+              } else {
+                console.warn('⚠️ No authentication token found for provider redirect');
+              }
+            }
+          } else {
+            console.log('🤝 Creating new accepted negotiation...', {
+              consumerId: requestDetails.requester.requesterId,
+              providerId: loggedInUserId
+            });
+            
+            try {
+              console.log('🚀 === STARTING FRONTEND NEGOTIATION CREATION ===');
+              console.log('📋 Request details for negotiation:', {
+                requestId: requestId,
+                requestName: requestDetails.requestName,
+                consumerId: requestDetails.requester.requesterId,
+                providerId: loggedInUserId,
+                userDisplayName: user.displayName,
+                userEmail: user.email
+              });
+              
+              // Get the authentication token from the provider's context (not localStorage)
+              let negotiationToken = user?.apiToken;
+              console.log('🔑 Token retrieval:', {
+                hasApiToken: !!negotiationToken,
+                apiTokenLength: negotiationToken?.length || 0,
+                hasUserObject: !!user,
+                userUid: user?.uid
+              });
+              
+              if (!negotiationToken) {
+                console.warn('⚠️ No provider token in AuthContext, falling back to localStorage');
+                const fallbackToken = localStorage.getItem('token');
+                console.log('🔑 Fallback token check:', {
+                  hasFallbackToken: !!fallbackToken,
+                  fallbackTokenLength: fallbackToken?.length || 0
+                });
+                if (!fallbackToken) {
+                  throw new Error('No authentication token found for provider');
+                }
+                negotiationToken = fallbackToken;
+              }
+              
+              console.log('📤 Making API call to createAcceptedNegotiationFromRequest...');
+              const negotiationResult = await createAcceptedNegotiationFromRequest(
+                requestId!,
+                requestDetails.requester.requesterId, // Consumer ID
+                loggedInUserId, // Provider ID (the approving owner)
+                negotiationToken
+              );
+              
+              console.log('📥 Negotiation creation API response:', {
+                success: negotiationResult.success,
+                hasNegotiation: !!negotiationResult.negotiation,
+                negotiationId: negotiationResult.negotiation?.negotiation_id || negotiationResult.negotiation?.id,
+                message: negotiationResult.message,
+                error: negotiationResult.error
+              });
+              
+              if (negotiationResult.success) {
+                console.log('✅ Accepted negotiation created successfully:', negotiationResult.negotiation);
+                
+                // Update local negotiation info
+                const newNegotiationInfo = {
+                  success: true,
+                  negotiationId: negotiationResult.negotiation?.negotiation_id,
+                  negotiationStatus: 'accepted'
+                };
+                setNegotiationInfo(newNegotiationInfo);
+                
+                // Redirect immediately to the negotiation display if in iframe mode
+                if (isIframeMode) {
+                  const negotiationId = negotiationResult.negotiation?.negotiation_id;
+                  if (negotiationId && user.userData?.mongoUserId) {
+                    console.log('🔗 Redirecting to newly created negotiation (iframe mode)...');
+                    
+                    closeModal("approveRequestModal");
+                    
+                    const userType = user.role === 'owner' ? 'provider' : 'consumer';
+                    await redirectToNegotiationDisplay(
+                      negotiationId,
+                      negotiationToken,
+                      user.userData.mongoUserId,
+                      userType
+                    );
+                    return; // Exit early to avoid further processing
+                  } else {
+                    console.warn('⚠️ Missing negotiation ID or MongoDB user ID for redirect');
+                  }
+                }
+              } else {
+                console.warn('⚠️ Failed to create accepted negotiation:', negotiationResult.error);
+                // Continue with approval process even if negotiation creation fails
+              }
+            } catch (negotiationError) {
+              console.warn('❌ Error creating accepted negotiation:', negotiationError);
+              // Continue with approval process even if negotiation creation fails
+            }
+          }
+        } else {
+          console.warn('⚠️ No requester info available for negotiation creation');
+        }
+
+        console.log('🔄 Closing modal and finalizing approval...');
         closeModal("approveRequestModal");
         
         if (isIframeMode) {
+          console.log('📡 Notifying parent window about approval');
           // Notify parent window about approval
           notifyParent({
             action: 'request_approved',
@@ -141,15 +477,19 @@ function OwnerPendingRequestsDetails() {
             requestName: requestDetails.requestName
           });
         } else {
+          console.log('🏠 Navigating to dashboard');
           navigate("/ownerBase/ownerDashboard");
         }
       } else {
+        console.error('❌ Update request failed:', result);
         setError("Error approving request.");
       }
     } catch (error) {
-      console.error("Error approving request:", error);
+      console.error("❌ Error in approval process:", error);
       setError("Error approving request.");
     }
+    
+    console.log('✅ Approval process completed, setting updating to false');
     setUpdating(false);
   };
 
@@ -364,14 +704,40 @@ function OwnerPendingRequestsDetails() {
           If you are unsure whether to accept, reject or make any modifications
           to the request, please contact the requester.
         </div>
-        <div className="d-flex mt-4">
+        
+        {/* Show negotiation info if exists */}
+        {negotiationInfo && (
+          <div className="alert alert-info" role="alert">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Negotiation Available</strong>
+                <br />
+                <small>This consent request has an associated negotiation (ID: {negotiationInfo.negotiationId})</small>
+              </div>
+              {!isIframeMode && (
+                <button
+                  className={`${styles.secondaryButton} btn`}
+                  onClick={viewNegotiation}
+                  disabled={checkingNegotiation}
+                >
+                  {checkingNegotiation ? "Loading..." : "View Negotiation"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Hide buttons in iframe mode if negotiation exists (user will be auto-redirected) */}
+        {!(isIframeMode && negotiationInfo) && (
+          <div className="d-flex mt-4">
           <div>
             <button
               className={`${styles.primaryButton} btn`}
               data-bs-toggle="modal"
               data-bs-target="#approveRequestModal"
+              disabled={updating}
             >
-              Approve
+              {updating ? "Processing..." : "Approve"}
             </button>
           </div>
           {!isIframeMode && (
@@ -389,11 +755,38 @@ function OwnerPendingRequestsDetails() {
               className={`${styles.dangerButton} btn`}
               data-bs-toggle="modal"
               data-bs-target="#rejectRequestModal"
+              disabled={updating}
             >
-              Reject
+              {updating ? "Processing..." : "Reject"}
             </button>
           </div>
         </div>
+        )}
+        
+        {/* Show loading message in iframe mode when negotiation exists */}
+        {isIframeMode && negotiationInfo && (
+          <div className="text-center mt-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-2">Opening negotiation dashboard...</p>
+            <small className="text-muted">This will open in a new tab</small>
+            <div className="mt-3">
+              <p className="text-muted small">
+                <i className="fa-solid fa-circle-info me-1"></i>
+                If the tab doesn't open, please check your browser's pop-up blocker
+              </p>
+              <button
+                className={`${styles.primaryButton} btn btn-sm mt-2`}
+                onClick={viewNegotiation}
+                disabled={checkingNegotiation}
+              >
+                {checkingNegotiation ? 'Opening...' : 'Open Negotiation Manually'}
+              </button>
+            </div>
+          </div>
+        )}
+        
         {isIframeMode && <div style={{ height: '30px' }}></div>}
       </div>
 

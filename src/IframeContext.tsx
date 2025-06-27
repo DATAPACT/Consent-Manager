@@ -40,7 +40,15 @@ export const IframeProvider: React.FC<IframeProviderProps> = ({ children }) => {
       if (window.parent !== window) {
         // We're in an iframe, set up communication
         try {
-          setParentOrigin(document.referrer || 'http://localhost:8097');
+          // Try to get referrer, fallback to common origins
+          const referrer = document.referrer;
+          if (referrer) {
+            const referrerOrigin = new URL(referrer).origin;
+            setParentOrigin(referrerOrigin);
+          } else {
+            // Common parent origins to try
+            setParentOrigin('http://localhost:8097');
+          }
         } catch (error) {
           setParentOrigin('http://localhost:8097');
         }
