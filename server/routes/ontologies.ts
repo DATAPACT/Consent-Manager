@@ -48,34 +48,30 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
     const file = req.file;
 
     if (!requesterUid || !ontologyName || !file) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Requester UID, ontology name, and file are required',
         success: false
       });
+      return;
     }
 
-    // Generate unique filename
     const timestamp = Date.now();
     const filename = `${requesterUid}_${timestamp}_${file.originalname}`;
     const storageRef = storage.bucket().file(`ontologies/${filename}`);
 
-    // Upload file to Firebase Storage
     await storageRef.save(file.buffer, {
       metadata: {
         contentType: file.mimetype
       }
     });
     
-    // Get signed URL for the uploaded file (valid for a long time)
     const downloadURL = await storageRef.getSignedUrl({
       action: 'read',
       expires: '03-09-2030'
     }).then(urls => urls[0]);
 
-    // Create ontology document ID
     const ontologyId = `ontology_${requesterUid}_${timestamp}`;
 
-    // Save ontology metadata to Firestore
     const ontologyData = {
       id: ontologyId,
       name: ontologyName,
@@ -91,7 +87,6 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
 
     await db.collection('ontologies').doc(ontologyId).set(ontologyData);
 
-    // Add ontology ID to requester's ontology list
     const requesterRef = db.collection('requesters').doc(requesterUid);
     await requesterRef.update({
       ontologyIds: admin.firestore.FieldValue.arrayUnion(ontologyId)
@@ -112,6 +107,7 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
   }
 });
 
+
 // GET /api/ontologies/:id - Get a specific ontology
 router.get('/:id', async (req, res) => {
   try {
@@ -119,10 +115,11 @@ router.get('/:id', async (req, res) => {
     const ontologyDoc = await db.collection('ontologies').doc(id).get();
 
     if (!ontologyDoc.exists) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Ontology not found',
         success: false
       });
+      return;
     }
 
     res.json({
@@ -141,6 +138,7 @@ router.get('/:id', async (req, res) => {
     });
   }
 });
+
 
 // GET /api/ontologies - Get ontologies for a user or all
 router.get('/', async (req, res) => {
@@ -205,34 +203,39 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const { requesterUid } = req.body;
 
-    // Get ontology document
     const ontologyDoc = await db.collection('ontologies').doc(id).get();
     
     if (!ontologyDoc.exists) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Ontology not found',
         success: false
       });
+      return;
     }
 
     const ontologyData = ontologyDoc.data();
 
-    // Check if user owns this ontology
+    if (!ontologyData) {
+      res.status(500).json({
+        error: 'Ontology data is missing',
+        success: false
+      });
+      return;
+    }
+
     if (ontologyData.uploadedBy !== requesterUid) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Unauthorized to delete this ontology',
         success: false
       });
+      return;
     }
 
-    // Delete file from Firebase Storage
     const storageRef = storage.bucket().file(`ontologies/${ontologyData.storagePath}`);
     await storageRef.delete();
 
-    // Delete ontology document
     await db.collection('ontologies').doc(id).delete();
 
-    // Remove from requester's ontology list
     const requesterRef = db.collection('requesters').doc(requesterUid);
     await requesterRef.update({
       ontologyIds: admin.firestore.FieldValue.arrayRemove(id)
@@ -251,6 +254,8 @@ router.delete('/:id', async (req, res) => {
     });
   }
 });
+
+
 
 // GET /api/ontologies/user/:uid/count - Get ontology count for a user
 router.get('/user/:uid/count', async (req, res) => {
