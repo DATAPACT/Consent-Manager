@@ -9,7 +9,6 @@ router.get('/requester/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    // Get requester data
     const requesterDoc = await db.collection('requesters').doc(uid).get();
     if (!requesterDoc.exists) {
       return res.status(404).json({
@@ -18,19 +17,17 @@ router.get('/requester/:uid', async (req, res) => {
       });
     }
 
-    const requesterData = requesterDoc.data();
+    const requesterData = requesterDoc.data()!;
 
-    // Get ontologies count
-    const ontologiesQuery = db.collection('ontologies')
-      .where('uploadedBy', '==', uid);
-    const ontologiesSnapshot = await ontologiesQuery.get();
+    const ontologiesSnapshot = await db.collection('ontologies')
+      .where('uploadedBy', '==', uid)
+      .get();
     const ontologiesCount = ontologiesSnapshot.size;
 
-    // Get requests count by status
-    const requestsQuery = db.collection('requests')
-      .where('requester.requesterId', '==', uid);
-    const requestsSnapshot = await requestsQuery.get();
-    
+    const requestsSnapshot = await db.collection('requests')
+      .where('requester.requesterId', '==', uid)
+      .get();
+
     let draftCount = 0;
     let sentCount = 0;
     let approvedCount = 0;
@@ -89,7 +86,6 @@ router.get('/owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    // Get owner data
     const ownerDoc = await db.collection('owners').doc(uid).get();
     if (!ownerDoc.exists) {
       return res.status(404).json({
@@ -98,12 +94,11 @@ router.get('/owner/:uid', async (req, res) => {
       });
     }
 
-    const ownerData = ownerDoc.data();
+    const ownerData = ownerDoc.data()!;
 
-    // Get requests where this owner is involved
-    const requestsQuery = db.collection('requests')
-      .where('owners', 'array-contains', uid);
-    const requestsSnapshot = await requestsQuery.get();
+    const requestsSnapshot = await db.collection('requests')
+      .where('owners', 'array-contains', uid)
+      .get();
 
     let pendingCount = 0;
     let approvedCount = 0;
@@ -111,13 +106,11 @@ router.get('/owner/:uid', async (req, res) => {
 
     requestsSnapshot.docs.forEach(doc => {
       const request = doc.data();
-      
-      // Check owner's status in this request
-      if (request.ownersPending && request.ownersPending.includes(uid)) {
+      if (request.ownersPending?.includes(uid)) {
         pendingCount++;
-      } else if (request.ownersAccepted && request.ownersAccepted.includes(uid)) {
+      } else if (request.ownersAccepted?.includes(uid)) {
         approvedCount++;
-      } else if (request.ownersRejected && request.ownersRejected.includes(uid)) {
+      } else if (request.ownersRejected?.includes(uid)) {
         rejectedCount++;
       }
     });
@@ -155,10 +148,10 @@ router.get('/requests/pending-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const requestsQuery = db.collection('requests')
-      .where('ownersPending', 'array-contains', uid);
-    
-    const querySnapshot = await requestsQuery.get();
+    const querySnapshot = await db.collection('requests')
+      .where('ownersPending', 'array-contains', uid)
+      .get();
+
     const pendingRequests = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -183,10 +176,10 @@ router.get('/requests/approved-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const requestsQuery = db.collection('requests')
-      .where('ownersAccepted', 'array-contains', uid);
-    
-    const querySnapshot = await requestsQuery.get();
+    const querySnapshot = await db.collection('requests')
+      .where('ownersAccepted', 'array-contains', uid)
+      .get();
+
     const approvedRequests = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()

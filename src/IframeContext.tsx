@@ -36,33 +36,34 @@ export const IframeProvider: React.FC<IframeProviderProps> = ({ children }) => {
     if (mode === 'iframe') {
       setIsIframeMode(true);
       
-      // Try to detect parent origin
+      // Try to detect parent origin (for logging purposes only)
       if (window.parent !== window) {
-        // We're in an iframe, set up communication
+        // We're in an iframe
         try {
-          // Try to get referrer, fallback to common origins
           const referrer = document.referrer;
           if (referrer) {
             const referrerOrigin = new URL(referrer).origin;
             setParentOrigin(referrerOrigin);
+            console.log('Iframe embedded by:', referrerOrigin);
           } else {
-            // Common parent origins to try
-            setParentOrigin('http://localhost:8097');
+            console.log('Iframe embedded by: unknown origin (no referrer)');
           }
         } catch (error) {
-          setParentOrigin('http://localhost:8097');
+          console.log('Could not detect parent origin:', error);
         }
       }
     }
   }, []);
 
   const notifyParent = (data: any) => {
-    if (isIframeMode && window.parent !== window && parentOrigin) {
+    if (isIframeMode && window.parent !== window) {
       try {
+        // Use '*' to send to any parent origin
         window.parent.postMessage({
           type: 'upconsent_iframe_message',
           ...data
-        }, parentOrigin);
+        }, '*');
+        console.log('Notification sent to parent:', data);
       } catch (error) {
         console.error('Failed to notify parent:', error);
       }

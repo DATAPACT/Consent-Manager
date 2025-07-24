@@ -1,5 +1,4 @@
 // libraries
-import { Link } from "react-router-dom";
 import { useAuth } from "../../../AuthContext"; // Use AuthContext
 
 // css

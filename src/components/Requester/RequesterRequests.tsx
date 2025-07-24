@@ -11,7 +11,7 @@ function RequesterRequests() {
   const { user } = useAuth();
   const [draftRequests, setDraftRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
-  const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
+  const [, setApprovedRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [requestToDelete, setRequestToDelete] = useState<string | null>(null);

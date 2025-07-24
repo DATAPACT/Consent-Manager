@@ -1,5 +1,3 @@
-// css
-import styles from "../../css/Navbar.module.css";
 
 // libraries
 import { Link } from "react-router-dom";

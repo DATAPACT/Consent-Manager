@@ -27,7 +27,7 @@ function EditDraftRequest() {
   const { requestId } = useParams();
 
   const [step, setStep] = useState(0);
-  const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
+  // const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
 
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);

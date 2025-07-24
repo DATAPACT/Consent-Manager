@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { getRequests } from "../../services/api";
 
-interface Request {
-  id: string;
-  status: string;
-  ownersPending: string[]; // Added ownersPending
-  ownersAccepted: string[]; // Added ownersApproved
-}
+// interface Request {
+//   id: string;
+//   status: string;
+//   ownersPending: string[]; // Added ownersPending
+//   ownersAccepted: string[]; // Added ownersApproved
+// }
 
 function OwnerDashboard() {
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);

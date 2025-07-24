@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8010;
 
 // Configure payload limits from environment variables
 const JSON_LIMIT = process.env.JSON_LIMIT || '10mb';
@@ -26,9 +26,11 @@ app.use((req, res, next) => {
   }
 });
 // Configure CORS from environment variables
-const corsOrigins = process.env.CORS_ORIGINS 
-  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
-  : ['http://localhost:5173', 'https://dips.soton.ac.uk', 'http://localhost', 'http://127.0.0.1'];
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS === '*'
+    ? ['*']
+    : process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : ['*']; // fallback to allow all
 
 app.use(cors({
   origin: corsOrigins,

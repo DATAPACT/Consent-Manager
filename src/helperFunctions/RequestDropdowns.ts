@@ -1,4 +1,3 @@
-import * as $rdf from "rdflib";
 import { getOntologies } from "../services/api";
 
 export interface Option {

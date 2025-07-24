@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { useIframe } from "../../IframeContext";
 import { getRequest, updateRequest, createAcceptedNegotiationFromRequest, getNegotiationByRequestId, redirectToNegotiationDisplay } from "../../services/api";
-import { getRequestPermissions, hasODRLPolicy } from "../../utils/policyParser";
+import { getRequestPermissions } from "../../utils/policyParser";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -46,6 +46,7 @@ interface Request {
   id: string;
   requestName: string;
   requester: {
+    requesterId: string;
     requesterName: string;
     requesterEmail: string;
   };
@@ -210,9 +211,12 @@ function OwnerPendingRequestsDetails() {
               setAutoRedirectAttempted(false); // Allow retry
               
               // Show error message if tab was blocked
-              if (redirectError.message.includes('blocked')) {
-                setError('Please click "Open Negotiation Manually" below or check your browser\'s pop-up blocker settings.');
-              }
+             if (typeof redirectError === 'object' && redirectError !== null && 'message' in redirectError) {
+  if ((redirectError as { message: string }).message.includes('blocked')) {
+    setError('Please click "Open Negotiation Manually" below or check your browser\'s pop-up blocker settings.');
+  }
+}
+
             }
           } else {
             console.warn('⚠️ No token available for auto-redirect');
@@ -367,98 +371,104 @@ function OwnerPendingRequestsDetails() {
               }
             }
           } else {
-            console.log('🤝 Creating new accepted negotiation...', {
-              consumerId: requestDetails.requester.requesterId,
-              providerId: loggedInUserId
-            });
-            
-            try {
-              console.log('🚀 === STARTING FRONTEND NEGOTIATION CREATION ===');
-              console.log('📋 Request details for negotiation:', {
-                requestId: requestId,
-                requestName: requestDetails.requestName,
+            const providerMongoId = user.userData?.mongoUserId;
+
+            if (providerMongoId) {
+              console.log('🤝 Creating new accepted negotiation...', {
                 consumerId: requestDetails.requester.requesterId,
-                providerId: loggedInUserId,
-                userDisplayName: user.displayName,
-                userEmail: user.email
+                providerId: providerMongoId,
               });
-              
-              // Get the authentication token from the provider's context (not localStorage)
-              let negotiationToken = user?.apiToken;
-              console.log('🔑 Token retrieval:', {
-                hasApiToken: !!negotiationToken,
-                apiTokenLength: negotiationToken?.length || 0,
-                hasUserObject: !!user,
-                userUid: user?.uid
-              });
-              
-              if (!negotiationToken) {
-                console.warn('⚠️ No provider token in AuthContext, falling back to localStorage');
-                const fallbackToken = localStorage.getItem('token');
-                console.log('🔑 Fallback token check:', {
-                  hasFallbackToken: !!fallbackToken,
-                  fallbackTokenLength: fallbackToken?.length || 0
+
+              try {
+                console.log('🚀 === STARTING FRONTEND NEGOTIATION CREATION ===');
+                console.log('📋 Request details for negotiation:', {
+                  requestId: requestId,
+                  requestName: requestDetails.requestName,
+                  consumerId: requestDetails.requester.requesterId,
+                  providerId: providerMongoId,
+                  userDisplayName: user.displayName,
+                  userEmail: user.email,
                 });
-                if (!fallbackToken) {
-                  throw new Error('No authentication token found for provider');
-                }
-                negotiationToken = fallbackToken;
-              }
-              
-              console.log('📤 Making API call to createAcceptedNegotiationFromRequest...');
-              const negotiationResult = await createAcceptedNegotiationFromRequest(
-                requestId!,
-                requestDetails.requester.requesterId, // Consumer ID
-                loggedInUserId, // Provider ID (the approving owner)
-                negotiationToken
-              );
-              
-              console.log('📥 Negotiation creation API response:', {
-                success: negotiationResult.success,
-                hasNegotiation: !!negotiationResult.negotiation,
-                negotiationId: negotiationResult.negotiation?.negotiation_id || negotiationResult.negotiation?.id,
-                message: negotiationResult.message,
-                error: negotiationResult.error
-              });
-              
-              if (negotiationResult.success) {
-                console.log('✅ Accepted negotiation created successfully:', negotiationResult.negotiation);
-                
-                // Update local negotiation info
-                const newNegotiationInfo = {
-                  success: true,
-                  negotiationId: negotiationResult.negotiation?.negotiation_id,
-                  negotiationStatus: 'accepted'
-                };
-                setNegotiationInfo(newNegotiationInfo);
-                
-                // Redirect immediately to the negotiation display if in iframe mode
-                if (isIframeMode) {
-                  const negotiationId = negotiationResult.negotiation?.negotiation_id;
-                  if (negotiationId && user.userData?.mongoUserId) {
-                    console.log('🔗 Redirecting to newly created negotiation (iframe mode)...');
-                    
-                    closeModal("approveRequestModal");
-                    
-                    const userType = user.role === 'owner' ? 'provider' : 'consumer';
-                    await redirectToNegotiationDisplay(
-                      negotiationId,
-                      negotiationToken,
-                      user.userData.mongoUserId,
-                      userType
-                    );
-                    return; // Exit early to avoid further processing
-                  } else {
-                    console.warn('⚠️ Missing negotiation ID or MongoDB user ID for redirect');
+
+                // Get the authentication token from the provider's context (not localStorage)
+                let negotiationToken = user?.apiToken;
+                console.log('🔑 Token retrieval:', {
+                  hasApiToken: !!negotiationToken,
+                  apiTokenLength: negotiationToken?.length || 0,
+                  hasUserObject: !!user,
+                  userUid: user?.uid,
+                });
+
+                if (!negotiationToken) {
+                  console.warn('⚠️ No provider token in AuthContext, falling back to localStorage');
+                  const fallbackToken = localStorage.getItem('token');
+                  console.log('🔑 Fallback token check:', {
+                    hasFallbackToken: !!fallbackToken,
+                    fallbackTokenLength: fallbackToken?.length || 0,
+                  });
+                  if (!fallbackToken) {
+                    throw new Error('No authentication token found for provider');
                   }
+                  negotiationToken = fallbackToken;
                 }
-              } else {
-                console.warn('⚠️ Failed to create accepted negotiation:', negotiationResult.error);
+
+                console.log('📤 Making API call to createAcceptedNegotiationFromRequest...');
+                const negotiationResult = await createAcceptedNegotiationFromRequest(
+                  requestId!,
+                  requestDetails.requester.requesterId, // Consumer ID
+                  providerMongoId, // Provider ID (the approving owner's MongoDB ID)
+                  negotiationToken
+                );
+                
+                console.log('📥 Negotiation creation API response:', {
+                  success: negotiationResult.success,
+                  hasNegotiation: !!negotiationResult.negotiation,
+                  negotiationId: negotiationResult.negotiation?.negotiation_id || negotiationResult.negotiation?.id,
+                  message: negotiationResult.message,
+                  error: negotiationResult.error,
+                });
+
+                if (negotiationResult.success) {
+                  console.log('✅ Accepted negotiation created successfully:', negotiationResult.negotiation);
+
+                  // Update local negotiation info
+                  const newNegotiationInfo = {
+                    success: true,
+                    negotiationId: negotiationResult.negotiation?.negotiation_id,
+                    negotiationStatus: 'accepted',
+                  };
+                  setNegotiationInfo(newNegotiationInfo);
+
+                  // Redirect immediately to the negotiation display if in iframe mode
+                  if (isIframeMode) {
+                    const negotiationId = negotiationResult.negotiation?.negotiation_id;
+                    if (negotiationId && user.userData?.mongoUserId) {
+                      console.log('🔗 Redirecting to newly created negotiation (iframe mode)...');
+
+                      closeModal("approveRequestModal");
+
+                      const userType = user.role === 'owner' ? 'provider' : 'consumer';
+                      await redirectToNegotiationDisplay(
+                        negotiationId,
+                        negotiationToken,
+                        user.userData.mongoUserId,
+                        userType
+                      );
+                      return; // Exit early to avoid further processing
+                    } else {
+                      console.warn('⚠️ Missing negotiation ID or MongoDB user ID for redirect');
+                    }
+                  }
+                } else {
+                  console.warn('⚠️ Failed to create accepted negotiation:', negotiationResult.error);
+                  // Continue with approval process even if negotiation creation fails
+                }
+              } catch (negotiationError) {
+                console.warn('❌ Error creating accepted negotiation:', negotiationError);
                 // Continue with approval process even if negotiation creation fails
               }
-            } catch (negotiationError) {
-              console.warn('❌ Error creating accepted negotiation:', negotiationError);
-              // Continue with approval process even if negotiation creation fails
+            } else {
+              console.warn('⚠️ Cannot create negotiation without provider mongoDB ID. Continuing with approval.');
             }
           }
         } else {

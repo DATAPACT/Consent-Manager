@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { login as apiLogin, logout as apiLogout, getUserDetails } from "./services/api";
+import { login as apiLogin, logout as apiLogout } from "./services/api";
 
 // --- Define user profile type ---
 interface UserProfile {

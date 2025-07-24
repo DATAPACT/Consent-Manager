@@ -187,7 +187,7 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): PolicyPermission[] {
     return [];
   }
   
-  return policy['odrl:permission'].map((permission, index) => {
+  return policy['odrl:permission'].map((permission) => {
     // Extract basic permission components generically
     const action = extractReadableName(permission['odrl:action']['rdf:value']['@id']);
     const dataset = extractReadableName(permission['odrl:target']['odrl:source']['@id']);

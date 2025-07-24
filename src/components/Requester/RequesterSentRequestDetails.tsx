@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequest, getUserDetails } from "../../services/api";
 import { useIframe } from "../../IframeContext";
-import { getRequestPermissions, hasODRLPolicy } from "../../utils/policyParser";
+import { getRequestPermissions } from "../../utils/policyParser";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";

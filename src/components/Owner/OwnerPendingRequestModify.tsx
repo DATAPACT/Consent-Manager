@@ -20,9 +20,9 @@ interface Request {
 
 function OwnerPendingRequestModify() {
   const { requestId } = useParams<{ requestId: string }>();
-  const [requestDetails, setRequestDetails] = useState<Request | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [, setRequestDetails] = useState<Request | null>(null);
+  const [, setLoading] = useState<boolean>(true);
+  const [, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
