@@ -1,0 +1,46 @@
+.dashboard {
+  margin-top: 4%;
+}
+
+.primaryButton {
+  background-color: #0690b6;
+  color: white;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.primaryButton:hover {
+  background-color: #0681a3;
+  color: white;
+  font-weight: 400;
+}
+
+.dangerButton {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 0;
+  font-weight: 400;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.dangerButton:hover {
+  background-color: #c03b48;
+  color: white;
+  font-weight: 400;
+}
+
+.secondaryButton {
+  background-color: #dee0e2;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.secondaryButton:hover {
+  background-color: #c8c8c8;
+  font-weight: 400;
+}

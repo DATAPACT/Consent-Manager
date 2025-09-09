@@ -1,0 +1,60 @@
+.dashboard {
+  margin-top: 4%;
+}
+
+.formLabel {
+  font-weight: 500;
+}
+
+.primaryButton {
+  background-color: #0690b6;
+  color: white;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.primaryButton:hover {
+  background-color: #0681a3;
+  color: white;
+  font-weight: 400;
+}
+
+.secondaryButton {
+  background-color: #dee0e2;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.secondaryButton:hover {
+  background-color: #c8c8c8;
+  font-weight: 400;
+}
+
+.dashedButton {
+  border: 1px dashed #848484; /* Bootstrap primary color */
+  background-color: transparent;
+  padding: 10px;
+  font-weight: 400;
+}
+
+.dashedButton:hover {
+  border: 1px dashed black; /* Bootstrap primary color */
+  background-color: transparent;
+  padding: 10px;
+  font-weight: 400;
+  transition: 0.3s;
+}
+
+.formInput {
+  border-width: 1px;
+  border-color: #262626;
+  border-radius: 0;
+}
+
+.progressBar {
+  background-color: #0690b6;
+}
