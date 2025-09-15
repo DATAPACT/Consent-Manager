@@ -5,10 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8010:8010"
+      - "5173:5173"
     volumes:
       - ./firebase-admin-key.json:/app/firebase-admin-key.json
     env_file:
       - ./.env
-    container_name: consent
+    container_name: consent-react
     restart: always

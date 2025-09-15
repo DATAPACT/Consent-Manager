@@ -2,7 +2,7 @@ import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequest } from "../../services/api";
-import jsPDF from "jspdf";
+import { getRequestPermissions } from "../../utils/policyParser";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -21,6 +21,21 @@ interface Permission {
   purpose: string;
   purposeRefinements: Refinement[];
   constraintRefinements: Refinement[];
+  constraints?: Array<{
+    leftOperand: string;
+    operator: string;
+    rightOperand: any;
+    description: string;
+  }>;
+  assignees?: Array<{
+    source: string;
+    refinements?: Array<{
+      leftOperand: string;
+      operator: string;
+      rightOperand: any;
+      description: string;
+    }>;
+  }>;
 }
 
 interface Request {
@@ -30,7 +45,7 @@ interface Request {
     requesterName: string;
     requesterEmail: string;
   };
-  permissions: Permission[];
+  policy?: any;
   status: string;
   owners: string[];
 }
@@ -38,6 +53,7 @@ interface Request {
 function OwnerApprovedRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
@@ -51,9 +67,13 @@ function OwnerApprovedRequestsDetails() {
 
       try {
         const result = await getRequest(requestId);
-        
+
         if (result.success) {
-          setRequestDetails(result.request as Request);
+          const req = result.data as Request;
+          setRequestDetails(req);
+
+          const parsed = getRequestPermissions(req);
+          setPermissions(parsed);
         } else {
           setError("Request not found.");
         }
@@ -67,71 +87,6 @@ function OwnerApprovedRequestsDetails() {
 
     fetchRequestDetails();
   }, [requestId]);
-
-  const handleDownload = () => {
-    if (!requestDetails) return;
-
-    const pdf = new jsPDF();
-    const lineHeight = 10;
-    let y = 10;
-
-    const addLine = (text: string = "") => {
-      if (y > 270) {
-        pdf.addPage();
-        y = 10;
-      }
-      pdf.text(text, 10, y);
-      y += lineHeight;
-    };
-
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(10);
-    addLine(`Request: ${requestDetails.requestName}`);
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
-    addLine(`Requester Name: ${requestDetails.requester.requesterName}`);
-    addLine(`Requester Email: ${requestDetails.requester.requesterEmail}`);
-    addLine("");
-
-    requestDetails.permissions.forEach((perm, index) => {
-      addLine(`--- Requirement ${index + 1} ---`);
-      addLine(`Dataset: ${perm.dataset}`);
-      addLine(`Action: ${perm.action}`);
-      addLine(`Purpose: ${perm.purpose}`);
-
-      if (perm.datasetRefinements.length > 0) {
-        addLine("Dataset Conditions:");
-        perm.datasetRefinements.forEach((ref) => {
-          addLine(`- ${ref.attribute} > ${ref.value}`);
-        });
-      }
-
-      if (perm.actionRefinements.length > 0) {
-        addLine("Action Permissions:");
-        perm.actionRefinements.forEach((ref) => {
-          addLine(`- ${ref.attribute} > ${ref.value}`);
-        });
-      }
-
-      if (perm.purposeRefinements.length > 0) {
-        addLine("Purpose Permissions:");
-        perm.purposeRefinements.forEach((ref) => {
-          addLine(`- ${ref.attribute} > ${ref.value}`);
-        });
-      }
-
-      if (perm.constraintRefinements.length > 0) {
-        addLine("Constraints:");
-        perm.constraintRefinements.forEach((ref) => {
-          addLine(`- ${ref.attribute} ${ref.instance} ${ref.value}`);
-        });
-      }
-
-      addLine("");
-    });
-
-    pdf.save(`${requestDetails.requestName || "request"}.pdf`);
-  };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
@@ -159,22 +114,60 @@ function OwnerApprovedRequestsDetails() {
           {requestDetails.requester.requesterEmail}
         </p>
 
-        {requestDetails.permissions?.map((permission, ruleIndex) => (
+        {permissions.map((permission, ruleIndex) => (
           <div key={ruleIndex} className="mb-4 mt-4">
             <h5>Requirement {ruleIndex + 1}</h5>
             <h5 className="mt-4">What’s being requested</h5>
             <p>
-              <strong>Dataset:</strong> The requester has access to data from{" "}
+              <strong>Dataset:</strong> The requester wants access to data from{" "}
               <strong>{permission.dataset}</strong>.
             </p>
             <p>
-              <strong>Action:</strong> The requester can{" "}
+              <strong>Action:</strong> The requester wants to{" "}
               <strong>{permission.action}</strong> to this dataset.
             </p>
             <p>
               <strong>Purpose:</strong> This request is for{" "}
               <strong>{permission.purpose}</strong> reasons.
             </p>
+
+            {/* constraints */}
+            {permission.constraints && permission.constraints.length > 0 && (
+              <div className="mt-3">
+                <h6>Policy Constraints:</h6>
+                <ul className="list-unstyled ms-3">
+                  {permission.constraints.map((constraint, i) => (
+                    <li key={i} className="mb-1">
+                      <small className="text-muted">
+                        • {constraint.description}
+                      </small>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* assignees */}
+            {permission.assignees && permission.assignees.length > 0 && (
+              <div className="mt-3">
+                <h6>Assigned To:</h6>
+                {permission.assignees.map((assignee, i) => (
+                  <div key={i} className="ms-3">
+                    <p className="mb-1">
+                      <strong>{assignee.source}</strong>
+                    </p>
+                    {assignee.refinements &&
+                      assignee.refinements.map((ref, j) => (
+                        <p key={j} className="mb-1 ms-2">
+                          <small className="text-muted">
+                            └ {ref.description}
+                          </small>
+                        </p>
+                      ))}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {permission.datasetRefinements?.length > 0 && (
               <div>
@@ -192,12 +185,12 @@ function OwnerApprovedRequestsDetails() {
 
             {permission.actionRefinements?.length > 0 && (
               <div>
-                <h5>Action permissions:</h5>
+                <h5>Action conditions:</h5>
                 <ul className="list-unstyled">
                   {permission.actionRefinements.map((ref, i) => (
                     <li key={i}>
                       Write access to <strong>{ref.attribute}</strong> items
-                      greater than <strong>{ref.value}</strong>.
+                      greater than <strong> {ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -206,12 +199,12 @@ function OwnerApprovedRequestsDetails() {
 
             {permission.purposeRefinements?.length > 0 && (
               <div>
-                <h5>Purpose permissions:</h5>
+                <h5>Purpose conditions:</h5>
                 <ul className="list-unstyled">
                   {permission.purposeRefinements.map((ref, i) => (
                     <li key={i}>
-                      Data are used for <strong>{ref.attribute}</strong> items
-                      greater than <strong>{ref.value}</strong>.
+                      Data will be used for <strong>{ref.attribute}</strong>{" "}
+                      items greater than <strong>{ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -224,8 +217,9 @@ function OwnerApprovedRequestsDetails() {
                 <ul className="list-unstyled">
                   {permission.constraintRefinements.map((ref, i) => (
                     <li key={i}>
-                      Data meet the constraint: <strong>{ref.attribute}</strong>{" "}
-                      {ref.instance} <strong>{ref.value}</strong>.
+                      Data should meet the constraint:{" "}
+                      <strong>{ref.attribute}</strong> {ref.instance}{" "}
+                      <strong>{ref.value}</strong>.
                     </li>
                   ))}
                 </ul>
@@ -234,12 +228,11 @@ function OwnerApprovedRequestsDetails() {
           </div>
         ))}
 
-        <button
-          className={`${styles.primaryButton} btn mt-3`}
-          onClick={handleDownload}
-        >
-          Download request
-        </button>
+        <div>
+          <button className={`${styles.primaryButton} btn`}>
+            Download Contract
+          </button>
+        </div>
       </div>
     </>
   );

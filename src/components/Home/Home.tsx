@@ -13,7 +13,7 @@ function Home() {
       <Navbar />
 
       <div className={`${styles.dashboard} container w-50 text-center`}>
-        <h1 className="display-5 fw-bold">Take Control of User Consent</h1>
+        <h1 className="display-5 fw-bold">Welcome. Take Control of User Consent</h1>
         <p>
           Manage privacy preferences easily. UPCAST Consent Manager helps you
           collect, store, and manage user consent across websites and apps. Stay

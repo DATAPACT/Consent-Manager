@@ -129,7 +129,7 @@ function OwnerApprovedRequests() {
                       to={`/ownerBase/ownerApprovedRequestsDetails/${request.id}`}
                       className={`${styles.primaryButton} btn`}
                     >
-                      View
+                      View Details
                     </Link>
                     <button
                       className={`${styles.dangerButton} btn ms-3`}

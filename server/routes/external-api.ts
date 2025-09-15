@@ -485,8 +485,8 @@ router.post('/negotiation/create-accepted', async (req, res) => {
     
     // Get MongoDB user IDs from Firebase
     console.log('🔍 STEP 2: Converting Firebase UIDs to MongoDB ObjectIds...');
-    const mongoConsumerId = await getMongoUserIdFromFirebase(consumerId);
-    const mongoProviderId = await getMongoUserIdFromFirebase(providerId);
+    const mongoConsumerId = consumerId;
+    const mongoProviderId = providerId;
     
     console.log('🔄 User ID conversion results:', {
       originalConsumerId: consumerId,
@@ -500,7 +500,7 @@ router.post('/negotiation/create-accepted', async (req, res) => {
     if (!mongoConsumerId) {
       console.log('❌ USER ID ERROR: MongoDB user ID not found for consumer');
       return res.status(400).json({
-        error: `MongoDB user ID not found for consumer (Firebase UID: ${consumerId}). User may not be registered with the negotiation API.`,
+        error: `MongoDB user ID not found for consumer (Mongo UID: ${consumerId}). User may not be registered with the negotiation API.`,
         success: false
       });
     }
@@ -508,7 +508,7 @@ router.post('/negotiation/create-accepted', async (req, res) => {
     if (!mongoProviderId) {
       console.log('❌ USER ID ERROR: MongoDB user ID not found for provider');
       return res.status(400).json({
-        error: `MongoDB user ID not found for provider (Firebase UID: ${providerId}). User may not be registered with the negotiation API.`,
+        error: `MongoDB user ID not found for provider (Mongo UID: ${providerId} and Firebase UID ${user.uid}). User may not be registered with the negotiation API.`,
         success: false
       });
     }

@@ -10,9 +10,14 @@ RUN npm run build
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install 
+#--omit=dev
 COPY --from=builder /app/dist ./dist
 COPY server ./server
+COPY vite.config.ts ./vite.config.ts
 COPY src ./src
-EXPOSE 8010
-CMD ["npm", "run", "server"]
+EXPOSE 5173
+#CMD ["npm", "run", "client"]
+#CMD ["/app/node_modules/.bin/vite"]
+#CMD ["tail", "-f", "/dev/null"]
+CMD ["npm", "run", "serve-static"]

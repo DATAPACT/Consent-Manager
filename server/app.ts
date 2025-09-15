@@ -1,8 +1,8 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -10,14 +10,16 @@ const app = express();
 const PORT = process.env.PORT || 8010;
 
 // Configure payload limits from environment variables
-const JSON_LIMIT = process.env.JSON_LIMIT || '10mb';
-const URL_LIMIT = process.env.URL_LIMIT || '10mb';
+const JSON_LIMIT = process.env.JSON_LIMIT || "10mb";
+const URL_LIMIT = process.env.URL_LIMIT || "10mb";
 
-console.log(`Server starting with limits: JSON=${JSON_LIMIT}, URL=${URL_LIMIT}`);
+console.log(
+  `Server starting with limits: JSON=${JSON_LIMIT}, URL=${URL_LIMIT}`
+);
 
 // Configure helmet with conditional iframe support
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/auth/token')) {
+  if (req.path.startsWith("/api/auth/token")) {
     // Skip helmet entirely for auth endpoints to allow iframe embedding
     next();
   } else {
@@ -27,42 +29,45 @@ app.use((req, res, next) => {
 });
 // Configure CORS from environment variables
 const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS === '*'
-    ? ['*']
-    : process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
-  : ['*']; // fallback to allow all
+  ? process.env.CORS_ORIGINS === "*"
+    ? ["*"]
+    : process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+  : ["*"]; // fallback to allow all
 
-app.use(cors({
-  origin: corsOrigins,
-  credentials: true
-}));
-app.use(morgan('combined'));
+app.use(
+  cors({
+    // origin: corsOrigins,
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(morgan("combined"));
 app.use(express.json({ limit: JSON_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: URL_LIMIT }));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
 // Import routes
-import requestsRouter from './routes/requests.js';
-import authRouter from './routes/auth.js';
-import ontologiesRouter from './routes/ontologies.js';
-import dashboardRouter from './routes/dashboard.js';
-import externalApiRouter from './routes/external-api.js';
+import requestsRouter from "./routes/requests.js";
+import authRouter from "./routes/auth.js";
+import ontologiesRouter from "./routes/ontologies.js";
+import dashboardRouter from "./routes/dashboard.js";
+import externalApiRouter from "./routes/external-api.js";
 
 // API Routes
-app.use('/api', (req, res, next) => {
+app.use("/api", (req, res, next) => {
   console.log(`API request: ${req.method} ${req.path}`);
   next();
 });
 
-app.use('/api/requests', requestsRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/ontologies', ontologiesRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/external', externalApiRouter);
+app.use("/api/requests", requestsRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/ontologies", ontologiesRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/external", externalApiRouter);
 
 // Start server
 app.listen(PORT, () => {
