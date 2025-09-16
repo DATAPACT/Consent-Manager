@@ -1,7 +1,8 @@
 // API service to interact with the Express backend
 
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dips.soton.ac.uk/consent-manager-api/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://dips.soton.ac.uk/consent-manager-api/api";
 
 interface Refinement {
   id: number;
@@ -39,9 +40,9 @@ interface RequestData {
 export const login = async (email: string, password: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
     });
@@ -52,7 +53,7 @@ export const login = async (email: string, password: string) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error logging in:', error);
+    console.error("Error logging in:", error);
     throw error;
   }
 };
@@ -66,9 +67,9 @@ export const register = async (userData: {
 }) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(userData),
     });
@@ -79,7 +80,7 @@ export const register = async (userData: {
 
     return await response.json();
   } catch (error) {
-    console.error('Error registering:', error);
+    console.error("Error registering:", error);
     throw error;
   }
 };
@@ -87,7 +88,7 @@ export const register = async (userData: {
 export const logout = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
+      method: "POST",
     });
 
     if (!response.ok) {
@@ -96,7 +97,7 @@ export const logout = async () => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error logging out:', error);
+    console.error("Error logging out:", error);
     throw error;
   }
 };
@@ -104,14 +105,14 @@ export const logout = async () => {
 export const getUserDetails = async (uid: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/user/${uid}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching user details:', error);
+    console.error("Error fetching user details:", error);
     throw error;
   }
 };
@@ -119,14 +120,14 @@ export const getUserDetails = async (uid: string) => {
 export const getAllOwners = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/owners`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching all owners:', error);
+    console.error("Error fetching all owners:", error);
     throw error;
   }
 };
@@ -135,9 +136,9 @@ export const getAllOwners = async () => {
 export const createRequest = async (data: RequestData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
@@ -148,7 +149,7 @@ export const createRequest = async (data: RequestData) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error creating request:', error);
+    console.error("Error creating request:", error);
     throw error;
   }
 };
@@ -156,14 +157,14 @@ export const createRequest = async (data: RequestData) => {
 export const getRequest = async (id: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests/${id}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching request:', error);
+    console.error("Error fetching request:", error);
     throw error;
   }
 };
@@ -171,9 +172,9 @@ export const getRequest = async (id: string) => {
 export const updateRequest = async (id: string, data: any) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
@@ -184,31 +185,35 @@ export const updateRequest = async (id: string, data: any) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error updating request:', error);
+    console.error("Error updating request:", error);
     throw error;
   }
 };
 
-export const getRequests = async (filters: {
-  uid?: string;
-  role?: string;
-  status?: string;
-} = {}) => {
+export const getRequests = async (
+  filters: {
+    uid?: string;
+    role?: string;
+    status?: string;
+  } = {}
+) => {
   try {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value) params.append(key, value);
     });
 
-    const response = await fetch(`${API_BASE_URL}/requests?${params.toString()}`);
-    
+    const response = await fetch(
+      `${API_BASE_URL}/requests?${params.toString()}`
+    );
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching requests:', error);
+    console.error("Error fetching requests:", error);
     throw error;
   }
 };
@@ -222,13 +227,13 @@ export const uploadOntology = async (data: {
 }) => {
   try {
     const formData = new FormData();
-    formData.append('requesterUid', data.requesterUid);
-    formData.append('ontologyName', data.ontologyName);
-    formData.append('ontologyDescription', data.ontologyDescription);
-    formData.append('ontologyFile', data.ontologyFile);
+    formData.append("requesterUid", data.requesterUid);
+    formData.append("ontologyName", data.ontologyName);
+    formData.append("ontologyDescription", data.ontologyDescription);
+    formData.append("ontologyFile", data.ontologyFile);
 
     const response = await fetch(`${API_BASE_URL}/ontologies`, {
-      method: 'POST',
+      method: "POST",
       body: formData, // Don't set Content-Type, let browser set it for multipart/form-data
     });
 
@@ -238,23 +243,23 @@ export const uploadOntology = async (data: {
 
     return await response.json();
   } catch (error) {
-    console.error('Error uploading ontology:', error);
+    console.error("Error uploading ontology:", error);
     throw error;
   }
 };
 
 export const getOntologies = async (requesterUid?: string) => {
   try {
-    const params = requesterUid ? `?requesterUid=${requesterUid}` : '';
+    const params = requesterUid ? `?requesterUid=${requesterUid}` : "";
     const response = await fetch(`${API_BASE_URL}/ontologies${params}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching ontologies:', error);
+    console.error("Error fetching ontologies:", error);
     throw error;
   }
 };
@@ -262,14 +267,14 @@ export const getOntologies = async (requesterUid?: string) => {
 export const getOntology = async (id: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/ontologies/${id}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching ontology:', error);
+    console.error("Error fetching ontology:", error);
     throw error;
   }
 };
@@ -277,9 +282,9 @@ export const getOntology = async (id: string) => {
 export const deleteOntology = async (id: string, requesterUid: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/ontologies/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ requesterUid }),
     });
@@ -290,7 +295,7 @@ export const deleteOntology = async (id: string, requesterUid: string) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error deleting ontology:', error);
+    console.error("Error deleting ontology:", error);
     throw error;
   }
 };
@@ -299,14 +304,14 @@ export const deleteOntology = async (id: string, requesterUid: string) => {
 export const getRequesterDashboard = async (uid: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/dashboard/requester/${uid}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching requester dashboard:', error);
+    console.error("Error fetching requester dashboard:", error);
     throw error;
   }
 };
@@ -314,44 +319,48 @@ export const getRequesterDashboard = async (uid: string) => {
 export const getOwnerDashboard = async (uid: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/dashboard/owner/${uid}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching owner dashboard:', error);
+    console.error("Error fetching owner dashboard:", error);
     throw error;
   }
 };
 
 export const getPendingRequestsForOwner = async (uid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard/requests/pending-owner/${uid}`);
-    
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/requests/pending-owner/${uid}`
+    );
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching pending requests:', error);
+    console.error("Error fetching pending requests:", error);
     throw error;
   }
 };
 
 export const getApprovedRequestsForOwner = async (uid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard/requests/approved-owner/${uid}`);
-    
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/requests/approved-owner/${uid}`
+    );
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching approved requests:', error);
+    console.error("Error fetching approved requests:", error);
     throw error;
   }
 };
@@ -359,7 +368,7 @@ export const getApprovedRequestsForOwner = async (uid: string) => {
 export const deleteRequest = async (id: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     if (!response.ok) {
@@ -368,27 +377,30 @@ export const deleteRequest = async (id: string) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error deleting request:', error);
+    console.error("Error deleting request:", error);
     throw error;
   }
 };
 
 // External API integration for negotiation
 export const createNegotiationFromRequest = async (
-  requestId: string, 
-  consumerId: string, 
+  requestId: string,
+  consumerId: string,
   providerId: string,
   token: string
 ) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/external/negotiation/create-with-initial`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ requestId, consumerId, providerId }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/external/negotiation/create-with-initial`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ requestId, consumerId, providerId }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -396,27 +408,35 @@ export const createNegotiationFromRequest = async (
 
     return await response.json();
   } catch (error) {
-    console.error('Error creating negotiation:', error);
+    console.log("request id: ", requestId);
+    console.log("consumer id: ", consumerId);
+    console.log("provider id: ", providerId);
+    console.log("token: ", token);
+
+    console.error("Error creating negotiation:", error);
     throw error;
   }
 };
 
 // Create negotiation in accepted state when consent is approved
 export const createAcceptedNegotiationFromRequest = async (
-  requestId: string, 
-  consumerId: string, 
+  requestId: string,
+  consumerId: string,
   providerId: string,
   token: string
 ) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/external/negotiation/create-accepted`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ requestId, consumerId, providerId }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/external/negotiation/create-accepted`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ requestId, consumerId, providerId }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -424,7 +444,7 @@ export const createAcceptedNegotiationFromRequest = async (
 
     return await response.json();
   } catch (error) {
-    console.error('Error creating accepted negotiation:', error);
+    console.error("Error creating accepted negotiation:", error);
     throw error;
   }
 };
@@ -433,9 +453,9 @@ export const createAcceptedNegotiationFromRequest = async (
 export const getExternalUsers = async (token: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/external/users`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -445,22 +465,25 @@ export const getExternalUsers = async (token: string) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching external users:', error);
+    console.error("Error fetching external users:", error);
     throw error;
   }
 };
 
 // Get external user details
-export const getExternalUserDetails = async (token: string, userId?: string) => {
+export const getExternalUserDetails = async (
+  token: string,
+  userId?: string
+) => {
   try {
-    const url = userId 
+    const url = userId
       ? `${API_BASE_URL}/external/user-details?user_id=${userId}`
       : `${API_BASE_URL}/external/user-details`;
-      
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -470,7 +493,7 @@ export const getExternalUserDetails = async (token: string, userId?: string) => 
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching external user details:', error);
+    console.error("Error fetching external user details:", error);
     throw error;
   }
 };
@@ -478,9 +501,12 @@ export const getExternalUserDetails = async (token: string, userId?: string) => 
 // Get negotiation ID by consent request ID
 export const getNegotiationByRequestId = async (requestId: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/external/negotiation/by-request/${requestId}`, {
-      method: 'GET',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/external/negotiation/by-request/${requestId}`,
+      {
+        method: "GET",
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -488,38 +514,44 @@ export const getNegotiationByRequestId = async (requestId: string) => {
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching negotiation by request ID:', error);
+    console.error("Error fetching negotiation by request ID:", error);
     throw error;
   }
 };
 
 // Redirect to negotiation display page
-export const redirectToNegotiationDisplay = async (negotiationId: string, accessToken: string, userId: string, userType: string) => {
-  console.log('🔗 Opening negotiation dashboard:', {
+export const redirectToNegotiationDisplay = async (
+  negotiationId: string,
+  accessToken: string,
+  userId: string,
+  userType: string
+) => {
+  console.log("🔗 Opening negotiation dashboard:", {
     negotiationId,
     userId,
     userType,
-    hasToken: !!accessToken
+    hasToken: !!accessToken,
   });
-  
+
   // Build URL with authentication parameters
-  const negotiationUrl = `https://dips.soton.ac.uk/negotiation/organization/negotiation?` +
+  const negotiationUrl =
+    `https://dips.soton.ac.uk/negotiation/organization/negotiation?` +
     `negotiation_id=${negotiationId}&` +
     `access_token=${encodeURIComponent(accessToken)}&` +
     `user_id=${userId}&` +
     `user_type=${userType}`;
-  
-  console.log('🌐 Opening URL with auth parameters:', negotiationUrl);
-  
-  const newTab = window.open(negotiationUrl, '_blank');
-  
+
+  console.log("🌐 Opening URL with auth parameters:", negotiationUrl);
+
+  const newTab = window.open(negotiationUrl, "_blank");
+
   if (newTab) {
     newTab.focus();
-    console.log('✅ Negotiation dashboard opened in new tab');
-    console.log('✅ Django will verify token and set session automatically');
+    console.log("✅ Negotiation dashboard opened in new tab");
+    console.log("✅ Django will verify token and set session automatically");
   } else {
-    console.warn('⚠️ New tab blocked - user needs to manually open');
-    console.log('🔗 URL to open manually:', negotiationUrl);
-    throw new Error('New tab blocked');
+    console.warn("⚠️ New tab blocked - user needs to manually open");
+    console.log("🔗 URL to open manually:", negotiationUrl);
+    throw new Error("New tab blocked");
   }
 };

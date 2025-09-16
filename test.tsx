@@ -10,8 +10,6 @@ import {
   redirectToNegotiationDisplay,
 } from "../../services/api";
 import { getRequestPermissions } from "../../utils/policyParser";
-import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -271,17 +269,6 @@ function OwnerPendingRequestsDetails() {
     notifyParent,
   ]);
 
-  // getting the mongodb consumer id
-  async function getConsumerMongoId(
-    requesterId: string
-  ): Promise<string | null> {
-    const docRef = doc(db, "requesters", requesterId);
-    console.log("Path being read:", docRef.path);
-    const snapshot = await getDoc(docRef);
-    if (!snapshot.exists()) return null;
-    return snapshot.data().mongoUserId || null;
-  }
-
   // Function to redirect to negotiation display
   const viewNegotiation = async () => {
     if (!negotiationInfo?.negotiationId || !user) {
@@ -335,8 +322,8 @@ function OwnerPendingRequestsDetails() {
     }
   };
 
-  // Negotiate Request
-  const negtiateRequest = async () => {
+  // Approve Request
+  const approveRequest = async () => {
     console.log("🔄 Starting approval process...");
 
     if (!requestDetails || !user) {
@@ -356,238 +343,235 @@ function OwnerPendingRequestsDetails() {
       const loggedInUserId = user.uid;
       console.log("👤 Logged in user ID:", loggedInUserId);
 
-      // Check for existing negotiation or create a new one if requester info is available
-      if (requestDetails.requester?.requesterId) {
-        // First check if there's already an existing negotiation
-        if (negotiationInfo?.negotiationId) {
-          console.log(
-            "📋 Using existing negotiation:",
-            negotiationInfo.negotiationId
-          );
+      // Remove the logged-in user's ID from ownersPending array
+      const updatedOwnersPending = requestDetails.ownersPending.filter(
+        (ownerId) => ownerId !== loggedInUserId
+      );
 
-          // Redirect to existing negotiation if in iframe mode
-          if (isIframeMode && user.userData?.mongoUserId) {
+      // Add the logged-in user's ID to the ownersAccepted array
+      const updatedOwnersAccepted = [
+        ...requestDetails.ownersAccepted,
+        loggedInUserId,
+      ];
+
+      console.log("📝 Updating request with new owner arrays:", {
+        updatedOwnersPending,
+        updatedOwnersAccepted,
+        requestId,
+      });
+
+      // Update request with the new ownersPending and ownersAccepted arrays
+      const result = await updateRequest(requestId!, {
+        ownersPending: updatedOwnersPending,
+        ownersAccepted: updatedOwnersAccepted,
+      });
+
+      console.log("📊 Update request result:", result);
+
+      if (result.success) {
+        // Update the state with the new ownersPending and ownersAccepted arrays
+        setRequestDetails(
+          (prev) =>
+            prev && {
+              ...prev,
+              ownersPending: updatedOwnersPending,
+              ownersAccepted: updatedOwnersAccepted,
+            }
+        );
+
+        // Check for existing negotiation or create a new one if requester info is available
+        if (requestDetails.requester?.requesterId) {
+          // First check if there's already an existing negotiation
+          if (negotiationInfo?.negotiationId) {
             console.log(
-              "🔗 Redirecting to existing negotiation (iframe mode)..."
+              "📋 Using existing negotiation:",
+              negotiationInfo.negotiationId
             );
 
-            // Use provider's token from AuthContext instead of localStorage
-            const negotiationToken =
-              user?.apiToken || localStorage.getItem("token");
-            if (negotiationToken) {
+            // Redirect to existing negotiation if in iframe mode
+            if (isIframeMode && user.userData?.mongoUserId) {
               console.log(
-                "🔑 Using provider token for existing negotiation redirect"
+                "🔗 Redirecting to existing negotiation (iframe mode)..."
               );
-              closeModal("approveRequestModal");
 
-              const userType = user.role === "owner" ? "provider" : "consumer";
-              await redirectToNegotiationDisplay(
-                negotiationInfo.negotiationId,
-                negotiationToken,
-                user.userData.mongoUserId,
-                userType
-              );
-              return; // Exit early to avoid further processing
+              // Use provider's token from AuthContext instead of localStorage
+              const negotiationToken =
+                user?.apiToken || localStorage.getItem("token");
+              if (negotiationToken) {
+                console.log(
+                  "🔑 Using provider token for existing negotiation redirect"
+                );
+                closeModal("approveRequestModal");
+
+                const userType =
+                  user.role === "owner" ? "provider" : "consumer";
+                await redirectToNegotiationDisplay(
+                  negotiationInfo.negotiationId,
+                  negotiationToken,
+                  user.userData.mongoUserId,
+                  userType
+                );
+                return; // Exit early to avoid further processing
+              } else {
+                console.warn(
+                  "⚠️ No authentication token found for provider redirect"
+                );
+              }
+            }
+          } else {
+            const providerMongoId = user.userData?.mongoUserId;
+
+            if (providerMongoId) {
+              console.log("🤝 Creating new accepted negotiation...", {
+                consumerId: requestDetails.requester.requesterId,
+                providerId: providerMongoId,
+              });
+
+              try {
+                console.log(
+                  "🚀 === STARTING FRONTEND NEGOTIATION CREATION ==="
+                );
+                console.log("📋 Request details for negotiation:", {
+                  requestId: requestId,
+                  requestName: requestDetails.requestName,
+                  consumerId: requestDetails.requester.requesterId,
+                  providerId: providerMongoId,
+                  userDisplayName: user.displayName,
+                  userEmail: user.email,
+                });
+
+                // Get the authentication token from the provider's context (not localStorage)
+                let negotiationToken = user?.apiToken;
+                console.log("🔑 Token retrieval:", {
+                  hasApiToken: !!negotiationToken,
+                  apiTokenLength: negotiationToken?.length || 0,
+                  hasUserObject: !!user,
+                  userUid: user?.uid,
+                });
+
+                if (!negotiationToken) {
+                  console.warn(
+                    "⚠️ No provider token in AuthContext, falling back to localStorage"
+                  );
+                  const fallbackToken = localStorage.getItem("token");
+                  console.log("🔑 Fallback token check:", {
+                    hasFallbackToken: !!fallbackToken,
+                    fallbackTokenLength: fallbackToken?.length || 0,
+                  });
+                  if (!fallbackToken) {
+                    throw new Error(
+                      "No authentication token found for provider"
+                    );
+                  }
+                  negotiationToken = fallbackToken;
+                }
+
+                console.log(
+                  "📤 Making API call to createAcceptedNegotiationFromRequest..."
+                );
+                const negotiationResult =
+                  await createAcceptedNegotiationFromRequest(
+                    requestId!,
+                    requestDetails.requester.requesterId, // Consumer ID
+                    providerMongoId, // Provider ID (the approving owner's MongoDB ID)
+                    negotiationToken
+                  );
+
+                console.log("📥 Negotiation creation API response:", {
+                  success: negotiationResult.success,
+                  hasNegotiation: !!negotiationResult.negotiation,
+                  negotiationId:
+                    negotiationResult.negotiation?.negotiation_id ||
+                    negotiationResult.negotiation?.id,
+                  message: negotiationResult.message,
+                  error: negotiationResult.error,
+                });
+
+                if (negotiationResult.success) {
+                  console.log(
+                    "✅ Accepted negotiation created successfully:",
+                    negotiationResult.negotiation
+                  );
+
+                  // Update local negotiation info
+                  const newNegotiationInfo = {
+                    success: true,
+                    negotiationId:
+                      negotiationResult.negotiation?.negotiation_id,
+                    negotiationStatus: "accepted",
+                  };
+                  setNegotiationInfo(newNegotiationInfo);
+
+                  // Redirect immediately to the negotiation display if in iframe mode
+                  if (isIframeMode) {
+                    const negotiationId =
+                      negotiationResult.negotiation?.negotiation_id;
+                    if (negotiationId && user.userData?.mongoUserId) {
+                      console.log(
+                        "🔗 Redirecting to newly created negotiation (iframe mode)..."
+                      );
+
+                      closeModal("approveRequestModal");
+
+                      const userType =
+                        user.role === "owner" ? "provider" : "consumer";
+                      await redirectToNegotiationDisplay(
+                        negotiationId,
+                        negotiationToken,
+                        user.userData.mongoUserId,
+                        userType
+                      );
+                      return; // Exit early to avoid further processing
+                    } else {
+                      console.warn(
+                        "⚠️ Missing negotiation ID or MongoDB user ID for redirect"
+                      );
+                    }
+                  }
+                } else {
+                  console.warn(
+                    "⚠️ Failed to create accepted negotiation:",
+                    negotiationResult.error
+                  );
+                  // Continue with approval process even if negotiation creation fails
+                }
+              } catch (negotiationError) {
+                console.warn(
+                  "❌ Error creating accepted negotiation:",
+                  negotiationError
+                );
+                // Continue with approval process even if negotiation creation fails
+              }
             } else {
               console.warn(
-                "⚠️ No authentication token found for provider redirect"
+                "⚠️ Cannot create negotiation without provider mongoDB ID. Continuing with approval."
               );
             }
           }
         } else {
-          const providerMongoId = user.userData?.mongoUserId;
+          console.warn(
+            "⚠️ No requester info available for negotiation creation"
+          );
+        }
 
-          if (providerMongoId) {
-            if (!user) {
-              console.error("User not authenticated, cannot fetch requester");
-              return;
-            }
+        console.log("🔄 Closing modal and finalizing approval...");
+        closeModal("approveRequestModal");
 
-            console.log("✅ Using UID from useAuth:", user.uid);
-
-            const consumerId = await getConsumerMongoId(
-              requestDetails.requester.requesterId
-            );
-            console.log("🤝 Creating new accepted negotiation...", {
-              consumerId,
-              providerId: providerMongoId,
-            });
-
-            try {
-              console.log("🚀 === STARTING FRONTEND NEGOTIATION CREATION ===");
-              console.log("📋 Request details for negotiation:", {
-                requestId: requestId,
-                requestName: requestDetails.requestName,
-                consumerId,
-                providerId: providerMongoId,
-                userDisplayName: user.displayName,
-                userEmail: user.email,
-              });
-
-              // Get the authentication token from the provider's context (not localStorage)
-              let negotiationToken: string | undefined =
-                user?.apiToken || undefined;
-
-              // 🔽 Handle case where apiToken might be a JSON string containing access_token
-              if (negotiationToken && negotiationToken.startsWith("{")) {
-                try {
-                  const parsed = JSON.parse(negotiationToken);
-                  negotiationToken = parsed.access_token || negotiationToken;
-                  console.log("✅ Extracted access_token from apiToken JSON");
-                } catch (e) {
-                  console.warn(
-                    "⚠️ Could not parse apiToken JSON, using raw value"
-                  );
-                }
-              }
-
-              console.log("🔑 Token retrieval:", {
-                hasApiToken: !!negotiationToken,
-                apiTokenLength: negotiationToken?.length || 0,
-                hasUserObject: !!user,
-                userUid: user?.uid,
-              });
-
-              if (!negotiationToken) {
-                console.warn(
-                  "⚠️ No provider token in AuthContext, falling back to localStorage"
-                );
-
-                const fallbackToken = localStorage.getItem("token");
-
-                if (fallbackToken && fallbackToken.startsWith("{")) {
-                  try {
-                    const parsed = JSON.parse(fallbackToken);
-                    negotiationToken = parsed.access_token || undefined;
-                    console.log(
-                      "✅ Extracted access_token from localStorage JSON"
-                    );
-                  } catch (e) {
-                    console.warn(
-                      "⚠️ Could not parse fallback token JSON, using raw value"
-                    );
-                    negotiationToken = fallbackToken;
-                  }
-                } else {
-                  negotiationToken = fallbackToken || undefined;
-                }
-
-                console.log("🔑 Fallback token check:", {
-                  hasFallbackToken: !!negotiationToken,
-                  fallbackTokenLength: negotiationToken?.length || 0,
-                });
-
-                if (!negotiationToken) {
-                  throw new Error("No authentication token found for provider");
-                }
-              }
-
-              console.log("🔑 Auth token is: ", negotiationToken);
-              console.log(
-                "📤 Making API call to createAcceptedNegotiationFromRequest..."
-              );
-
-              if (!consumerId) {
-                throw new Error("Consumer Mongo ID not found");
-              }
-
-              const negotiationResult =
-                await createAcceptedNegotiationFromRequest(
-                  requestId!,
-                  consumerId, // Consumer ID
-                  providerMongoId, // Provider ID (the approving owner's MongoDB ID)
-                  negotiationToken
-                );
-
-              console.log("📤 creteaccept failed");
-              console.log("📥 Negotiation creation API response:", {
-                success: negotiationResult.success,
-                hasNegotiation: !!negotiationResult.negotiation,
-                negotiationId:
-                  negotiationResult.negotiation?.negotiation_id ||
-                  negotiationResult.negotiation?.id,
-                message: negotiationResult.message,
-                error: negotiationResult.error,
-              });
-
-              if (negotiationResult.success) {
-                console.log(
-                  "✅ Accepted negotiation created successfully:",
-                  negotiationResult.negotiation
-                );
-
-                // Update local negotiation info
-                const newNegotiationInfo = {
-                  success: true,
-                  negotiationId: negotiationResult.negotiation?.negotiation_id,
-                  negotiationStatus: "accepted", // to double check the status we need
-                };
-                setNegotiationInfo(newNegotiationInfo);
-
-                // Redirect immediately to the negotiation display if in iframe mode
-                if (!isIframeMode) {
-                  const negotiationId =
-                    negotiationResult.negotiation?.negotiation_id;
-                  if (negotiationId && user.userData?.mongoUserId) {
-                    console.log(
-                      "🔗 Redirecting to newly created negotiation (iframe mode)..."
-                    );
-
-                    closeModal("negotiateRequestModal");
-
-                    const userType =
-                      user.role === "owner" ? "provider" : "consumer";
-                    await redirectToNegotiationDisplay(
-                      negotiationId,
-                      negotiationToken,
-                      user.userData.mongoUserId,
-                      userType
-                    );
-                    return; // Exit early to avoid further processing
-                  } else {
-                    console.warn(
-                      "⚠️ Missing negotiation ID or MongoDB user ID for redirect"
-                    );
-                  }
-                }
-              } else {
-                console.warn(
-                  "⚠️ Failed to create accepted negotiation:",
-                  negotiationResult.error
-                );
-                // Continue with approval process even if negotiation creation fails
-              }
-            } catch (negotiationError) {
-              console.warn(
-                "❌ Error creating accepted negotiation:",
-                negotiationError
-              );
-              // Continue with approval process even if negotiation creation fails
-            }
-          } else {
-            console.warn(
-              "⚠️ Cannot create negotiation without provider mongoDB ID. Continuing with approval."
-            );
-          }
+        if (isIframeMode) {
+          console.log("📡 Notifying parent window about approval");
+          // Notify parent window about approval
+          notifyParent({
+            action: "request_approved",
+            requestId: requestId,
+            requestName: requestDetails.requestName,
+          });
+        } else {
+          console.log("🏠 Navigating to dashboard");
+          navigate("/ownerBase/ownerDashboard");
         }
       } else {
-        console.warn("⚠️ No requester info available for negotiation creation");
-      }
-
-      console.log("🔄 Closing modal and finalizing approval...");
-      closeModal("approveRequestModal");
-
-      if (isIframeMode) {
-        console.log("📡 Notifying parent window about approval");
-        // Notify parent window about approval
-        notifyParent({
-          action: "request_approved",
-          requestId: requestId,
-          requestName: requestDetails.requestName,
-        });
-      } else {
-        console.log("🏠 Navigating to dashboard");
-        navigate("/ownerBase/ownerDashboard");
+        console.error("❌ Update request failed:", result);
+        setError("Error approving request.");
       }
     } catch (error) {
       console.error("❌ Error in approval process:", error);
@@ -746,10 +730,10 @@ function OwnerPendingRequestsDetails() {
         <h3 className={isIframeMode ? "mt-2" : "mt-4"}>
           {requestDetails.requestName}
         </h3>
-        {/* <h1>
+        <h1>
           Provider Mongo ID: {user?.userData?.mongoUserId ?? "Not available"},
           {user?.uid}
-        </h1> */}
+        </h1>
 
         <h5 className="mt-4 mb-3">Requester details</h5>
         <p>
@@ -881,8 +865,8 @@ function OwnerPendingRequestsDetails() {
         })()}
 
         <div className="alert alert-warning" role="alert">
-          If you are unsure whether to accept, reject or negotiate the request,
-          please contact the data provider.
+          If you are unsure whether to accept, reject or make any modifications
+          to the request, please contact the requester.
         </div>
 
         {/* Show negotiation info if exists */}
@@ -911,7 +895,7 @@ function OwnerPendingRequestsDetails() {
         )}
 
         {/* Hide buttons in iframe mode if negotiation exists (user will be auto-redirected) */}
-        {!negotiationInfo && (
+        {!(isIframeMode && negotiationInfo) && (
           <div className="d-flex mt-4">
             <div>
               <button
@@ -1046,10 +1030,10 @@ function OwnerPendingRequestsDetails() {
               </button>
               <button
                 className={`${styles.primaryButton} btn`}
-                onClick={negtiateRequest}
+                onClick={approveRequest}
                 disabled={updating}
               >
-                {updating ? "Redirecting..." : "Continue"}
+                {updating ? "Approving..." : "Continue"}
               </button>
             </div>
           </div>

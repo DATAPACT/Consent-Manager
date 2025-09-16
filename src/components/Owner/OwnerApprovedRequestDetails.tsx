@@ -50,12 +50,35 @@ interface Request {
   owners: string[];
 }
 
+// ✅ Helper: sanitize ODRL -> flatten rdf:value, @id, remove odrl:/rdf: prefixes
+function sanitizeODRL(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeODRL);
+  } else if (obj && typeof obj === "object") {
+    if ("@id" in obj && Object.keys(obj).length === 1) {
+      return obj["@id"];
+    }
+    if ("rdf:value" in obj && Object.keys(obj).length === 1) {
+      return sanitizeODRL(obj["rdf:value"]);
+    }
+
+    const newObj: any = {};
+    Object.entries(obj).forEach(([key, value]) => {
+      const cleanKey = key.replace(/^odrl:/, "").replace(/^rdf:/, "");
+      newObj[cleanKey] = sanitizeODRL(value);
+    });
+    return newObj;
+  }
+  return obj;
+}
+
 function OwnerApprovedRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [showContract, setShowContract] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -87,6 +110,60 @@ function OwnerApprovedRequestsDetails() {
 
     fetchRequestDetails();
   }, [requestId]);
+
+  const buildContract = () => {
+    if (!requestDetails) return null;
+
+    const sanitizedPolicy = sanitizeODRL(requestDetails.policy);
+
+    return {
+      contract_type: "consent_contract",
+      effective_date: "2025-09-11",
+      validity_period: 24,
+      contacts: {
+        consumer: {
+          name: "upcast_david",
+          type: "consumer",
+          email: "david@example.com",
+          organization: "Consumer GmbH",
+          incorporation: "Germany",
+          address: "2 Verbraucherplatz, Berlin, DE",
+          vat_no: "DE999999999",
+          position_title: "Head of Data",
+          phone: "+49 30 9876 5432",
+        },
+        provider: {
+          name: "upcast_miao",
+          citizenship: "United Kingdom",
+          passport_id: "P-TEST-0001",
+          type: "provider",
+          email: "miao@example.com",
+          address: "1 Provider Way, London, UK",
+          phone: "+44 20 1234 5678",
+        },
+      },
+      resource_description: {
+        title: "dafa",
+        price: "59.99",
+        uri: "Data",
+        policy_url: "",
+        environmental_cost_of_generation: {
+          additionalProp1: "",
+          additionalProp2: "",
+        },
+        environmental_cost_of_serving: {
+          additionalProp1: "",
+          additionalProp2: "",
+        },
+        description: "This is a description of Product ABC.",
+        type_of_data: "",
+        data_format: "",
+        data_size: "",
+        tags: "electronics, gadgets, technology",
+      },
+      odrl: sanitizedPolicy,
+    };
+  };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
@@ -130,109 +207,27 @@ function OwnerApprovedRequestsDetails() {
               <strong>Purpose:</strong> This request is for{" "}
               <strong>{permission.purpose}</strong> reasons.
             </p>
-
-            {/* constraints */}
-            {permission.constraints && permission.constraints.length > 0 && (
-              <div className="mt-3">
-                <h6>Policy Constraints:</h6>
-                <ul className="list-unstyled ms-3">
-                  {permission.constraints.map((constraint, i) => (
-                    <li key={i} className="mb-1">
-                      <small className="text-muted">
-                        • {constraint.description}
-                      </small>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* assignees */}
-            {permission.assignees && permission.assignees.length > 0 && (
-              <div className="mt-3">
-                <h6>Assigned To:</h6>
-                {permission.assignees.map((assignee, i) => (
-                  <div key={i} className="ms-3">
-                    <p className="mb-1">
-                      <strong>{assignee.source}</strong>
-                    </p>
-                    {assignee.refinements &&
-                      assignee.refinements.map((ref, j) => (
-                        <p key={j} className="mb-1 ms-2">
-                          <small className="text-muted">
-                            └ {ref.description}
-                          </small>
-                        </p>
-                      ))}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {permission.datasetRefinements?.length > 0 && (
-              <div>
-                <h5>Dataset conditions:</h5>
-                <ul className="list-unstyled">
-                  {permission.datasetRefinements.map((ref, i) => (
-                    <li key={i}>
-                      Data about <strong>{ref.attribute}</strong> items greater
-                      than <strong>{ref.value}</strong>.
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {permission.actionRefinements?.length > 0 && (
-              <div>
-                <h5>Action conditions:</h5>
-                <ul className="list-unstyled">
-                  {permission.actionRefinements.map((ref, i) => (
-                    <li key={i}>
-                      Write access to <strong>{ref.attribute}</strong> items
-                      greater than <strong> {ref.value}</strong>.
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {permission.purposeRefinements?.length > 0 && (
-              <div>
-                <h5>Purpose conditions:</h5>
-                <ul className="list-unstyled">
-                  {permission.purposeRefinements.map((ref, i) => (
-                    <li key={i}>
-                      Data will be used for <strong>{ref.attribute}</strong>{" "}
-                      items greater than <strong>{ref.value}</strong>.
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {permission.constraintRefinements?.length > 0 && (
-              <div>
-                <h5>Constraints:</h5>
-                <ul className="list-unstyled">
-                  {permission.constraintRefinements.map((ref, i) => (
-                    <li key={i}>
-                      Data should meet the constraint:{" "}
-                      <strong>{ref.attribute}</strong> {ref.instance}{" "}
-                      <strong>{ref.value}</strong>.
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         ))}
 
-        <div>
+        <hr />
+        <div className="d-flex gap-3">
           <button className={`${styles.primaryButton} btn`}>
             Download Contract
           </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setShowContract(!showContract)}
+          >
+            {showContract ? "Hide Contract" : "Show Contract"}
+          </button>
         </div>
+
+        {showContract && (
+          <pre className="mt-3 bg-light p-3 rounded border">
+            {JSON.stringify(buildContract(), null, 2)}
+          </pre>
+        )}
       </div>
     </>
   );
