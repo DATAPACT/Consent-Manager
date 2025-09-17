@@ -1,5 +1,5 @@
 // css
-
+import styles from "../../css/Navbar.module.css";
 
 // libraries
 import { Link, useNavigate } from "react-router-dom";
@@ -20,7 +20,7 @@ const RequesterNavbar: React.FC = () => {
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
-        <div className="container-fluid w-50">
+        <div className={`${styles.userNavbar} container-fluid w-50`}>
           <Link
             className="navbar-brand"
             to="/requesterBase/requesterDashboard"
