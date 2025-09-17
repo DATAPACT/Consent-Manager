@@ -26,6 +26,7 @@ import OwnerPendingRequestModify from "./components/Owner/OwnerPendingRequestMod
 import OwnerApprovedRequests from "./components/Owner/OwnerApprovedRequests";
 import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedRequestDetails";
 import OwnerOtherRequests from "./components/Owner/OwnerotherRequests";
+import OwnerOtherRequestsDetails from "./components/Owner/OwnerOtherRequestDetails";
 import SendDraftRequest from "./components/Requester/SendDraftRequest";
 import RequesterPendingRequestsDetails from "./components/Requester/RequesterPendingRequestDetails";
 import EditDraftRequest from "./components/Requester/EditDraftRequest";
@@ -94,6 +95,10 @@ createRoot(document.getElementById("root")!).render(
               <Route
                 path="ownerOtherRequests"
                 element={<OwnerOtherRequests />}
+              />
+              <Route
+                path="ownerOtherRequestsDetails/:requestId"
+                element={<OwnerOtherRequestsDetails />}
               />
             </Route>
 
