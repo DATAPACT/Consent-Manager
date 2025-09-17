@@ -62,59 +62,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuthState = async () => {
       // First check for URL parameters (from iframe auth)
       const urlParams = new URLSearchParams(window.location.search);
-      const authUser = urlParams.get('auth_user');
-      const authToken = urlParams.get('auth_token');
-      
+      const authUser = urlParams.get("auth_user");
+      const authToken = urlParams.get("auth_token");
+
       if (authUser && authToken) {
         try {
-          console.log('Found auth parameters in URL, setting localStorage...');
+          console.log("Found auth parameters in URL, setting localStorage...");
           const parsedUser = JSON.parse(decodeURIComponent(authUser));
           const decodedToken = decodeURIComponent(authToken);
-          
+
           // Store in localStorage
-          localStorage.setItem('user', JSON.stringify(parsedUser));
-          localStorage.setItem('token', decodedToken);
-          
+          localStorage.setItem("user", JSON.stringify(parsedUser));
+          localStorage.setItem("token", decodedToken);
+
           // Set in context
           setUser(parsedUser);
           setRole(parsedUser.role);
           setUserData(parsedUser.userData);
-          
-          console.log('Authentication set from URL parameters:', parsedUser);
-          
+
+          console.log("Authentication set from URL parameters:", parsedUser);
+
           // Clean up URL parameters but preserve mode parameter
-          const mode = urlParams.get('mode');
+          const mode = urlParams.get("mode");
           let newUrl = window.location.pathname;
           if (mode) {
             newUrl += `?mode=${mode}`;
           }
           window.history.replaceState({}, document.title, newUrl);
-          
+
           setLoading(false);
           return;
         } catch (err) {
-          console.error('Error parsing auth parameters:', err);
+          console.error("Error parsing auth parameters:", err);
         }
       }
-      
+
       // Fallback to localStorage check
-      const storedUser = localStorage.getItem('user');
-      const storedToken = localStorage.getItem('token');
-      
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
+
       if (storedUser && storedToken) {
         try {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           setRole(parsedUser.role);
           setUserData(parsedUser.userData);
-          console.log('Authentication restored from localStorage:', parsedUser);
+          console.log("Authentication restored from localStorage:", parsedUser);
         } catch (err) {
-          console.error('Error parsing stored user:', err);
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
+          console.error("Error parsing stored user:", err);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
         }
       }
-      
+
       setLoading(false);
     };
 
@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Use Express API for login
       const result = await apiLogin(email, password);
-      
+
       if (result.success) {
         const authUser: AuthUser = {
           uid: result.user.uid,
@@ -133,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           displayName: result.user.displayName,
           role: result.user.role,
           userData: result.user.userData,
-          apiToken: result.user.apiToken
+          apiToken: result.user.apiToken,
         };
 
         setUser(authUser);
@@ -141,15 +141,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserData(result.user.userData);
 
         // Store in localStorage for persistence
-        localStorage.setItem('user', JSON.stringify(authUser));
+        localStorage.setItem("user", JSON.stringify(authUser));
         if (result.user.apiToken) {
-          localStorage.setItem('token', result.user.apiToken);
+          localStorage.setItem("token", result.user.apiToken);
         }
       } else {
-        throw new Error(result.error || 'Login failed');
+        throw new Error(result.error || "Login failed");
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       throw error;
     }
   };
@@ -158,14 +158,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await apiLogout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       // Clear state and localStorage regardless of API call success
       setUser(null);
       setRole(null);
       setUserData(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     }
   };
 

@@ -22,10 +22,9 @@ import RequesterOtp from "./components/Login/RequesterOtp";
 import OwnerOtp from "./components/Login/OwnerOtp";
 import OwnerPendingRequests from "./components/Owner/OwnerPendingRequests";
 import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestDetails";
-import OwnerPendingRequestModify from "./components/Owner/OwnerPendingRequestModify";
 import OwnerApprovedRequests from "./components/Owner/OwnerApprovedRequests";
 import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedRequestDetails";
-import OwnerOtherRequests from "./components/Owner/OwnerotherRequests";
+import OwnerOtherRequests from "./components/Owner/OwnerOtherRequests";
 import OwnerOtherRequestsDetails from "./components/Owner/OwnerOtherRequestDetails";
 import SendDraftRequest from "./components/Requester/SendDraftRequest";
 import RequesterPendingRequestsDetails from "./components/Requester/RequesterPendingRequestDetails";
@@ -79,10 +78,6 @@ createRoot(document.getElementById("root")!).render(
               <Route
                 path="ownerPendingRequestsDetails/:requestId"
                 element={<OwnerPendingRequestsDetails />}
-              />
-              <Route
-                path="ownerPendingRequestModify/:requestId"
-                element={<OwnerPendingRequestModify />}
               />
               <Route
                 path="ownerApprovedRequests"

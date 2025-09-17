@@ -336,7 +336,7 @@ function OwnerPendingRequestsDetails() {
   };
 
   // Negotiate Request
-  const negtiateRequest = async () => {
+  const negotiateRequest = async () => {
     console.log("🔄 Starting approval process...");
 
     if (!requestDetails || !user) {
@@ -532,9 +532,13 @@ function OwnerPendingRequestsDetails() {
                   const negotiationId =
                     negotiationResult.negotiation?.negotiation_id;
                   if (negotiationId && user.userData?.mongoUserId) {
-                    console.log(
-                      "🔗 Redirecting to newly created negotiation (iframe mode)..."
-                    );
+                    console.log("🚀 Redirecting with:", {
+                      negotiationId: negotiationId,
+                      mongoUserId: user.userData?.mongoUserId,
+                      userType: user.role,
+                      apiToken: user?.apiToken,
+                      localStorageToken: localStorage.getItem("token"),
+                    });
 
                     closeModal("negotiateRequestModal");
 
@@ -1053,7 +1057,7 @@ function OwnerPendingRequestsDetails() {
               </button>
               <button
                 className={`${styles.primaryButton} btn`}
-                onClick={negtiateRequest}
+                onClick={negotiateRequest}
                 disabled={updating}
               >
                 {updating ? "Redirecting..." : "Continue"}
