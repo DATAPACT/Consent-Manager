@@ -14,6 +14,7 @@ interface Request {
   status: string;
   ownersPending: string[]; // Array of owner IDs pending approval
   sentAt: string;
+  negotiationId?: string;
 }
 
 function OwnerPendingRequests() {
@@ -31,17 +32,22 @@ function OwnerPendingRequests() {
       }
 
       try {
-        // Get all sent requests for owners
-        const result = await getRequests({ 
-          uid: user.uid, 
-          role: 'owner',
-          status: 'sent'
+        // ✅ Get all requests for this owner (no status filter)
+        const result = await getRequests({
+          uid: user.uid,
+          role: "owner",
         });
 
         if (result.success) {
-          // Filter requests where user is in ownersPending array
-          const userPendingRequests = result.requests.filter((request: any) =>
-            request.ownersPending && request.ownersPending.includes(user.uid)
+          // ✅ Only show requests where:
+          // 1. status is "sent"
+          // 2. no negotiationId
+          // 3. user is in ownersPending
+          const userPendingRequests = result.requests.filter(
+            (request: any) =>
+              request.status === "sent" &&
+              !request.negotiationId &&
+              request.ownersPending?.includes(user.uid)
           );
 
           setPendingRequests(userPendingRequests);

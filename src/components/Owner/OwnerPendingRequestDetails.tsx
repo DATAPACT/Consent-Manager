@@ -680,20 +680,22 @@ function OwnerPendingRequestsDetails() {
         loggedInUserId,
       ];
 
-      // Update request with the new ownersPending and ownersAccepted arrays
+      // ✅ Update request with new arrays AND status
       const result = await updateRequest(requestId!, {
         ownersPending: updatedOwnersPending,
         ownersAccepted: updatedOwnersAccepted,
+        status: "accepted", // <-- set status here
       });
 
       if (result.success) {
-        // Update the state with the new ownersPending and ownersAccepted arrays
+        // ✅ Update local state too
         setRequestDetails(
           (prev) =>
             prev && {
               ...prev,
               ownersPending: updatedOwnersPending,
               ownersAccepted: updatedOwnersAccepted,
+              status: "accepted",
             }
         );
 
