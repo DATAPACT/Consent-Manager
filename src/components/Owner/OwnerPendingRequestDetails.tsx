@@ -620,20 +620,22 @@ function OwnerPendingRequestsDetails() {
         loggedInUserId,
       ];
 
-      // Update request with the new ownersPending and ownersRejected arrays
+      // Update request with new ownersPending, ownersRejected, and status
       const result = await updateRequest(requestId!, {
         ownersPending: updatedOwnersPending,
         ownersRejected: updatedOwnersRejected,
+        status: "rejected", // ✅ mark request as rejected
       });
 
       if (result.success) {
-        // Update the state with the new ownersPending and ownersRejected arrays
+        // Update the state with the new values
         setRequestDetails(
           (prev) =>
             prev && {
               ...prev,
               ownersPending: updatedOwnersPending,
               ownersRejected: updatedOwnersRejected,
+              status: "rejected", // ✅ update local state too
             }
         );
 

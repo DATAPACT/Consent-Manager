@@ -129,7 +129,10 @@ function OwnerDashboard() {
                   may require your attention if you wish to renew, modify, or
                   close them.
                 </p>
-                <Link className={`${styles.primaryButton} btn`} to="">
+                <Link
+                  className={`${styles.primaryButton} btn`}
+                  to="/ownerBase/ownerOtherRequests"
+                >
                   View
                 </Link>
               </div>

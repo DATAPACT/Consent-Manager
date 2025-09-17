@@ -25,6 +25,7 @@ import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestD
 import OwnerPendingRequestModify from "./components/Owner/OwnerPendingRequestModify";
 import OwnerApprovedRequests from "./components/Owner/OwnerApprovedRequests";
 import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedRequestDetails";
+import OwnerOtherRequests from "./components/Owner/OwnerotherRequests";
 import SendDraftRequest from "./components/Requester/SendDraftRequest";
 import RequesterPendingRequestsDetails from "./components/Requester/RequesterPendingRequestDetails";
 import EditDraftRequest from "./components/Requester/EditDraftRequest";
@@ -47,89 +48,96 @@ createRoot(document.getElementById("root")!).render(
     <AuthProvider>
       <IframeProvider>
         <Router basename="/consent-manager/">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/getStarted" element={<GetStarted />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/ownerRegister" element={<OwnerRegister />} />
-          <Route path="/requesterRegister" element={<RequesterRegister />} />
-          <Route path="/requesterOtp" element={<RequesterOtp />} />
-          <Route path="/ownerOtp" element={<OwnerOtp />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/test" element={<Test />} />
-          <Route path="/allUsers" element={<AllUsers />} />
-          <Route path="/userDetails" element={<UserDetails />} />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/getStarted" element={<GetStarted />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/ownerRegister" element={<OwnerRegister />} />
+            <Route path="/requesterRegister" element={<RequesterRegister />} />
+            <Route path="/requesterOtp" element={<RequesterOtp />} />
+            <Route path="/ownerOtp" element={<OwnerOtp />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/test" element={<Test />} />
+            <Route path="/allUsers" element={<AllUsers />} />
+            <Route path="/userDetails" element={<UserDetails />} />
 
-          {/* owner */}
-          <Route
-            path="/ownerBase"
-            element={
-              <PrivateRoute allowedRoles={["owner"]}>
-                <OwnerBase />
-              </PrivateRoute>
-            }
-          >
-            <Route path="ownerDashboard" element={<OwnerDashboard />} />
+            {/* owner */}
             <Route
-              path="ownerPendingRequests"
-              element={<OwnerPendingRequests />}
-            />
-            <Route
-              path="ownerPendingRequestsDetails/:requestId"
-              element={<OwnerPendingRequestsDetails />}
-            />
-            <Route
-              path="ownerPendingRequestModify/:requestId"
-              element={<OwnerPendingRequestModify />}
-            />
-            <Route
-              path="ownerApprovedRequests"
-              element={<OwnerApprovedRequests />}
-            />
-            <Route
-              path="ownerApprovedRequestsDetails/:requestId"
-              element={<OwnerApprovedRequestsDetails />}
-            />
-          </Route>
+              path="/ownerBase"
+              element={
+                <PrivateRoute allowedRoles={["owner"]}>
+                  <OwnerBase />
+                </PrivateRoute>
+              }
+            >
+              <Route path="ownerDashboard" element={<OwnerDashboard />} />
+              <Route
+                path="ownerPendingRequests"
+                element={<OwnerPendingRequests />}
+              />
+              <Route
+                path="ownerPendingRequestsDetails/:requestId"
+                element={<OwnerPendingRequestsDetails />}
+              />
+              <Route
+                path="ownerPendingRequestModify/:requestId"
+                element={<OwnerPendingRequestModify />}
+              />
+              <Route
+                path="ownerApprovedRequests"
+                element={<OwnerApprovedRequests />}
+              />
+              <Route
+                path="ownerApprovedRequestsDetails/:requestId"
+                element={<OwnerApprovedRequestsDetails />}
+              />
+              <Route
+                path="ownerOtherRequests"
+                element={<OwnerOtherRequests />}
+              />
+            </Route>
 
-          {/* requester */}
-          <Route
-            path="/requesterBase"
-            element={
-              <PrivateRoute allowedRoles={["requester"]}>
-                <RequesterBase />
-              </PrivateRoute>
-            }
-          >
-            <Route path="requesterDashboard" element={<RequesterDashboard />} />
-            <Route path="ontologies" element={<Ontologies />} />
-            <Route path="requesterRequests" element={<RequesterRequests />} />
-            <Route path="createRequest" element={<CreateRequest />} />
-            <Route path="importRequest" element={<ImportRequest />} />
+            {/* requester */}
             <Route
-              path="sendDraftRequest/:requestId"
-              element={<SendDraftRequest />}
-            />
+              path="/requesterBase"
+              element={
+                <PrivateRoute allowedRoles={["requester"]}>
+                  <RequesterBase />
+                </PrivateRoute>
+              }
+            >
+              <Route
+                path="requesterDashboard"
+                element={<RequesterDashboard />}
+              />
+              <Route path="ontologies" element={<Ontologies />} />
+              <Route path="requesterRequests" element={<RequesterRequests />} />
+              <Route path="createRequest" element={<CreateRequest />} />
+              <Route path="importRequest" element={<ImportRequest />} />
+              <Route
+                path="sendDraftRequest/:requestId"
+                element={<SendDraftRequest />}
+              />
 
-            <Route
-              path="requesterPendingRequestsDetails"
-              element={<RequesterPendingRequestsDetails />}
-            />
-            <Route
-              path="editDraftRequest/:requestId"
-              element={<EditDraftRequest />}
-            />
-            <Route path="uploadOntology" element={<UploadOntology />} />
-            <Route
-              path="requesterSentRequestsDetails/:requestId"
-              element={<RequesterSentRequestsDetails />}
-            />
-            <Route
-              path="requesterProfile/:requestId"
-              element={<RequesterProfile />}
-            />
-          </Route>
-        </Routes>
+              <Route
+                path="requesterPendingRequestsDetails"
+                element={<RequesterPendingRequestsDetails />}
+              />
+              <Route
+                path="editDraftRequest/:requestId"
+                element={<EditDraftRequest />}
+              />
+              <Route path="uploadOntology" element={<UploadOntology />} />
+              <Route
+                path="requesterSentRequestsDetails/:requestId"
+                element={<RequesterSentRequestsDetails />}
+              />
+              <Route
+                path="requesterProfile/:requestId"
+                element={<RequesterProfile />}
+              />
+            </Route>
+          </Routes>
         </Router>
       </IframeProvider>
     </AuthProvider>
