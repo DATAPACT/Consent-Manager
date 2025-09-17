@@ -75,7 +75,7 @@ function sanitizeODRL(obj: any): any {
 function OwnerApprovedRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [showContract, setShowContract] = useState<boolean>(false);
@@ -191,24 +191,124 @@ function OwnerApprovedRequestsDetails() {
           {requestDetails.requester.requesterEmail}
         </p>
 
-        {permissions.map((permission, ruleIndex) => (
-          <div key={ruleIndex} className="mb-4 mt-4">
-            <h5>Requirement {ruleIndex + 1}</h5>
-            <h5 className="mt-4">What’s being requested</h5>
-            <p>
-              <strong>Dataset:</strong> The requester wants access to data from{" "}
-              <strong>{permission.dataset}</strong>.
-            </p>
-            <p>
-              <strong>Action:</strong> The requester wants to{" "}
-              <strong>{permission.action}</strong> to this dataset.
-            </p>
-            <p>
-              <strong>Purpose:</strong> This request is for{" "}
-              <strong>{permission.purpose}</strong> reasons.
-            </p>
-          </div>
-        ))}
+        {(() => {
+          // Parse permissions from ODRL policy or fallback to legacy permissions
+          const parsedPermissions = getRequestPermissions(requestDetails);
+
+          return parsedPermissions.map((permission, ruleIndex) => (
+            <div key={ruleIndex} className="mb-4 mt-4">
+              <h5>Permission {ruleIndex + 1}</h5>
+              <h5 className="mt-4">What’s being requested</h5>
+              <p>
+                <strong>Dataset:</strong> The requester wants access to data
+                from <strong>{permission.dataset}</strong>.
+              </p>
+              <p>
+                <strong>Action:</strong> The requester wants to{" "}
+                <strong>{permission.action}</strong> to this dataset.
+              </p>
+              <p>
+                <strong>Purpose:</strong> This request is for{" "}
+                <strong>{permission.purpose}</strong> reasons.
+              </p>
+
+              {/* Show generic ODRL constraints */}
+              {permission.constraints && permission.constraints.length > 0 && (
+                <div className="mt-3">
+                  <h6>Policy Constraints:</h6>
+                  <ul className="list-unstyled ms-3">
+                    {permission.constraints.map((constraint, i) => (
+                      <li key={i} className="mb-1">
+                        <small className="text-muted">
+                          • {constraint.description}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Show generic ODRL assignees */}
+              {permission.assignees && permission.assignees.length > 0 && (
+                <div className="mt-3">
+                  <h6>Assigned To:</h6>
+                  {permission.assignees.map((assignee, i) => (
+                    <div key={i} className="ms-3">
+                      <p className="mb-1">
+                        <strong>{assignee.source}</strong>
+                      </p>
+                      {assignee.refinements &&
+                        assignee.refinements.map((ref, j) => (
+                          <p key={j} className="mb-1 ms-2">
+                            <small className="text-muted">
+                              └ {ref.description}
+                            </small>
+                          </p>
+                        ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {permission.datasetRefinements?.length > 0 && (
+                <div>
+                  <h5>Dataset conditions:</h5>
+                  <ul className="list-unstyled">
+                    {permission.datasetRefinements.map((ref, i) => (
+                      <li key={i}>
+                        Data about <strong>{ref.attribute}</strong> items
+                        greater than <strong>{ref.value}</strong>.
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {permission.actionRefinements?.length > 0 && (
+                <div>
+                  <h5>Action conditions:</h5>
+                  <ul className="list-unstyled">
+                    {permission.actionRefinements.map((ref, i) => (
+                      <li key={i}>
+                        Write access to <strong>{ref.attribute}</strong> items
+                        greater than <strong> {ref.value}</strong>.
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {permission.purposeRefinements?.length > 0 && (
+                <div>
+                  <h5>Purpose conditions:</h5>
+                  <ul className="list-unstyled">
+                    {permission.purposeRefinements.map((ref, i) => (
+                      <li key={i}>
+                        Data will be used for <strong>{ref.attribute}</strong>{" "}
+                        items greater than <strong>{ref.value}</strong>.
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {permission.constraintRefinements?.length > 0 && (
+                <div>
+                  <h5>Constraints:</h5>
+                  <ul className="list-unstyled">
+                    {permission.constraintRefinements.map((ref, i) => (
+                      <li key={i}>
+                        Data should meet the constraint:{" "}
+                        <strong>{ref.attribute}</strong> {ref.instance}{" "}
+                        <strong>{ref.value}</strong>.
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ));
+        })()}
 
         <hr />
         <div className="d-flex gap-3">
