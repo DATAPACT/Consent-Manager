@@ -568,7 +568,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
     // Add accepted status to the negotiation request
     const finalNegotiationRequest = {
       ...negotiationRequest,
-      negotiation_status: "accepted",
+      negotiation_status: "requested",
     };
 
     console.log("✅ TRANSFORMATION SUCCESS: Negotiation request created:", {
@@ -658,7 +658,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
 
     const updateData = {
       negotiationId: negotiationId,
-      negotiationStatus: "accepted",
+      negotiationStatus: "requested",
       acceptedNegotiationAt: new Date().toISOString(),
     };
 

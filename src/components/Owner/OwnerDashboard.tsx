@@ -26,26 +26,31 @@ function OwnerDashboard() {
 
       try {
         // Get all sent requests for owners
-        const result = await getRequests({ 
-          uid: user.uid, 
-          role: 'owner',
-          status: 'sent'
+        const result = await getRequests({
+          uid: user.uid,
+          role: "owner",
+          status: "sent",
         });
 
         if (result.success) {
           // Filter for pending requests (user is in ownersPending array)
-          const pendingRequests = result.requests.filter((request: any) =>
-            request.ownersPending && request.ownersPending.includes(user.uid)
+          const pendingRequests = result.requests.filter(
+            (request: any) =>
+              request.ownersPending && request.ownersPending.includes(user.uid)
           );
 
           // Filter for approved requests (user is in ownersAccepted array)
-          const approvedRequests = result.requests.filter((request: any) =>
-            request.ownersAccepted && request.ownersAccepted.includes(user.uid)
+          const approvedRequests = result.requests.filter(
+            (request: any) =>
+              request.ownersAccepted &&
+              request.ownersAccepted.includes(user.uid)
           );
 
           // Filter for expired/rejected requests (user is in ownersRejected array)
-          const expiredRequests = result.requests.filter((request: any) =>
-            request.ownersRejected && request.ownersRejected.includes(user.uid)
+          const expiredRequests = result.requests.filter(
+            (request: any) =>
+              request.ownersRejected &&
+              request.ownersRejected.includes(user.uid)
           );
 
           setPendingRequestsCount(pendingRequests.length);
@@ -67,8 +72,8 @@ function OwnerDashboard() {
       <div className={`${styles.dashboard} container w-50`}>
         <h3>Dashboard</h3>
         <p>
-          Review pending, approved, and revoked requests to ensure compliance
-          and security.
+          Review pending, approved, negotiation, and revoked requests to ensure
+          compliance and security.
         </p>
         <hr />
         <div className="row row-cols-1 row-cols-md-3 g-4">
@@ -80,8 +85,8 @@ function OwnerDashboard() {
                 <h3 className="mt-2 text-warning">{pendingRequestsCount}</h3>
                 <small className="text-muted">pending requests.</small>
                 <p className="card-text mt-2">
-                  Review and manage incoming requests. You can approve, deny, or
-                  revoke permissions based on user consent preferences.
+                  Review and manage incoming requests. Approve, reject, or
+                  negotiate based on consent preferences.
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn`}
@@ -100,9 +105,8 @@ function OwnerDashboard() {
                 <h3 className="mt-2 text-success">{approvedRequestsCount}</h3>
                 <small className="text-muted">approved requests.</small>
                 <p className="card-text mt-2">
-                  Requests you have been granted. You can review, modify, or
-                  revoke permissions at any time to maintain control over data
-                  access.
+                  Requests you have been granted. Review, revoke and manage your
+                  contracts at any time to maintain control over data access.
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn`}
@@ -116,14 +120,14 @@ function OwnerDashboard() {
           <div className="col">
             <div className="card h-100">
               <div className="card-body">
-                <h4 className="card-title">Expired requests</h4>
+                <h4 className="card-title">Other requests</h4>
                 <small className="text-muted">You have</small>
-                <h3 className="mt-2 text-danger">{expiredRequestsCount}</h3>
+                <h3 className="mt-2 text-primary">{expiredRequestsCount}</h3>
                 <small className="text-muted">expired requests.</small>
                 <p className="card-text mt-2">
-                  Requests you have been granted. You can review, modify, or
-                  revoke permissions at any time to maintain control over data
-                  access.
+                  Requests that are pending negotiation or have expired. These
+                  may require your attention if you wish to renew, modify, or
+                  close them.
                 </p>
                 <Link className={`${styles.primaryButton} btn`} to="">
                   View

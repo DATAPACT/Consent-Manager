@@ -520,9 +520,12 @@ function OwnerPendingRequestsDetails() {
                 const newNegotiationInfo = {
                   success: true,
                   negotiationId: negotiationResult.negotiation?.negotiation_id,
-                  negotiationStatus: "accepted", // to double check the status we need
+                  negotiationStatus: "requested", // to double check the status we need
                 };
+
                 setNegotiationInfo(newNegotiationInfo);
+
+                console.log(newNegotiationInfo);
 
                 // Redirect immediately to the negotiation display if in iframe mode
                 if (!isIframeMode) {
