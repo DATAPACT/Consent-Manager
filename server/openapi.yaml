@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: Consent Manager API
+  version: 1.0.0
+  description: API documentation for the Consent Manager service.
+servers:
+  - url: http://localhost:8019
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/auth/login:
+    post:
+      summary: User login
+      description: Authenticate a user with email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Enter your email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Enter your password
+                  example: secret123
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authentication
+        "401":
+          description: Invalid email or password
+
+  /api/auth/register:
+    post:
+      summary: User registration
+      description: Create a new user account with role and type.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Full name of the user
+                  example: Acme
+                email:
+                  type: string
+                  description: Email address of the user
+                  example: acme@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Password for the account
+                  example: acme123
+                role:
+                  type: string
+                  description: |
+                    System-level role.
+                    - **owner** for data owner registration.
+                    - **requester** for data consumer registration.
+                  example: owner
+                type:
+                  type: string
+                  description: |
+                    User type (domain-specific role):
+                    - **provider** for data owner registration.
+                    - **consumer** for data consumer registration.
+                  enum: [provider, consumer]
+                  example: provider
+              required:
+                - name
+                - email
+                - password
+                - role
+                - type
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique user ID
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                    description: Always "owner"
+                  type:
+                    type: string
+                    enum: [provider, consumer]
+        "400":
+          description: Invalid input
+
+  /api/create-requests:
+    post:
+      summary: Create a new request
+      description: Allows a consumer to create a new data request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Short title for the request
+                  example: "Access to transaction data"
+                description:
+                  type: string
+                  description: Detailed explanation of the request
+                  example: "We require access to transaction data for auditing."
+                ontologyId:
+                  type: string
+                  description: ID of the ontology category linked to this request
+                  example: "payment_data"
+                permissions:
+                  type: array
+                  description: List of permissions being requested
+                  items:
+                    type: string
+                  example: ["read", "analyze"]
+              required:
+                - title
+                - description
+                - ontologyId
+                - permissions
+      responses:
+        "201":
+          description: Request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique request ID
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  ontologyId:
+                    type: string
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+                  status:
+                    type: string
+                    description: Current status of the request (e.g. pending, approved, rejected)
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized (missing or invalid token)

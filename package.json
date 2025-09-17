@@ -33,12 +33,17 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.3.0",
-    "tsx": "^4.20.3"
+    "swagger-ui-express": "^5.0.1",
+    "tsx": "^4.20.3",
+    "yaml": "^2.8.1",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@types/yamljs": "^0.2.34",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.2.0",
     "eslint": "^9.21.0",

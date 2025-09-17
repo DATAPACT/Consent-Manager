@@ -3,6 +3,15 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import fs from "fs";
+import path from "path";
+import YAML from "yaml";
+import { fileURLToPath } from "url";
+
+// Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -27,6 +36,7 @@ app.use((req, res, next) => {
     helmet()(req, res, next);
   }
 });
+
 // Configure CORS from environment variables
 const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS === "*"
@@ -36,14 +46,21 @@ const corsOrigins = process.env.CORS_ORIGINS
 
 app.use(
   cors({
-    // origin: corsOrigins,
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:8019"], // frontend + swagger ui
     credentials: true,
   })
 );
+
 app.use(morgan("combined"));
 app.use(express.json({ limit: JSON_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: URL_LIMIT }));
+
+// --- Swagger setup ---
+const openapiPath = path.join(__dirname, "openapi.yaml"); // adjust if file is elsewhere
+const file = fs.readFileSync(openapiPath, "utf8");
+const swaggerDocument = YAML.parse(file);
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -73,6 +90,7 @@ app.use("/api/external", externalApiRouter);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Swagger docs: http://localhost:${PORT}/docs`);
 });
 
 export default app;
