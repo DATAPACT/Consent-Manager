@@ -4,6 +4,11 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://dips.soton.ac.uk/consent-manager-api/api";
 
+interface ContractRequest {
+  id: string; // required for contract creation
+  policy?: any; // ODRL policy JSON
+}
+
 interface Refinement {
   id: number;
   attribute?: string;
@@ -555,3 +560,45 @@ export const redirectToNegotiationDisplay = async (
     throw new Error("New tab blocked");
   }
 };
+
+export async function createContractAPI(request: ContractRequest) {
+  try {
+    console.log("📝 Request object received:", request);
+    console.log("📄 ODRL policy:", request.policy);
+
+    const payload = {
+      _id: request.id,
+      optional_info: {},
+      contract_type: "dsa",
+      validity_period: 0,
+      notice_period: 0,
+      contacts: {},
+      resource_description: {},
+      definitions: {},
+      custom_clauses: {},
+      dpw: {},
+      odrl: request.policy || {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log("🚀 Payload being sent:", payload);
+
+    const response = await fetch("http://152.78.17.144:8006/contract/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to create contract");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("❌ Error creating contract:", error);
+    throw error;
+  }
+}

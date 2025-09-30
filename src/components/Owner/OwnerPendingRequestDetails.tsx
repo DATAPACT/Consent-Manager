@@ -8,6 +8,7 @@ import {
   createAcceptedNegotiationFromRequest,
   getNegotiationByRequestId,
   redirectToNegotiationDisplay,
+  createContractAPI,
 } from "../../services/api";
 import { getRequestPermissions } from "../../utils/policyParser";
 import { db } from "../../firebase";
@@ -695,7 +696,6 @@ function OwnerPendingRequestsDetails() {
     setUpdating(false);
   };
 
-  // Accept Request
   const acceptRequest = async () => {
     if (!requestDetails || !user) return;
 
@@ -703,40 +703,55 @@ function OwnerPendingRequestsDetails() {
     try {
       const loggedInUserId = user.uid;
 
-      // Remove the logged-in user's ID from ownersPending array
       const updatedOwnersPending = requestDetails.ownersPending.filter(
         (ownerId) => ownerId !== loggedInUserId
       );
-
-      // Add the logged-in user's ID to the ownersAccepted array
       const updatedOwnersAccepted = [
         ...requestDetails.ownersAccepted,
         loggedInUserId,
       ];
 
-      // ✅ Update request with new arrays AND status
+      // Update request with new arrays AND status
       const result = await updateRequest(requestId!, {
         ownersPending: updatedOwnersPending,
         ownersAccepted: updatedOwnersAccepted,
-        status: "accepted", // <-- set status here
+        status: "accepted",
       });
 
       if (result.success) {
-        // ✅ Update local state too
-        setRequestDetails(
-          (prev) =>
-            prev && {
-              ...prev,
-              ownersPending: updatedOwnersPending,
-              ownersAccepted: updatedOwnersAccepted,
-              status: "accepted",
-            }
-        );
-
+        const updatedRequest = {
+          ...requestDetails,
+          ownersPending: updatedOwnersPending,
+          ownersAccepted: updatedOwnersAccepted,
+          status: "accepted",
+        };
+        setRequestDetails(updatedRequest);
         closeModal("acceptRequestModal");
 
+        // Call the contract API
+        try {
+          const contractResult = await createContractAPI({
+            id: requestId!, // make sure requestId exists
+            policy: updatedRequest.policy,
+          });
+          console.log("Contract created successfully:", contractResult);
+
+          // Update Firebase with contractId
+          if (contractResult.contract_id) {
+            await updateRequest(requestId!, {
+              contractId: contractResult.contract_id,
+            });
+
+            // Update local state with contractId too
+            setRequestDetails((prev) =>
+              prev ? { ...prev, contractId: contractResult.contract_id } : prev
+            );
+          }
+        } catch (contractError) {
+          console.error("Error creating contract:", contractError);
+        }
+
         if (isIframeMode) {
-          // Notify parent window about acceptance
           notifyParent({
             action: "request_accepted",
             requestId: requestId,
