@@ -55,6 +55,21 @@ app.use(morgan("combined"));
 app.use(express.json({ limit: JSON_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: URL_LIMIT }));
 
+import session from "express-session";
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "supersecret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60,
+    },
+  })
+);
+
 // --- Swagger setup ---
 const openapiPath = path.join(__dirname, "openapi.yaml"); // adjust if file is elsewhere
 const file = fs.readFileSync(openapiPath, "utf8");

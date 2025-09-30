@@ -48,7 +48,9 @@ export const login = async (email: string, password: string) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-login-source": "ui",
       },
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
 

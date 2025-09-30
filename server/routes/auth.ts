@@ -1,6 +1,14 @@
 import express from "express";
 import admin from "firebase-admin";
 import { db } from "../config/firebase.js";
+import "express-session";
+
+declare module "express-session" {
+  interface SessionData {
+    loginSource?: "UI" | "External/API";
+    userUid?: string;
+  }
+}
 
 const router = express.Router();
 
@@ -16,11 +24,11 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // For server-side auth, we need to verify the user exists and password is correct
-    // Since we can't directly authenticate with password on server side,
-    // we'll need to use a different approach or rely on client-side auth
+    // --- Detect login source ---
+    const loginSourceHeader = req.headers["x-login-source"];
+    const loginSource = loginSourceHeader === "ui" ? "UI" : "External/API";
 
-    // First, try to find the user by email
+    // --- Find user in Firestore ---
     const usersSnapshot = await db
       .collection("owners")
       .where("email", "==", email)
@@ -51,112 +59,63 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // External API login for hybrid auth
-    let apiToken = null;
+    // --- External API login ---
+    let apiToken: string | null = null;
     try {
       const formData = new URLSearchParams();
       formData.append("username", email);
       formData.append("password", password);
 
-      console.log("Attempting external API login for:", email);
       const externalApiUrl =
         process.env.EXTERNAL_API_BASE_URL ||
         "https://dips.soton.ac.uk/negotiation-api";
       const apiResponse = await fetch(`${externalApiUrl}/user/login/`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData.toString(),
       });
 
-      console.log("External API response status:", apiResponse.status);
-
       if (apiResponse.ok) {
-        // The response is a plain text JWT token, not JSON
         apiToken = await apiResponse.text();
         console.log(
-          "External API login successful, token received:",
-          apiToken.substring(0, 50) + "..."
+          "External API login successful:",
+          apiToken.substring(0, 50)
         );
 
-        // Check if user has MongoDB user ID, if not, get it from external API
-        if (!userData?.mongoUserId && apiToken) {
-          console.log(
-            "🔍 User missing MongoDB ID, fetching from external API..."
-          );
-
+        // --- Get MongoDB user ID if missing ---
+        if (!userData?.mongoUserId) {
           try {
-            // Get user details from external API using the token
             const userDetailsResponse = await fetch(
               `${externalApiUrl}/user/details/`,
               {
                 method: "GET",
-                headers: {
-                  Authorization: `Bearer ${apiToken}`,
-                },
+                headers: { Authorization: `Bearer ${apiToken}` },
               }
             );
 
             if (userDetailsResponse.ok) {
               const userDetails = await userDetailsResponse.json();
-              console.log("📋 User details from external API:", userDetails);
-
-              // Extract MongoDB user ID
               const mongoUserId =
                 userDetails.user_id || userDetails.id || userDetails._id;
 
               if (mongoUserId) {
-                console.log("🎯 MongoDB user ID found:", mongoUserId);
-
-                // Update Firebase user document with MongoDB user ID
                 const collection = role === "owner" ? "owners" : "requesters";
                 await db.collection(collection).doc(userUid).update({
-                  mongoUserId: mongoUserId,
+                  mongoUserId,
                   apiRegistrationSuccess: true,
                   mongoIdAddedOnLogin: true,
                   mongoIdAddedDate: new Date().toISOString(),
                 });
-
-                console.log(
-                  "✅ MongoDB user ID stored in Firebase during login"
-                );
-
-                // Update userData in memory for the response
                 userData = { ...userData, mongoUserId };
-              } else {
-                console.warn(
-                  "⚠️ No MongoDB user ID found in external API user details"
-                );
               }
-            } else {
-              console.warn(
-                "⚠️ Failed to get user details from external API:",
-                userDetailsResponse.status
-              );
             }
           } catch (userDetailsError) {
-            console.warn(
-              "⚠️ Error fetching user details from external API:",
-              userDetailsError
-            );
+            console.warn("Error fetching MongoDB user ID:", userDetailsError);
           }
-        } else if (userData?.mongoUserId) {
-          console.log(
-            "✅ User already has MongoDB user ID:",
-            userData.mongoUserId
-          );
         }
-      } else {
-        const errorText = await apiResponse.text();
-        console.log(
-          "External API login failed with status:",
-          apiResponse.status
-        );
-        console.log("Error response:", errorText);
       }
     } catch (apiError) {
-      console.log("External API login failed with exception:", apiError);
+      console.log("External API login failed:", apiError);
     }
 
     if (!apiToken) {
@@ -166,15 +125,23 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // --- Store login info in session ---
+    if (req.session) {
+      req.session.loginSource = loginSource;
+      req.session.userUid = userUid;
+    }
+
+    // --- Respond ---
     res.json({
       success: true,
       user: {
         uid: userUid,
-        email: email,
+        email,
         displayName: userData?.name || null,
         role,
         userData,
-        apiToken, // Always return a token
+        apiToken,
+        loginSource, // persists in session
       },
     });
   } catch (error: any) {
