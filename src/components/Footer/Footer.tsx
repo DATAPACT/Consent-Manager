@@ -13,9 +13,8 @@ function Footer() {
             <strong>© 2025 UPCAST. All rights reserved.</strong>
           </p>
           <p>
-            UPCAST is officially registered with Companies House in England and
-            Wales, confirming our legal status and compliance with UK company
-            regulations.
+            This project has received funding from the European Union´s Horizon
+            Research and Innovation Actions under Grant Agreement nº 101093216.
           </p>
 
           {/* <div className="d-flex flex-row mb-3">
