@@ -38,16 +38,18 @@ function OwnerApprovedRequests() {
 
       try {
         // Get all sent requests for owners
-        const result = await getRequests({ 
-          uid: user.uid, 
-          role: 'owner',
-          status: 'sent'
+        const result = await getRequests({
+          uid: user.uid,
+          role: "owner",
+          status: "accepted",
         });
 
         if (result.success) {
           // Filter requests where the logged-in user is in the 'ownersAccepted' array
-          const filteredRequests = result.requests.filter((request: any) =>
-            request.ownersAccepted && request.ownersAccepted.includes(user.uid)
+          const filteredRequests = result.requests.filter(
+            (request: any) =>
+              request.ownersAccepted &&
+              request.ownersAccepted.includes(user.uid)
           );
 
           setApprovedRequests(filteredRequests);
@@ -69,7 +71,7 @@ function OwnerApprovedRequests() {
 
     try {
       const result = await deleteRequest(selectedRequestId);
-      
+
       if (result.success) {
         setApprovedRequests(
           approvedRequests.filter((req) => req.id !== selectedRequestId)
