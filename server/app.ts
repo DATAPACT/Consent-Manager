@@ -73,6 +73,7 @@ import authRouter from "./routes/auth.js";
 import ontologiesRouter from "./routes/ontologies.js";
 import dashboardRouter from "./routes/dashboard.js";
 import externalApiRouter from "./routes/external-api.js";
+import contractRoutes from "./routes/contractRoutes.js";
 
 // API Routes
 app.use("/api", (req, res, next) => {
@@ -85,6 +86,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/ontologies", ontologiesRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/external", externalApiRouter);
+app.use("/api/requests", contractRoutes);
 
 // Start server
 app.listen(PORT, () => {

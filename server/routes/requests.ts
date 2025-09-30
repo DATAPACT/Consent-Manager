@@ -1,6 +1,6 @@
-import express from 'express';
-import admin from 'firebase-admin';
-import { db } from '../config/firebase.js';
+import express from "express";
+import admin from "firebase-admin";
+import { db } from "../config/firebase.js";
 
 const router = express.Router();
 
@@ -34,26 +34,41 @@ interface RequestData {
 }
 
 // POST /api/requests - Create a new request
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const data: RequestData = req.body;
     const now = new Date();
 
     const days = [
-      "Sunday", "Monday", "Tuesday", "Wednesday", 
-      "Thursday", "Friday", "Saturday"
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
     ];
     const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
 
-    // If requester info is not provided in the request body, 
+    // If requester info is not provided in the request body,
     // you'll need to implement authentication middleware
     if (!data.requester) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Requester information is required",
-        success: false 
+        success: false,
       });
     }
 
@@ -80,51 +95,49 @@ router.post('/', async (req, res) => {
 
     const docRef = await db.collection("requests").add(requestWithDefaults);
 
-    res.status(201).json({ 
-      id: docRef.id, 
+    res.status(201).json({
+      id: docRef.id,
       success: true,
-      message: "Request created successfully"
+      message: "Request created successfully",
     });
-
   } catch (error) {
     console.error("Error adding request:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to create request",
-      success: false 
+      success: false,
     });
   }
 });
 
 // GET /api/requests/:id - Get a specific request
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const docRef = await db.collection("requests").doc(id).get();
-    
+
     if (!docRef.exists) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Request not found",
-        success: false 
+        success: false,
       });
     }
 
-    res.json({ 
+    res.json({
       id: docRef.id,
       data: docRef.data(),
-      success: true 
+      success: true,
     });
-
   } catch (error) {
     console.error("Error fetching request:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to fetch request",
-      success: false 
+      success: false,
     });
   }
 });
 
 // PUT /api/requests/:id - Update a request
-router.put('/:id', async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -132,99 +145,96 @@ router.put('/:id', async (req, res) => {
     // Check if request exists
     const docRef = db.collection("requests").doc(id);
     const docSnap = await docRef.get();
-    
+
     if (!docSnap.exists) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Request not found",
-        success: false 
+        success: false,
       });
     }
 
     // Update the request
     await docRef.update(updateData);
 
-    res.json({ 
+    res.json({
       id,
       success: true,
-      message: "Request updated successfully"
+      message: "Request updated successfully",
     });
-
   } catch (error) {
     console.error("Error updating request:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to update request",
-      success: false 
+      success: false,
     });
   }
 });
 
 // GET /api/requests - Get requests with filters
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const { uid, role, status } = req.query;
 
     let requestsQuery = db.collection("requests");
 
     // Add filters based on query parameters
-    if (uid && role === 'requester') {
-      requestsQuery = requestsQuery.where('requester.requesterId', '==', uid);
+    if (uid && role === "requester") {
+      requestsQuery = requestsQuery.where("requester.requesterId", "==", uid);
     }
-    if (uid && role === 'owner') {
-      requestsQuery = requestsQuery.where('owners', 'array-contains', uid);
+    if (uid && role === "owner") {
+      requestsQuery = requestsQuery.where("owners", "array-contains", uid);
     }
     if (status) {
-      requestsQuery = requestsQuery.where('status', '==', status);
+      requestsQuery = requestsQuery.where("status", "==", status);
     }
 
     const querySnapshot = await requestsQuery.get();
-    const requests = querySnapshot.docs.map(doc => ({
+    const requests = querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
-    res.json({ 
+    res.json({
       requests,
-      success: true 
+      success: true,
     });
-
   } catch (error) {
     console.error("Error fetching requests:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to fetch requests",
-      success: false 
+      success: false,
     });
   }
 });
 
 // DELETE /api/requests/:id - Delete a request
-router.delete('/:id', async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
     // Check if request exists
     const docRef = db.collection("requests").doc(id);
     const docSnap = await docRef.get();
-    
+
     if (!docSnap.exists) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Request not found",
-        success: false 
+        success: false,
       });
     }
 
     // Delete the request
     await docRef.delete();
 
-    res.json({ 
+    res.json({
       success: true,
-      message: "Request deleted successfully"
+      message: "Request deleted successfully",
     });
-
   } catch (error) {
     console.error("Error deleting request:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to delete request",
-      success: false 
+      success: false,
     });
   }
 });
