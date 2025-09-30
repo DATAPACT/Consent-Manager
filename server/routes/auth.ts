@@ -159,6 +159,13 @@ router.post("/login", async (req, res) => {
       console.log("External API login failed with exception:", apiError);
     }
 
+    if (!apiToken) {
+      return res.status(401).json({
+        error: "Invalid email or password",
+        success: false,
+      });
+    }
+
     res.json({
       success: true,
       user: {
