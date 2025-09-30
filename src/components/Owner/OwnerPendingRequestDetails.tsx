@@ -282,6 +282,36 @@ function OwnerPendingRequestsDetails() {
     return snapshot.data().mongoUserId || null;
   }
 
+  function formatOperand(operand: any): string {
+    if (!operand) return "";
+
+    if (typeof operand === "string") return operand;
+
+    // JSON-LD object with @id
+    if (operand["@id"]) {
+      return operand["@id"].replace(/^.*:/, ""); // strip prefix like cactus:
+    }
+
+    // JSON-LD object with @value
+    if (operand["@value"]) {
+      return operand["@value"];
+    }
+
+    // JSON-LD object with @list
+    if (operand["@list"]) {
+      return operand["@list"]
+        .map((item: any) => formatOperand(item))
+        .join(", ");
+    }
+
+    // Plain array of objects
+    if (Array.isArray(operand)) {
+      return operand.map((item) => formatOperand(item)).join(", ");
+    }
+
+    return String(operand);
+  }
+
   // Function to redirect to negotiation display
   const viewNegotiation = async () => {
     if (!negotiationInfo?.negotiationId || !user) {
@@ -788,9 +818,10 @@ function OwnerPendingRequestsDetails() {
                 <strong>Action:</strong> The requester wants to{" "}
                 <strong>{permission.action}</strong> to this dataset.
               </p>
+
               <p>
                 <strong>Purpose:</strong> This request is for{" "}
-                <strong>{permission.purpose}</strong> reasons.
+                <strong>{formatOperand(permission.purpose)}</strong> reasons.
               </p>
 
               {/* Show generic ODRL constraints */}
@@ -801,7 +832,9 @@ function OwnerPendingRequestsDetails() {
                     {permission.constraints.map((constraint, i) => (
                       <li key={i} className="mb-1">
                         <small className="text-muted">
-                          • {constraint.description}
+                          • {formatOperand(constraint.leftOperand)}{" "}
+                          {formatOperand(constraint.operator)}{" "}
+                          {formatOperand(constraint.rightOperand)}
                         </small>
                       </li>
                     ))}
