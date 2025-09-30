@@ -48,6 +48,7 @@ interface Request {
   policy?: any;
   status: string;
   owners: string[];
+  contractId?: string;
 }
 
 // ✅ Helper: sanitize ODRL -> flatten rdf:value, @id, remove odrl:/rdf: prefixes
@@ -163,6 +164,35 @@ function OwnerApprovedRequestsDetails() {
       },
       odrl: sanitizedPolicy,
     };
+  };
+
+  const downloadContract = async (contractId: string) => {
+    try {
+      const response = await fetch(
+        `http://152.78.17.144:8006/contract/download/${contractId}`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to download contract: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `contract_${contractId}.pdf`; // filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log("Contract downloaded successfully.");
+    } catch (err) {
+      console.error("Error downloading contract:", err);
+    }
   };
 
   if (loading) return <LoadingSpinner />;
@@ -312,9 +342,13 @@ function OwnerApprovedRequestsDetails() {
 
         <hr />
         <div className="d-flex gap-3">
-          <button className={`${styles.primaryButton} btn`}>
+          <button
+            className={`${styles.primaryButton} btn`}
+            onClick={() => downloadContract(requestDetails?.contractId!)}
+          >
             Download Contract
           </button>
+
           <button
             className="btn btn-outline-secondary"
             onClick={() => setShowContract(!showContract)}
