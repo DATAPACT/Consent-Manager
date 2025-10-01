@@ -396,8 +396,11 @@ function OwnerPendingRequestsDetails() {
             negotiationInfo.negotiationId
           );
 
-          // Redirect to existing negotiation if in iframe mode
-          if (isIframeMode && user.userData?.mongoUserId) {
+          // Redirect to existing negotiation if in iframe mode (user has loged in through the API)
+          if (
+            user.loginSource === "External/API" &&
+            user.userData?.mongoUserId
+          ) {
             console.log(
               "🔗 Redirecting to existing negotiation (iframe mode)..."
             );
@@ -558,8 +561,10 @@ function OwnerPendingRequestsDetails() {
 
                 console.log(newNegotiationInfo);
 
+                console.log("USER HAS LOGED IN FROM: ", user.loginSource);
+
                 // Redirect immediately to the negotiation display if in iframe mode
-                if (!isIframeMode) {
+                if (user.loginSource === "UI") {
                   const negotiationId =
                     negotiationResult.negotiation?.negotiation_id;
                   if (negotiationId && user.userData?.mongoUserId) {

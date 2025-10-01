@@ -22,6 +22,7 @@ interface AuthUser {
   role: string;
   userData: UserProfile;
   apiToken?: string;
+  loginSource?: "UI" | "External/API";
 }
 
 // --- Define context type ---
@@ -134,6 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           role: result.user.role,
           userData: result.user.userData,
           apiToken: result.user.apiToken,
+          loginSource: result.user.loginSource,
         };
 
         setUser(authUser);
