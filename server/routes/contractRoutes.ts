@@ -3,7 +3,7 @@ import { db } from "../config/firebase.js";
 
 const router = express.Router();
 
-// GET contractId for a request
+// GET contractId for a request (requires request id)
 router.get("/:id/contract", async (req, res) => {
   try {
     const { id } = req.params;
