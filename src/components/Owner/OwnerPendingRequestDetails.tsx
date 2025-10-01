@@ -115,7 +115,10 @@ function OwnerPendingRequestsDetails() {
               });
 
               // Auto-redirect to negotiation in iframe mode (only if not already attempted)
-              if (isIframeMode && !autoRedirectAttempted) {
+              if (
+                user?.loginSource === "External/API" &&
+                !autoRedirectAttempted
+              ) {
                 console.log(
                   "🔄 Auto-redirecting to existing negotiation in iframe mode..."
                 );
@@ -561,10 +564,11 @@ function OwnerPendingRequestsDetails() {
 
                 console.log(newNegotiationInfo);
 
-                console.log("USER HAS LOGED IN FROM: ", user.loginSource);
-
-                // Redirect immediately to the negotiation display if in iframe mode
-                if (user.loginSource === "UI") {
+                // Redirect immediately to the negotiation display
+                if (
+                  user.loginSource === "UI" ||
+                  user.loginSource === "External/API"
+                ) {
                   const negotiationId =
                     negotiationResult.negotiation?.negotiation_id;
                   if (negotiationId && user.userData?.mongoUserId) {
@@ -620,7 +624,7 @@ function OwnerPendingRequestsDetails() {
       console.log("🔄 Closing modal and finalizing approval...");
       closeModal("approveRequestModal");
 
-      if (isIframeMode) {
+      if (user.loginSource === "External/API") {
         console.log("📡 Notifying parent window about approval");
         // Notify parent window about approval
         notifyParent({
@@ -681,7 +685,7 @@ function OwnerPendingRequestsDetails() {
 
         closeModal("rejectRequestModal");
 
-        if (isIframeMode) {
+        if (user.loginSource === "External/API") {
           // Notify parent window about rejection
           notifyParent({
             action: "request_rejected",
@@ -756,7 +760,7 @@ function OwnerPendingRequestsDetails() {
           console.error("Error creating contract:", contractError);
         }
 
-        if (isIframeMode) {
+        if (user.loginSource === "External/API") {
           notifyParent({
             action: "request_accepted",
             requestId: requestId,
