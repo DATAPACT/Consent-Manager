@@ -60,7 +60,7 @@ router.post("/login", async (req, res) => {
     }
 
     // --- External API login ---
-    let apiToken: string | null = null;
+    let apiToken: any = null;
     try {
       const formData = new URLSearchParams();
       formData.append("username", email);
@@ -76,10 +76,11 @@ router.post("/login", async (req, res) => {
       });
 
       if (apiResponse.ok) {
-        apiToken = await apiResponse.text();
+        const tokenText = await apiResponse.text();
+        apiToken = JSON.parse(tokenText); // parse once here
         console.log(
           "External API login successful:",
-          apiToken.substring(0, 50)
+          tokenText.substring(0, 50)
         );
 
         // --- Get MongoDB user ID if missing ---
@@ -89,7 +90,7 @@ router.post("/login", async (req, res) => {
               `${externalApiUrl}/user/details/`,
               {
                 method: "GET",
-                headers: { Authorization: `Bearer ${apiToken}` },
+                headers: { Authorization: `Bearer ${tokenText}` },
               }
             );
 
@@ -125,6 +126,17 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // --- Save API token in Firestore ---
+    try {
+      const collection = role === "owner" ? "owners" : "requesters";
+      await db.collection(collection).doc(userUid).update({
+        apiToken,
+        apiTokenSavedOn: new Date().toISOString(),
+      });
+    } catch (saveError) {
+      console.warn("Failed to save API token:", saveError);
+    }
+
     // --- Store login info in session ---
     if (req.session) {
       req.session.loginSource = loginSource;
@@ -140,8 +152,8 @@ router.post("/login", async (req, res) => {
         displayName: userData?.name || null,
         role,
         userData,
-        apiToken,
-        loginSource, // persists in session
+        apiToken, // already parsed
+        loginSource,
       },
     });
   } catch (error: any) {
