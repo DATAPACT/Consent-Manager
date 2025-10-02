@@ -5,15 +5,18 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-interface JwtPayload {
-  sub: string; // user email or id
-  exp: number;
-  [key: string]: any;
+interface AuthRequest extends Request {
+  user?: any;
 }
 
 // Middleware to check API token
-function requireToken(req: Request, res: Response, next: NextFunction) {
+export async function authorizeRequest(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
   const token = req.headers["x-api-token"] as string | undefined;
+  const { requestId } = req.params;
 
   if (!token) {
     return res
@@ -21,80 +24,159 @@ function requireToken(req: Request, res: Response, next: NextFunction) {
       .json({ success: false, error: "API token is required" });
   }
 
-  // Token exists, continue to the route
-  next();
+  try {
+    // --- Find user by token ---
+    const ownersSnap = await db
+      .collection("owners")
+      .where("apiToken.access_token", "==", token)
+      .get();
+    const requestersSnap = await db
+      .collection("requesters")
+      .where("apiToken.access_token", "==", token)
+      .get();
+
+    let userDoc = null;
+    let role: "owner" | "requester" | null = null;
+
+    if (!ownersSnap.empty) {
+      userDoc = ownersSnap.docs[0];
+      role = "owner";
+    } else if (!requestersSnap.empty) {
+      userDoc = requestersSnap.docs[0];
+      role = "requester";
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, error: "Invalid API token" });
+    }
+
+    const userData = userDoc.data();
+
+    // --- Decode JWT to get email ---
+    let tokenPayload: any;
+    try {
+      tokenPayload = jwt.decode(token);
+    } catch {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid token format" });
+    }
+
+    if (!tokenPayload?.sub || tokenPayload.sub !== userData.email) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Token email mismatch" });
+    }
+
+    // --- Check if request belongs to this user ---
+    const requestSnap = await db.collection("requests").doc(requestId).get();
+    if (!requestSnap.exists) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Request not found" });
+    }
+
+    const requestData = requestSnap.data();
+    const ownsRequest =
+      (role === "owner" &&
+        requestData?.ownerEmails?.includes(userData.email)) ||
+      (role === "requester" && requestData?.requesterEmail === userData.email);
+
+    if (!ownsRequest) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Not authorized for this request" });
+    }
+
+    // --- Attach user info to request ---
+    req.user = { uid: userDoc.id, email: userData.email, role };
+
+    next();
+  } catch (err) {
+    console.error("Authorization error:", err);
+    res.status(500).json({ success: false, error: "Authorization failed" });
+  }
 }
 
 // GET contractId for a request (requires request id)
+// GET /api/requests/:requestId/contract
 router.get(
-  "/:id/contract",
-  requireToken,
-  async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
-      const docSnap = await db.collection("requests").doc(id).get();
+  "/:requestId/contract",
+  authorizeRequest,
+  async (req: AuthRequest, res) => {
+    const { requestId } = req.params; // matches middleware
+    const requestSnap = await db.collection("requests").doc(requestId).get();
+    const contractId = requestSnap.data()?.contractId || null;
 
-      if (!docSnap.exists) {
+    res.json({ success: true, contractId });
+  }
+);
+
+// GET /api/requests/:requestId/downloadContract/:contractId
+router.get(
+  "/:requestId/downloadContract/:contractId",
+  authorizeRequest,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { requestId, contractId } = req.params;
+
+      // --- Fetch the request to verify existence and ownership ---
+      const requestSnap = await db.collection("requests").doc(requestId).get();
+      if (!requestSnap.exists) {
         return res
           .status(404)
           .json({ success: false, error: "Request not found" });
       }
 
-      res.json({
-        success: true,
-        contractId: docSnap.data()?.contractId || null,
-      });
-    } catch (error) {
-      console.error(error);
-      res
-        .status(500)
-        .json({ success: false, error: "Failed to fetch contractId" });
-    }
-  }
-);
+      // Optional: re-check ownership if middleware does not already enforce it
+      const requestData = requestSnap.data();
+      const userEmail = req.user?.email;
+      const ownsRequest =
+        (req.user?.role === "owner" &&
+          requestData?.ownerEmails?.includes(userEmail)) ||
+        (req.user?.role === "requester" &&
+          requestData?.requesterEmail === userEmail);
 
-// GET /api/requests/:id/downloadContract (requires contract id)
-router.get(
-  "/:id/downloadContract",
-  requireToken,
-  async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
+      if (!ownsRequest) {
+        return res.status(403).json({
+          success: false,
+          error: "Not authorized to download this contract",
+        });
+      }
 
-      const externalApiUrl = `http://152.78.17.144:8006/contract/download/${id}`;
-
+      // --- Download the contract from external API ---
+      const externalApiUrl = `http://152.78.17.144:8006/contract/download/${contractId}`;
       const response = await fetch(externalApiUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // Add auth header for external API if needed
-          // Authorization: `Bearer ${process.env.CONTRACT_API_TOKEN}`,
+          // Include auth header for external API if needed
+          // "Authorization": `Bearer ${process.env.CONTRACT_API_TOKEN}`,
         },
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         return res.status(response.status).json({
-          error: `External API error: ${errorText}`,
           success: false,
+          error: `External API error: ${errorText}`,
         });
       }
 
       const contractBuffer = await response.arrayBuffer();
 
+      // --- Send the file ---
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=contract_${id}.pdf`
+        `attachment; filename=contract_${contractId}.pdf`
       );
       res.setHeader("Content-Type", "application/pdf");
-
       res.send(Buffer.from(contractBuffer));
-    } catch (error) {
-      console.error("Error downloading contract:", error);
-      res.status(500).json({
-        error: "Failed to download contract",
-        success: false,
-      });
+    } catch (err) {
+      console.error("Error downloading contract:", err);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to download contract" });
     }
   }
 );

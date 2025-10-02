@@ -14,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const app = express();
 const PORT = process.env.PORT || 8010;
