@@ -150,11 +150,15 @@ router.post(
       }
 
       res.json(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating contract:", err);
       res
         .status(500)
-        .json({ success: false, error: "Failed to create contract" });
+        .json({
+          success: false,
+          error: "Failed to create contract",
+          details: err.message || String(err)
+        });
     }
   }
 );
