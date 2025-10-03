@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 // components
 import logo from "../../assets/logo.png";
 
-import styles from "../../css/Navar.module.css";
-
 function Navbar() {
   return (
     <>
@@ -47,17 +45,12 @@ function Navbar() {
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="#">
-                  Why us
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
                   Who is it for
                 </a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="#">
-                  Documentation
+                  Contact
                 </a>
               </li>
             </ul>

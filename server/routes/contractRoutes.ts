@@ -98,7 +98,6 @@ export async function authorizeRequest(
   }
 }
 
-// GET contractId for a request (requires request id)
 // GET /api/requests/:requestId/contract
 router.get(
   "/:requestId/contract",
