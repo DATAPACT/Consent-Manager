@@ -157,9 +157,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(authUser));
         if (result.user.apiToken) {
           // Extract access_token if apiToken is an object
-          const token = typeof result.user.apiToken === 'object'
-            ? result.user.apiToken.access_token
-            : result.user.apiToken;
+          let token;
+          if (typeof result.user.apiToken === 'object' && result.user.apiToken.access_token) {
+            token = result.user.apiToken.access_token;
+            console.log("✅ Extracted access_token from apiToken object");
+          } else {
+            token = result.user.apiToken;
+            console.log("⚠️ Using apiToken as-is (not an object)");
+          }
+          console.log("📝 Storing token in localStorage:", token.substring(0, 50) + "...");
           localStorage.setItem("token", token);
         }
       } else {
