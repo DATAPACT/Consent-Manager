@@ -33,7 +33,6 @@ app.use((req, res, next) => {
     // Skip helmet entirely for auth endpoints to allow iframe embedding
     next();
   } else {
-    // Default helmet for other routes
     helmet()(req, res, next);
   }
 });
@@ -47,7 +46,8 @@ const corsOrigins = process.env.CORS_ORIGINS
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:8019"], // frontend + swagger ui
+    origin: corsOrigins,
+    // origin: ["http://localhost:5173", "http://localhost:8019"],
     credentials: true,
   })
 );

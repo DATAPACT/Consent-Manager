@@ -12,7 +12,14 @@ import {
 } from "../../services/api";
 import { getRequestPermissions } from "../../utils/policyParser";
 import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -705,8 +712,14 @@ function OwnerPendingRequestsDetails() {
     setUpdating(false);
   };
 
+  // accept request
   const acceptRequest = async () => {
     if (!requestDetails || !user) return;
+
+    const requestsSnapshot = await getDocs(
+      query(collection(db, "requests"), where("ownerId", "==", user.uid))
+    );
+    const userRequestsCount = requestsSnapshot.size;
 
     setUpdating(true);
     try {
@@ -759,13 +772,16 @@ function OwnerPendingRequestsDetails() {
         } catch (contractError) {
           console.error("Error creating contract:", contractError);
         }
-
         if (user.loginSource === "External/API") {
-          notifyParent({
-            action: "request_accepted",
-            requestId: requestId,
-            requestName: requestDetails.requestName,
-          });
+          if (userRequestsCount === 1) {
+            navigate(`/ownerBase/ownerApprovedRequestsDetails/${requestId}`);
+          } else {
+            notifyParent({
+              action: "request_accepted",
+              requestId: requestId,
+              requestName: requestDetails.requestName,
+            });
+          }
         } else {
           navigate("/ownerBase/ownerDashboard");
         }
