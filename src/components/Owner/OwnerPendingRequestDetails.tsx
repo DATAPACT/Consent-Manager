@@ -9,17 +9,11 @@ import {
   getNegotiationByRequestId,
   redirectToNegotiationDisplay,
   createContractAPI,
+  getRequests,
 } from "../../services/api";
 import { getRequestPermissions } from "../../utils/policyParser";
 import { db } from "../../firebase";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import log from "loglevel";
 
 log.setLevel("debug");
@@ -721,10 +715,11 @@ function OwnerPendingRequestsDetails() {
 
     log.info("test");
 
-    const requestsSnapshot = await getDocs(
-      query(collection(db, "requests"), where("ownerId", "==", user.uid))
-    );
-    const userRequestsCount = requestsSnapshot.size;
+    const requestsResult = await getRequests({
+      uid: user.uid,
+      role: user.role,
+    });
+    const userRequestsCount = requestsResult.data?.length || 0;
 
     setUpdating(true);
     try {
