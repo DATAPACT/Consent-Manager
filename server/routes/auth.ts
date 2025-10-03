@@ -77,7 +77,11 @@ router.post("/login", async (req, res) => {
 
       if (apiResponse.ok) {
         const tokenText = await apiResponse.text();
-        apiToken = JSON.parse(tokenText); // parse once here
+        const tokenObject = JSON.parse(tokenText); // parse once here
+
+        // Extract the access_token if it's an object, otherwise use as-is
+        apiToken = tokenObject.access_token || tokenObject;
+
         console.log(
           "External API login successful:",
           tokenText.substring(0, 50)
@@ -90,7 +94,7 @@ router.post("/login", async (req, res) => {
               `${externalApiUrl}/user/details/`,
               {
                 method: "GET",
-                headers: { Authorization: `Bearer ${tokenText}` },
+                headers: { Authorization: `Bearer ${apiToken}` },
               }
             );
 
@@ -152,7 +156,7 @@ router.post("/login", async (req, res) => {
         displayName: userData?.name || null,
         role,
         userData,
-        apiToken, // already parsed
+        apiToken, // JWT access_token string
         loginSource,
       },
     });
