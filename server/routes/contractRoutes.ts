@@ -98,6 +98,67 @@ export async function authorizeRequest(
   }
 }
 
+// POST /api/requests/:requestId/createContract
+router.post(
+  "/:requestId/createContract",
+  authorizeRequest,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { requestId } = req.params;
+      const { policy } = req.body;
+
+      // --- Fetch the request to verify existence ---
+      const requestSnap = await db.collection("requests").doc(requestId).get();
+      if (!requestSnap.exists) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Request not found" });
+      }
+
+      // --- Prepare payload for external contract API ---
+      const payload = {
+        _id: requestId,
+        optional_info: {},
+        contract_type: "dsa",
+        validity_period: 0,
+        notice_period: 0,
+        contacts: {},
+        resource_description: {},
+        definitions: {},
+        custom_clauses: {},
+        dpw: {},
+        odrl: policy || {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // --- Call external contract creation API ---
+      const externalApiUrl = "http://152.78.17.144:8006/contract/create";
+      const response = await fetch(externalApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          success: false,
+          error: data.message || "Failed to create contract",
+        });
+      }
+
+      res.json(data);
+    } catch (err) {
+      console.error("Error creating contract:", err);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to create contract" });
+    }
+  }
+);
+
 // GET /api/requests/:requestId/contract
 router.get(
   "/:requestId/contract",

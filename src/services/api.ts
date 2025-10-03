@@ -568,29 +568,19 @@ export async function createContractAPI(request: ContractRequest) {
     console.log("📝 Request object received:", request);
     console.log("📄 ODRL policy:", request.policy);
 
-    const payload = {
-      _id: request.id,
-      optional_info: {},
-      contract_type: "dsa",
-      validity_period: 0,
-      notice_period: 0,
-      contacts: {},
-      resource_description: {},
-      definitions: {},
-      custom_clauses: {},
-      dpw: {},
-      odrl: request.policy || {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    const token = localStorage.getItem("token");
 
-    console.log("🚀 Payload being sent:", payload);
-
-    const response = await fetch("http://152.78.17.144:8006/contract/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/requests/${request.id}/createContract`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-token": token || "",
+        },
+        body: JSON.stringify({ policy: request.policy }),
+      }
+    );
 
     const data = await response.json();
 
