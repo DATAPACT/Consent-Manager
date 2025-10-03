@@ -72,9 +72,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const parsedUser = JSON.parse(decodeURIComponent(authUser));
           const decodedToken = decodeURIComponent(authToken);
 
+          // Extract access_token if decodedToken is a JSON object string
+          let tokenToStore = decodedToken;
+          try {
+            const tokenObject = JSON.parse(decodedToken);
+            if (tokenObject.access_token) {
+              tokenToStore = tokenObject.access_token;
+            }
+          } catch (e) {
+            // Not JSON, use as-is
+          }
+
           // Store in localStorage
           localStorage.setItem("user", JSON.stringify(parsedUser));
-          localStorage.setItem("token", decodedToken);
+          localStorage.setItem("token", tokenToStore);
 
           // Set in context
           setUser(parsedUser);
@@ -145,7 +156,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Store in localStorage for persistence
         localStorage.setItem("user", JSON.stringify(authUser));
         if (result.user.apiToken) {
-          localStorage.setItem("token", result.user.apiToken);
+          // Extract access_token if apiToken is an object
+          const token = typeof result.user.apiToken === 'object'
+            ? result.user.apiToken.access_token
+            : result.user.apiToken;
+          localStorage.setItem("token", token);
         }
       } else {
         throw new Error(result.error || "Login failed");
