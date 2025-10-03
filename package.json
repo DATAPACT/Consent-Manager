@@ -27,6 +27,7 @@
     "helmet": "^8.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
+    "loglevel": "^1.9.2",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "node-fetch": "^3.3.2",

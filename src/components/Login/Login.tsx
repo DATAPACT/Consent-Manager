@@ -5,6 +5,10 @@ import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
 
+import log from "loglevel";
+
+log.setLevel("debug");
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +19,8 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    log.info("test");
+
     if (user && role) {
       if (role === "owner") {
         navigate("/ownerBase/ownerDashboard");

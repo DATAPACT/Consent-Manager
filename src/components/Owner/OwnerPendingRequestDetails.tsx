@@ -20,6 +20,9 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
+import log from "loglevel";
+
+log.setLevel("debug");
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -715,6 +718,8 @@ function OwnerPendingRequestsDetails() {
   // accept request
   const acceptRequest = async () => {
     if (!requestDetails || !user) return;
+
+    log.info("test");
 
     const requestsSnapshot = await getDocs(
       query(collection(db, "requests"), where("ownerId", "==", user.uid))
