@@ -166,12 +166,23 @@ function OwnerApprovedRequestsDetails() {
     };
   };
 
-  const downloadContract = async (contractId: string) => {
+  const downloadContract = async (contractId: string | undefined) => {
+    if (!contractId) {
+      alert("Contract ID not found. Please ensure the contract has been created.");
+      return;
+    }
+
     try {
+      const token = localStorage.getItem("token");
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://dips.soton.ac.uk/consent-manager-api/api";
+
       const response = await fetch(
-        `http://152.78.17.144:8006/contract/download/${contractId}`,
+        `${API_BASE_URL}/requests/${requestId}/downloadContract/${contractId}`,
         {
           method: "GET",
+          headers: {
+            "x-api-token": token || "",
+          },
         }
       );
 
@@ -344,7 +355,7 @@ function OwnerApprovedRequestsDetails() {
         <div className="d-flex gap-3">
           <button
             className={`${styles.primaryButton} btn`}
-            onClick={() => downloadContract(requestDetails?.contractId!)}
+            onClick={() => downloadContract(requestDetails?.contractId)}
           >
             Download Contract
           </button>
