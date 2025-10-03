@@ -16,7 +16,7 @@ function Home() {
 
       {/* Hero Section */}
       <section
-        className={`${styles.hero} text-center container w-50 py-5 mt-5`}
+        className={`${styles.dashboard} text-center container w-50 py-5 mt-5`}
       >
         <h1 className="fw-bold">Manage User Consent with Confidence</h1>
         <p className="mt-3">
@@ -32,11 +32,12 @@ function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="container w-75 text-center py-5">
-        <h2 className="fw-bold mb-4">Key Features</h2>
-        <div className="row g-4">
+      <section
+        className={`${styles.dashboardInner} container w-50 text-center`}
+      >
+        <div className="row g-4 mb-5">
           <div className="col-md-4">
-            <div className="card h-100 shadow border-0">
+            <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
                 <h5 className="card-title fw-bold">Fast Integration</h5>
                 <p className="card-text">
@@ -47,7 +48,7 @@ function Home() {
           </div>
 
           <div className="col-md-4">
-            <div className="card h-100 shadow border-0">
+            <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
                 <h5 className="card-title fw-bold">Centralized Dashboard</h5>
                 <p className="card-text">
@@ -58,7 +59,7 @@ function Home() {
           </div>
 
           <div className="col-md-4">
-            <div className="card h-100 shadow border-0">
+            <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
                 <h5 className="card-title fw-bold">Customizable UI</h5>
                 <p className="card-text">
@@ -71,8 +72,8 @@ function Home() {
       </section>
 
       {/* Compliance Section */}
-      <section className="bg-light py-5">
-        <div className="container w-50 text-center">
+      <section className="bg-light py-5 mt-3">
+        <div className={`${styles.dashboardInner} container w-50 text-center`}>
           <h2 className="fw-bold mb-3">Built for Compliance</h2>
           <p>
             Stay compliant with GDPR, CCPA, and other global data privacy laws.
@@ -83,7 +84,9 @@ function Home() {
       </section>
 
       {/* Product Preview Section */}
-      <section className="container w-50 text-center py-5">
+      <section
+        className={`${styles.dashboardInner} container w-50 text-center py-5`}
+      >
         <h2 className="fw-bold mb-4">See It in Action</h2>
         <div className="shadow rounded p-4 bg-white">
           <img
