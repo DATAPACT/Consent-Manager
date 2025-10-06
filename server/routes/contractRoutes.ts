@@ -119,7 +119,9 @@ router.post(
       // --- Prepare payload for external contract API ---
       const payload = {
         _id: requestId,
-        optional_info: {},
+        client_optional_info: {
+          consent_id: requestId,
+        },
         contract_type: "dsa",
         validity_period: 0,
         notice_period: 0,
@@ -132,6 +134,8 @@ router.post(
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
+
+      console.log("the payload is: ", payload);
 
       // --- Call external contract creation API ---
       const externalApiUrl =
