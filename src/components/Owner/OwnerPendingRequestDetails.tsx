@@ -279,6 +279,19 @@ function OwnerPendingRequestsDetails() {
     notifyParent,
   ]);
 
+  // Cleanup: Remove modal-open class when component unmounts
+  useEffect(() => {
+    return () => {
+      // Remove modal-open class from body
+      document.body.classList.remove("modal-open");
+      // Remove any lingering modal backdrops
+      const backdrops = document.getElementsByClassName("modal-backdrop");
+      while (backdrops.length > 0) {
+        backdrops[0].remove();
+      }
+    };
+  }, []);
+
   // getting the mongodb consumer id
   async function getConsumerMongoId(
     requesterId: string
