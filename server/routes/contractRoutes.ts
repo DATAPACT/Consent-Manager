@@ -122,6 +122,7 @@ router.post(
         client_optional_info: {
           consent_id: requestId,
         },
+        cactus_format: 1,
         contract_type: "consent_contract",
         validity_period: 0,
         notice_period: 0,
