@@ -79,7 +79,7 @@ function OwnerApprovedRequestsDetails() {
   const [, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [showContract, setShowContract] = useState<boolean>(false);
+  const [showContract] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -168,13 +168,17 @@ function OwnerApprovedRequestsDetails() {
 
   const downloadContract = async (contractId: string | undefined) => {
     if (!contractId) {
-      alert("Contract ID not found. Please ensure the contract has been created.");
+      alert(
+        "Contract ID not found. Please ensure the contract has been created."
+      );
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://dips.soton.ac.uk/consent-manager-api/api";
+      const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL ||
+        "https://dips.soton.ac.uk/consent-manager-api/api";
 
       const response = await fetch(
         `${API_BASE_URL}/requests/${requestId}/downloadContract/${contractId}`,
@@ -360,12 +364,12 @@ function OwnerApprovedRequestsDetails() {
             Download Contract
           </button>
 
-          <button
+          {/* <button
             className="btn btn-outline-secondary"
             onClick={() => setShowContract(!showContract)}
           >
             {showContract ? "Hide Contract" : "Show Contract"}
-          </button>
+          </button> */}
         </div>
 
         {showContract && (
