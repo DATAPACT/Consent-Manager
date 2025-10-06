@@ -134,14 +134,15 @@ router.post(
       };
 
       // --- Call external contract creation API ---
-      const externalApiUrl = "http://152.78.17.144:8006/contract/create";
+      const externalApiUrl =
+        "https://dips.soton.ac.uk/contract-service-api/contract/create";
       const response = await fetch(externalApiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!response.ok) {
         return res.status(response.status).json({
@@ -153,13 +154,11 @@ router.post(
       res.json(data);
     } catch (err: any) {
       console.error("Error creating contract:", err);
-      res
-        .status(500)
-        .json({
-          success: false,
-          error: "Failed to create contract",
-          details: err.message || String(err)
-        });
+      res.status(500).json({
+        success: false,
+        error: "Failed to create contract",
+        details: err.message || String(err),
+      });
     }
   }
 );
@@ -210,13 +209,11 @@ router.get(
       }
 
       // --- Download the contract from external API ---
-      const externalApiUrl = `http://152.78.17.144:8006/contract/download/${contractId}`;
+      const externalApiUrl = `https://dips.soton.ac.uk/contract-service-api/contract/download/${contractId}`;
       const response = await fetch(externalApiUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // Include auth header for external API if needed
-          // "Authorization": `Bearer ${process.env.CONTRACT_API_TOKEN}`,
         },
       });
 

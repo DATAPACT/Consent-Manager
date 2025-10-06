@@ -119,7 +119,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(parsedUser);
           setRole(parsedUser.role);
           setUserData(parsedUser.userData);
-          console.log("Authentication restored from localStorage:", parsedUser);
         } catch (err) {
           console.error("Error parsing stored user:", err);
           localStorage.removeItem("user");
@@ -158,14 +157,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (result.user.apiToken) {
           // Extract access_token if apiToken is an object
           let token;
-          if (typeof result.user.apiToken === 'object' && result.user.apiToken.access_token) {
+          if (
+            typeof result.user.apiToken === "object" &&
+            result.user.apiToken.access_token
+          ) {
             token = result.user.apiToken.access_token;
             console.log("✅ Extracted access_token from apiToken object");
           } else {
             token = result.user.apiToken;
             console.log("⚠️ Using apiToken as-is (not an object)");
           }
-          console.log("📝 Storing token in localStorage:", token.substring(0, 50) + "...");
+          console.log(
+            "📝 Storing token in localStorage:",
+            token.substring(0, 50) + "..."
+          );
           localStorage.setItem("token", token);
         }
       } else {
