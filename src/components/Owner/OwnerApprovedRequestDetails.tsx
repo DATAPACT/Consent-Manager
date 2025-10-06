@@ -79,7 +79,7 @@ function OwnerApprovedRequestsDetails() {
   const [, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [showContract] = useState<boolean>(false);
+  const [showContract, setShowContract] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -364,12 +364,12 @@ function OwnerApprovedRequestsDetails() {
             Download Contract
           </button>
 
-          {/* <button
+          <button
             className="btn btn-outline-secondary"
             onClick={() => setShowContract(!showContract)}
           >
             {showContract ? "Hide Contract" : "Show Contract"}
-          </button> */}
+          </button>
         </div>
 
         {showContract && (

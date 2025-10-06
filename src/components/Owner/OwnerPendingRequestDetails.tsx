@@ -785,15 +785,16 @@ function OwnerPendingRequestsDetails() {
         } catch (contractError) {
           console.error("Error creating contract:", contractError);
         }
+        console.log("user comes from: ", user.loginSource);
+        console.log("number of requests is: ", userRequestsCount);
         if (user.loginSource === "External/API") {
+          notifyParent({
+            action: "request_accepted",
+            requestId: requestId,
+            requestName: requestDetails.requestName,
+          });
           if (userRequestsCount === 1) {
             navigate(`/ownerBase/ownerApprovedRequestsDetails/${requestId}`);
-          } else {
-            notifyParent({
-              action: "request_accepted",
-              requestId: requestId,
-              requestName: requestDetails.requestName,
-            });
           }
         } else {
           navigate("/ownerBase/ownerDashboard");

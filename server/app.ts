@@ -46,8 +46,10 @@ const corsOrigins = process.env.CORS_ORIGINS
 
 app.use(
   cors({
-    origin: corsOrigins,
-    // origin: ["http://localhost:5173", "http://localhost:8019"],
+    // use this for production
+    // origin: corsOrigins,
+    // use this for localhost
+    origin: ["http://localhost:5173", "http://localhost:8019"],
     credentials: true,
   })
 );

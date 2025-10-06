@@ -1,5 +1,5 @@
 import express from "express";
-import admin from "firebase-admin";
+import { collection, query, where, getDocs, Query } from "firebase/firestore";
 import { db } from "../config/firebase.js";
 
 const router = express.Router();
@@ -175,9 +175,8 @@ router.get("/", async (req, res) => {
   try {
     const { uid, role, status } = req.query;
 
-    let requestsQuery = db.collection("requests");
+    let requestsQuery: FirebaseFirestore.Query = db.collection("requests");
 
-    // Add filters based on query parameters
     if (uid && role === "requester") {
       requestsQuery = requestsQuery.where("requester.requesterId", "==", uid);
     }
@@ -194,16 +193,10 @@ router.get("/", async (req, res) => {
       ...doc.data(),
     }));
 
-    res.json({
-      requests,
-      success: true,
-    });
+    res.json({ requests, success: true });
   } catch (error) {
     console.error("Error fetching requests:", error);
-    res.status(500).json({
-      error: "Failed to fetch requests",
-      success: false,
-    });
+    res.status(500).json({ error: "Failed to fetch requests", success: false });
   }
 });
 
