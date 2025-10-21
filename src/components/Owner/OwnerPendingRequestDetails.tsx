@@ -483,7 +483,10 @@ function OwnerPendingRequestsDetails() {
                 user?.apiToken || undefined;
 
               // 🔽 Handle case where apiToken might be a JSON string containing access_token
-              if (negotiationToken && negotiationToken.startsWith("{")) {
+              if (
+                typeof negotiationToken === "string" &&
+                negotiationToken.startsWith("{")
+              ) {
                 try {
                   const parsed = JSON.parse(negotiationToken);
                   negotiationToken = parsed.access_token || negotiationToken;
@@ -492,6 +495,20 @@ function OwnerPendingRequestsDetails() {
                   console.warn(
                     "⚠️ Could not parse apiToken JSON, using raw value"
                   );
+                }
+              } else if (
+                typeof negotiationToken !== "string" &&
+                negotiationToken
+              ) {
+                // Handle object case
+                if ((negotiationToken as any).access_token) {
+                  negotiationToken = (negotiationToken as any).access_token;
+                } else {
+                  console.warn(
+                    "⚠️ negotiationToken is not a string and has no access_token:",
+                    negotiationToken
+                  );
+                  negotiationToken = undefined;
                 }
               }
 
