@@ -28,17 +28,21 @@ function RequesterRequests() {
         // Fetch all requests for this user via Express API
         const result = await getRequests({
           uid: user.uid,
-          role: 'requester'
+          role: "requester",
         });
 
         if (result.success) {
           const allRequests = result.requests;
-          
+
           // Separate requests by status
-          const drafts = allRequests.filter((req: any) => req.status === 'draft');
-          const sent = allRequests.filter((req: any) => req.status === 'sent');
-          const approved = allRequests.filter((req: any) => req.status === 'approved');
-          
+          const drafts = allRequests.filter(
+            (req: any) => req.status === "draft"
+          );
+          const sent = allRequests.filter((req: any) => req.status === "sent");
+          const approved = allRequests.filter(
+            (req: any) => req.status === "approved"
+          );
+
           setDraftRequests(drafts);
           setSentRequests(sent);
           setApprovedRequests(approved);
@@ -94,35 +98,12 @@ function RequesterRequests() {
             <p>Manage and organize your requests.</p>
           </div>
           <div className="align-self-center">
-            <div className="dropdown">
-              <button
-                className={`${styles.primaryButton} btn dropdown-toggle`}
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                New request
-              </button>
-              <ul className="dropdown-menu">
-                <li>
-                  <Link
-                    className="dropdown-item"
-                    to="/requesterBase/createRequest"
-                  >
-                    <i className="fa-solid fa-plus me-2"></i> Create new request
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    className="dropdown-item"
-                    to="/requesterBase/importRequest"
-                  >
-                    <i className="fa-solid fa-arrow-up-from-bracket me-2"></i>{" "}
-                    Import existing request
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            <Link
+              className={`${styles.primaryButton} btn`}
+              to="/requesterBase/createRequest"
+            >
+              New request
+            </Link>
           </div>
         </div>
 

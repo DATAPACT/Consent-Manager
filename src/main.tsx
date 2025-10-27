@@ -18,7 +18,6 @@ import RequesterRequests from "./components/Requester/RequesterRequests";
 import CreateRequest from "./components/Requester/CreateRequest";
 import OwnerRegister from "./components/Login/OwnerRegister";
 import RequesterRegister from "./components/Login/RequesterRegister";
-import RequesterOtp from "./components/Login/RequesterOtp";
 import OwnerOtp from "./components/Login/OwnerOtp";
 import OwnerPendingRequests from "./components/Owner/OwnerPendingRequests";
 import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestDetails";
@@ -54,7 +53,6 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/login" element={<Login />} />
             <Route path="/ownerRegister" element={<OwnerRegister />} />
             <Route path="/requesterRegister" element={<RequesterRegister />} />
-            <Route path="/requesterOtp" element={<RequesterOtp />} />
             <Route path="/ownerOtp" element={<OwnerOtp />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/test" element={<Test />} />
