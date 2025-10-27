@@ -1,5 +1,7 @@
 import express from "express";
 import { db } from "../config/firebase.js";
+import fs from "fs";
+import path from "path";
 
 const router = express.Router();
 
@@ -613,6 +615,19 @@ router.post("/negotiation/create-accepted", async (req, res) => {
         body: JSON.stringify(finalNegotiationRequest),
       }
     );
+
+    // console.log("📦 === FULL NEGOTIATION PAYLOAD ===");
+    // console.log(JSON.stringify(finalNegotiationRequest, null, 2));
+    // console.log("📦 === END OF PAYLOAD ===");
+
+    // const payloadPath = path.join(process.cwd(), "negotiation_payload.txt");
+    // fs.writeFileSync(
+    //   payloadPath,
+    //   JSON.stringify(finalNegotiationRequest, null, 2),
+    //   "utf8"
+    // );
+
+    // console.log(`💾 Payload saved to: ${payloadPath}`);
 
     console.log("📡 EXTERNAL API RESPONSE:", {
       status: response.status,
