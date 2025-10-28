@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getRequest, updateRequest, getAllOwners } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
@@ -46,8 +46,6 @@ function SendDraftRequest() {
     "November",
     "December",
   ];
-
-  const navigate = useNavigate();
 
   // Get owner details by ID
   const getOwnerById = (ownerId: string) => {
