@@ -38,7 +38,10 @@ function RequesterRequests() {
           const drafts = allRequests.filter(
             (req: any) => req.status === "draft"
           );
-          const sent = allRequests.filter((req: any) => req.status === "sent");
+          const sent = allRequests.filter((req: any) =>
+            ["sent", "accepted", "rejected"].includes(req.status)
+          );
+
           const approved = allRequests.filter(
             (req: any) => req.status === "approved"
           );
@@ -169,10 +172,10 @@ function RequesterRequests() {
                             <li>
                               <Link
                                 className="dropdown-item"
-                                to={`/requesterBase/editDraftRequest/${request.id}`}
+                                to={`/requesterBase/sendDraftRequest/${request.id}`}
                               >
-                                <i className="fa-solid fa-pen-to-square me-2"></i>
-                                Edit
+                                <i className="fa-solid fa-file-import me-2"></i>
+                                Send request
                               </Link>
                             </li>
                             <li>
@@ -185,15 +188,6 @@ function RequesterRequests() {
                                 <i className="fa-solid fa-trash me-2"></i>
                                 Delete
                               </button>
-                            </li>
-                            <li>
-                              <Link
-                                className="dropdown-item"
-                                to={`/requesterBase/sendDraftRequest/${request.id}`}
-                              >
-                                <i className="fa-solid fa-file-import me-2"></i>
-                                Send
-                              </Link>
                             </li>
                           </ul>
                         </div>

@@ -12,6 +12,7 @@ function SendDraftRequest() {
   const [selectedOwners, setSelectedOwners] = useState<
     { email: string; id: string; name?: string }[]
   >([]);
+  const [owners, setOwners] = useState<string[]>([]);
   const [ownersPending, setOwnersPending] = useState<string[]>([]);
   const [ownersAccepted, setOwnersAccepted] = useState<string[]>([]);
   const [ownersRejected, setOwnersRejected] = useState<string[]>([]);
@@ -48,6 +49,35 @@ function SendDraftRequest() {
 
   const navigate = useNavigate();
 
+  // Get owner details by ID
+  const getOwnerById = (ownerId: string) => {
+    return allOwners.find((owner) => owner.id === ownerId);
+  };
+
+  // Get status for an owner
+  const getOwnerStatus = (ownerId: string) => {
+    if (ownersAccepted.includes(ownerId)) return "Accepted";
+    if (ownersRejected.includes(ownerId)) return "Rejected";
+    if (ownersPending.includes(ownerId)) return "Pending";
+    return "Unknown";
+  };
+
+  // Get all sent owners with their status
+  const getSentOwnersWithStatus = () => {
+    const allSentOwnerIds = [
+      ...new Set([...ownersPending, ...ownersAccepted, ...ownersRejected]),
+    ];
+    return allSentOwnerIds.map((ownerId) => {
+      const owner = getOwnerById(ownerId);
+      return {
+        id: ownerId,
+        name: owner?.name || "Unknown",
+        email: owner?.email || "Unknown",
+        status: getOwnerStatus(ownerId),
+      };
+    });
+  };
+
   // Fetch owners and request state
   useEffect(() => {
     const fetchOwnersAndRequest = async () => {
@@ -63,15 +93,25 @@ function SendDraftRequest() {
 
         if (requestId) {
           const result = await getRequest(requestId);
-          console.log("Request result:", result);
+          console.log("=== FULL REQUEST RESULT ===");
+          console.log(result);
+          console.log("=========================");
 
-          if (result.success && result.request) {
-            const requestData = result.request;
+          // FIX: Check for result.data instead of result.request
+          if (result.success && result.data) {
+            const requestData = result.data;
+            console.log("Request owners:", requestData.owners);
+            console.log("Request ownersPending:", requestData.ownersPending);
+            console.log("Request ownersAccepted:", requestData.ownersAccepted);
+            console.log("Request ownersRejected:", requestData.ownersRejected);
+
+            setOwners(requestData.owners || []);
             setOwnersPending(requestData.ownersPending || []);
             setOwnersAccepted(requestData.ownersAccepted || []);
             setOwnersRejected(requestData.ownersRejected || []);
           } else {
             console.warn("Request data not found or invalid structure");
+            setOwners([]);
             setOwnersPending([]);
             setOwnersAccepted([]);
             setOwnersRejected([]);
@@ -80,6 +120,7 @@ function SendDraftRequest() {
       } catch (error) {
         console.error("Error fetching data:", error);
         setAllOwners([]);
+        setOwners([]);
         setOwnersPending([]);
         setOwnersAccepted([]);
         setOwnersRejected([]);
@@ -153,11 +194,24 @@ function SendDraftRequest() {
     setLoading(true);
 
     try {
-      const ownerIds = selectedOwners.map((o) => o.id);
+      const newOwnerIds = selectedOwners.map((o) => o.id);
 
-      const result = await updateRequest(requestId, {
-        owners: [...ownersPending, ...ownerIds],
-        ownersPending: [...ownersPending, ...ownerIds],
+      console.log("=== BEFORE SENDING ===");
+      console.log("Current owners state:", owners);
+      console.log("Current ownersPending state:", ownersPending);
+      console.log("New owner IDs to add:", newOwnerIds);
+
+      // Combine existing owners with new owners (avoid duplicates)
+      const allOwnerIds = [...new Set([...owners, ...newOwnerIds])];
+      const allPendingIds = [...new Set([...ownersPending, ...newOwnerIds])];
+
+      console.log("Combined owner IDs to send:", allOwnerIds);
+      console.log("Combined pending IDs to send:", allPendingIds);
+      console.log("=====================");
+
+      const updatePayload = {
+        owners: allOwnerIds,
+        ownersPending: allPendingIds,
         status: "sent",
         sentAt: `${days[now.getDay()]} ${now
           .getDate()
@@ -168,11 +222,40 @@ function SendDraftRequest() {
           .getHours()
           .toString()
           .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
-      });
+      };
+
+      console.log("=== SENDING PAYLOAD ===");
+      console.log(updatePayload);
+      console.log("======================");
+
+      const result = await updateRequest(requestId, updatePayload);
+
+      console.log("=== UPDATE RESULT ===");
+      console.log(result);
+      console.log("====================");
 
       if (result.success) {
         alert("Request sent successfully!");
-        navigate("/requesterBase/requesterRequests");
+        // Clear selected owners after sending
+        setSelectedOwners([]);
+
+        // Refresh the request data to show updated status
+        console.log("=== REFRESHING DATA ===");
+        const updatedResult = await getRequest(requestId);
+        console.log("Updated result:", updatedResult);
+
+        // FIX: Check for updatedResult.data instead of updatedResult.request
+        if (updatedResult.success && updatedResult.data) {
+          const requestData = updatedResult.data;
+          console.log("New owners from DB:", requestData.owners);
+          console.log("New ownersPending from DB:", requestData.ownersPending);
+
+          setOwners(requestData.owners || []);
+          setOwnersPending(requestData.ownersPending || []);
+          setOwnersAccepted(requestData.ownersAccepted || []);
+          setOwnersRejected(requestData.ownersRejected || []);
+        }
+        console.log("======================");
       } else {
         alert("Error sending request. Please try again.");
       }
@@ -183,6 +266,8 @@ function SendDraftRequest() {
       setLoading(false);
     }
   };
+
+  const sentOwners = getSentOwnersWithStatus();
 
   return (
     <div className={`${styles.dashboard} container w-50`}>
@@ -197,10 +282,47 @@ function SendDraftRequest() {
       <p>Submit requests to data owners for review and action.</p>
       <hr />
 
+      {/* Show already sent requests */}
+      {sentOwners.length > 0 && (
+        <div className="mb-4">
+          <h5>Already sent to</h5>
+          <table className="table table-bordered table-sm">
+            <thead>
+              <tr>
+                <th className="px-2">Name</th>
+                <th className="px-2">Email</th>
+                <th className="px-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sentOwners.map((owner) => (
+                <tr key={owner.id}>
+                  <td className="px-2">{owner.name}</td>
+                  <td className="px-2">{owner.email}</td>
+                  <td className="px-2">
+                    {owner.status === "Accepted" && (
+                      <span className="badge bg-success">Accepted</span>
+                    )}
+                    {owner.status === "Rejected" && (
+                      <span className="badge bg-danger">Rejected</span>
+                    )}
+                    {owner.status === "Pending" && (
+                      <span className="badge bg-warning text-dark">
+                        Pending
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <form className="w-50" onSubmit={(e) => e.preventDefault()}>
         <div className="mb-3">
           <label className={`${styles.formLabel} form-label`}>
-            Recipients' Emails
+            Add New Recipients
           </label>
           <div className="position-relative">
             <input
@@ -242,32 +364,39 @@ function SendDraftRequest() {
           </div>
 
           {selectedOwners.length > 0 && (
-            <table className="table table-bordered table-sm mt-3">
-              <thead>
-                <tr>
-                  <th className="px-2">Name</th>
-                  <th className="px-2">Email</th>
-                  <th className="px-2">Remove</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedOwners.map((owner) => (
-                  <tr key={owner.email}>
-                    <td className="px-2">{owner.name || "Unknown"}</td>
-                    <td className="px-2">{owner.email}</td>
-                    <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn btn-sm text-center"
-                        onClick={() => removeOwner(owner.email)}
-                      >
-                        <i className="fa-solid fa-xmark"></i>
-                      </button>
-                    </td>
+            <div className="mt-3">
+              <p className="mb-2">
+                <strong>
+                  New Recipients to Add ({selectedOwners.length}):
+                </strong>
+              </p>
+              <table className="table table-bordered table-sm">
+                <thead>
+                  <tr>
+                    <th className="px-2">Name</th>
+                    <th className="px-2">Email</th>
+                    <th className="px-2">Remove</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {selectedOwners.map((owner) => (
+                    <tr key={owner.email}>
+                      <td className="px-2">{owner.name || "Unknown"}</td>
+                      <td className="px-2">{owner.email}</td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          className="btn btn-sm text-center"
+                          onClick={() => removeOwner(owner.email)}
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </form>
@@ -294,9 +423,9 @@ function SendDraftRequest() {
         <button
           className={`${styles.primaryButton} btn`}
           onClick={handleSendRequest}
-          disabled={loading}
+          disabled={loading || selectedOwners.length === 0}
         >
-          {loading ? "Sending..." : "Send Request"}
+          {loading ? "Sending..." : `Send Request`}
         </button>
       </div>
     </div>
