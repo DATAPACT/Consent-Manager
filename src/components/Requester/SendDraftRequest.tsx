@@ -16,6 +16,11 @@ function SendDraftRequest() {
   const [ownersAccepted, setOwnersAccepted] = useState<string[]>([]);
   const [ownersRejected, setOwnersRejected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filteredOwners, setFilteredOwners] = useState<
+    { email: string; id: string; name?: string }[]
+  >([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
   const now = new Date();
   const days = [
     "Sunday",
@@ -47,7 +52,7 @@ function SendDraftRequest() {
   useEffect(() => {
     const fetchOwnersAndRequest = async () => {
       try {
-        // Fetch all owners using the new API endpoint
+        // Fetch all owners using the API endpoint
         const ownersResult = await getAllOwners();
         if (ownersResult.success) {
           setAllOwners(ownersResult.owners);
@@ -58,58 +63,76 @@ function SendDraftRequest() {
 
         if (requestId) {
           const result = await getRequest(requestId);
-          
-          if (result.success) {
+          console.log("Request result:", result);
+
+          if (result.success && result.request) {
             const requestData = result.request;
             setOwnersPending(requestData.ownersPending || []);
             setOwnersAccepted(requestData.ownersAccepted || []);
             setOwnersRejected(requestData.ownersRejected || []);
+          } else {
+            console.warn("Request data not found or invalid structure");
+            setOwnersPending([]);
+            setOwnersAccepted([]);
+            setOwnersRejected([]);
           }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
         setAllOwners([]);
+        setOwnersPending([]);
+        setOwnersAccepted([]);
+        setOwnersRejected([]);
       }
     };
 
     fetchOwnersAndRequest();
   }, [requestId]);
 
-  const handleEmailSelect = () => {
-    const inputs = emailInput
-      .split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter((email) => email !== "");
+  // Handle input change and filter owners
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmailInput(value);
 
-    if (inputs.length === 0) return;
-
-    const sentOwnerEmails = allOwners
-      .filter((owner) =>
-        [...ownersPending, ...ownersAccepted, ...ownersRejected].includes(
-          owner.id
-        )
-      )
-      .map((owner) => owner.email.toLowerCase());
-
-    const selectedEmails = selectedOwners.map((o) => o.email.toLowerCase());
-    const alreadySent = new Set([...sentOwnerEmails, ...selectedEmails]);
-
-    const newOwners = inputs
-      .filter((email) => !alreadySent.has(email))
-      .map((email) => {
-        const owner = allOwners.find((o) => o.email.toLowerCase() === email);
-        return {
-          email,
-          id: owner ? owner.id : "",
-          name: owner?.name || "",
-        };
-      });
-
-    if (newOwners.length > 0) {
-      setSelectedOwners((prev) => [...prev, ...newOwners]);
+    if (value.trim() === "") {
+      setFilteredOwners([]);
+      setShowDropdown(false);
+      return;
     }
 
+    // Filter owners based on name or email
+    const searchTerm = value.toLowerCase();
+    const sentOwnerIds = [
+      ...ownersPending,
+      ...ownersAccepted,
+      ...ownersRejected,
+    ];
+    const selectedOwnerIds = selectedOwners.map((o) => o.id);
+    const alreadyAddedIds = new Set([...sentOwnerIds, ...selectedOwnerIds]);
+
+    const filtered = allOwners.filter((owner) => {
+      // Skip already added owners
+      if (alreadyAddedIds.has(owner.id)) return false;
+
+      const nameMatch = owner.name?.toLowerCase().includes(searchTerm);
+      const emailMatch = owner.email.toLowerCase().includes(searchTerm);
+      return nameMatch || emailMatch;
+    });
+
+    setFilteredOwners(filtered);
+    setShowDropdown(filtered.length > 0);
+  };
+
+  // Handle selecting an owner from dropdown
+  const handleSelectOwner = (owner: {
+    email: string;
+    id: string;
+    name?: string;
+  }) => {
+    setSelectedOwners((prev) => [...prev, owner]);
     setEmailInput("");
+    setFilteredOwners([]);
+    setShowDropdown(false);
   };
 
   const removeOwner = (email: string) => {
@@ -131,7 +154,7 @@ function SendDraftRequest() {
 
     try {
       const ownerIds = selectedOwners.map((o) => o.id);
-      
+
       const result = await updateRequest(requestId, {
         owners: [...ownersPending, ...ownerIds],
         ownersPending: [...ownersPending, ...ownerIds],
@@ -179,22 +202,44 @@ function SendDraftRequest() {
           <label className={`${styles.formLabel} form-label`}>
             Recipients' Emails
           </label>
-          <div className="d-flex">
-            <textarea
-              rows={5}
-              className={`${styles.formInput} form-control me-2`}
+          <div className="position-relative">
+            <input
+              type="text"
+              className={`${styles.formInput} form-control`}
               value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="Enter one or more emails, separated by commas"
+              onChange={handleInputChange}
+              onFocus={() =>
+                emailInput && setShowDropdown(filteredOwners.length > 0)
+              }
+              placeholder="Type name or email to search..."
             />
+
+            {/* Dropdown for autocomplete */}
+            {showDropdown && filteredOwners.length > 0 && (
+              <div
+                className="position-absolute w-100 bg-white border rounded-0 shadow-sm mt-1"
+                style={{ maxHeight: "200px", overflowY: "auto", zIndex: 1000 }}
+              >
+                {filteredOwners.map((owner) => (
+                  <div
+                    key={owner.id}
+                    className="p-2 cursor-pointer"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleSelectOwner(owner)}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f8f9fa")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "white")
+                    }
+                  >
+                    <strong>{owner.name || "Unknown"}</strong> &lt;{owner.email}
+                    &gt;
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <button
-            type="button"
-            className={`${styles.primaryButton} btn btn-sm mt-2 mb-3`}
-            onClick={handleEmailSelect}
-          >
-            Add email(s)
-          </button>
 
           {selectedOwners.length > 0 && (
             <table className="table table-bordered table-sm mt-3">
@@ -228,9 +273,8 @@ function SendDraftRequest() {
       </form>
 
       <div className="alert alert-warning" role="alert">
-        <strong>Note:</strong> If you add one or more emails and they don't
-        appear above, it means you've already sent this request to those
-        recipients.
+        <strong>Note:</strong> If you search for someone and they don't appear,
+        it means you've already sent this request to them.
       </div>
 
       <h5 className="mt-4">Sending a request</h5>
