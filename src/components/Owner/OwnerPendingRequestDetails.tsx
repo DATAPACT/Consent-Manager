@@ -616,6 +616,22 @@ function OwnerPendingRequestsDetails() {
 
                     closeModal("negotiateRequestModal");
 
+                    // Notify parent window about negotiation if in iframe mode
+                    if (isIframeMode) {
+                      console.log(
+                        "📡 Notifying parent window about negotiation"
+                      );
+                      notifyParent({
+                        action: "negotiation_opened",
+                        negotiationId: negotiationId,
+                        requestId: requestId,
+                        method:
+                          user.loginSource === "External/API"
+                            ? "new_tab"
+                            : "redirect",
+                      });
+                    }
+
                     const userType =
                       user.role === "owner" ? "provider" : "consumer";
                     await redirectToNegotiationDisplay(
@@ -658,15 +674,18 @@ function OwnerPendingRequestsDetails() {
       console.log("🔄 Closing modal and finalizing approval...");
       closeModal("approveRequestModal");
 
-      if (user.loginSource === "External/API") {
+      // Notify parent window if in iframe mode
+      if (isIframeMode) {
         console.log("📡 Notifying parent window about approval");
-        // Notify parent window about approval
         notifyParent({
           action: "request_approved",
           requestId: requestId,
           requestName: requestDetails.requestName,
         });
-      } else {
+      }
+
+      // Navigate to dashboard only if not in iframe mode
+      if (!isIframeMode) {
         console.log("🏠 Navigating to dashboard");
         navigate("/ownerBase/ownerDashboard");
       }
@@ -719,14 +738,18 @@ function OwnerPendingRequestsDetails() {
 
         closeModal("rejectRequestModal");
 
-        if (user.loginSource === "External/API") {
+        // Notify parent window if in iframe mode
+        if (isIframeMode) {
           // Notify parent window about rejection
           notifyParent({
             action: "request_rejected",
             requestId: requestId,
             requestName: requestDetails.requestName,
           });
-        } else {
+        }
+
+        // Navigate to dashboard only if not in iframe mode
+        if (!isIframeMode) {
           navigate("/ownerBase/ownerDashboard");
         }
       } else {
@@ -804,18 +827,24 @@ function OwnerPendingRequestsDetails() {
         }
         console.log("user comes from: ", user.loginSource);
         console.log("number of requests is: ", userRequestsCount);
-        if (user.loginSource === "External/API") {
+
+        // Notify parent window if in iframe mode
+        console.log("🔍 Accept - isIframeMode:", isIframeMode);
+        if (isIframeMode) {
+          console.log("📡 Notifying parent window about approval");
           notifyParent({
             action: "request_accepted",
             requestId: requestId,
             requestName: requestDetails.requestName,
           });
-          if (userRequestsCount === 1) {
-            navigate(`/ownerBase/ownerApprovedRequestsDetails/${requestId}`);
-          }
-        } else {
+        }
+
+        // Navigate based on context
+        if (!isIframeMode) {
+          // If not in iframe, navigate to dashboard
           navigate("/ownerBase/ownerDashboard");
         }
+        // If in iframe with multiple requests, don't navigate (stay on current page)
       } else {
         setError("Error accepting request.");
       }
