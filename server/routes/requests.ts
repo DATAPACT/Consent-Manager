@@ -13,6 +13,7 @@ interface RequestData {
   requestName: string;
   description?: string;
   extraTerms?: string;
+  extraText?: string;
   permissions: {
     dataset: string;
     datasetRefinements: Refinement[];

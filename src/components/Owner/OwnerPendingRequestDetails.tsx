@@ -227,12 +227,6 @@ function OwnerPendingRequestsDetails() {
                 // Small delay to ensure parent gets the message
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                await redirectToNegotiationDisplay(
-                  negotiationInfo.negotiationId,
-                  accessToken,
-                  user.userData.mongoUserId,
-                  userType
-                );
               } catch (redirectError) {
                 console.error("❌ Auto-redirect failed:", redirectError);
                 setAutoRedirectAttempted(false); // Allow retry

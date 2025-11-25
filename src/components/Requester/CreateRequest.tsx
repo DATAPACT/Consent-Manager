@@ -36,6 +36,7 @@ function CreateRequest() {
 
   const [formData, setFormData] = useState({
     requestName: "",
+    extraText: "",
   });
 
   const [actionOptions, setActionOptions] = useState<Option[]>([]);
@@ -97,7 +98,7 @@ function CreateRequest() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -218,6 +219,20 @@ function CreateRequest() {
                 id="requestName"
                 onChange={handleChange}
                 required
+              />
+            </div>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
+                Additional Terms (Optional)
+              </label>
+              <textarea
+                name="extraText"
+                value={formData.extraText}
+                className={`${styles.formInput} form-control`}
+                id="extraText"
+                onChange={handleChange}
+                rows={4}
+                placeholder="Enter any additional terms or requirements for this consent request..."
               />
             </div>
             <div className="mb-3">

@@ -116,6 +116,16 @@ router.post(
           .json({ success: false, error: "Request not found" });
       }
 
+      const requestData = requestSnap.data();
+
+      // --- Collect natural language document from extraText and extraTerms ---
+      const naturalLanguageFields = [
+        requestData?.extraTerms,
+        requestData?.extraText,
+      ].filter(Boolean);
+
+      const naturalLanguageDocument = naturalLanguageFields.join("\n\n");
+
       // --- Prepare payload for external contract API ---
       const payload = {
         _id: requestId,
@@ -132,6 +142,7 @@ router.post(
         custom_clauses: {},
         dpw: {},
         odrl: policy || {},
+        natural_language_document: naturalLanguageDocument || undefined,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -140,8 +151,9 @@ router.post(
 
       // --- Call external contract creation API ---
       const externalApiUrl =
-        "https://dips.soton.ac.uk/contract-service-api/contract/create";
-      const response = await fetch(externalApiUrl, {
+        process.env.CONTRACT_SERVICE_URL ||
+        "https://dips.soton.ac.uk/contract-service-api";
+      const response = await fetch(`${externalApiUrl}/contract/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -214,8 +226,12 @@ router.get(
       }
 
       // --- Download the contract from external API ---
-      const externalApiUrl = `https://dips.soton.ac.uk/contract-service-api/contract/download/${contractId}`;
-      const response = await fetch(externalApiUrl, {
+      const contractServiceUrl =
+        process.env.CONTRACT_SERVICE_URL ||
+        "https://dips.soton.ac.uk/contract-service-api";
+      const response = await fetch(
+        `${contractServiceUrl}/contract/download/${contractId}`,
+        {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
