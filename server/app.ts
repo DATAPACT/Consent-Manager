@@ -107,7 +107,7 @@ app.use("/api/external", externalApiRouter);
 app.use("/api/requests", contractRoutes);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`Swagger docs: http://localhost:${PORT}/docs`);

@@ -12,19 +12,22 @@ const PORT = process.env.STATIC_PORT || 5173;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve static files from the dist directory
+// Serve static files from the dist directory at /consent-manager/ path
 const distPath = path.join(__dirname, '../dist');
-app.use(express.static(distPath));
+app.use('/consent-manager', express.static(distPath));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', service: 'static-server', timestamp: new Date().toISOString() });
 });
 
-// Handle client-side routing - serve index.html for all routes
-app.use((req, res, next) => {
-  // Only serve index.html for GET requests that accept HTML
-  if (req.method === 'GET' && req.accepts('html')) {
+// Handle client-side routing - serve index.html for consent-manager routes except static assets
+app.use('/consent-manager', (req, res, next) => {
+  // Skip if it's a request for a static file (has file extension)
+  const hasFileExtension = /\.[a-zA-Z0-9]+$/.test(req.path);
+
+  // Only serve index.html for GET requests that accept HTML and aren't static files
+  if (req.method === 'GET' && req.accepts('html') && !hasFileExtension) {
     res.sendFile(path.join(distPath, 'index.html'));
   } else {
     next();

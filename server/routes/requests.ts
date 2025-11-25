@@ -113,18 +113,28 @@ router.post("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("📥 GET /api/requests/:id called with id:", id);
     const docRef = await db.collection("requests").doc(id).get();
 
     if (!docRef.exists) {
+      console.error("❌ Request document NOT found for id:", id);
       return res.status(404).json({
         error: "Request not found",
         success: false,
       });
     }
 
+    const requestData = docRef.data();
+    console.log("📄 Request document found:", {
+      id: docRef.id,
+      requester: requestData?.requester,
+      requesterId: requestData?.requester?.requesterId,
+      requesterEmail: requestData?.requester?.requesterEmail,
+    });
+
     res.json({
       id: docRef.id,
-      data: docRef.data(),
+      data: requestData,
       success: true,
     });
   } catch (error) {

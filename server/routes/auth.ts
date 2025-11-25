@@ -168,6 +168,11 @@ router.post("/login", async (req, res) => {
 // POST /api/auth/register - User registration
 router.post("/register", async (req, res) => {
   try {
+    console.log("========================================");
+    console.log("📝 REGISTRATION REQUEST RECEIVED");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    console.log("========================================");
+
     const {
       email,
       password,
@@ -178,7 +183,21 @@ router.post("/register", async (req, res) => {
       ...additionalData
     } = req.body;
 
+    console.log("📋 Parsed registration data:", {
+      email,
+      name,
+      role,
+      hasPassword: !!password,
+      additionalFields: Object.keys(additionalData),
+    });
+
     if (!email || !password || !name || !role) {
+      console.error("❌ Missing required fields:", {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        hasName: !!name,
+        hasRole: !!role,
+      });
       return res.status(400).json({
         error: "Email, password, name, and role are required",
         success: false,
@@ -186,18 +205,21 @@ router.post("/register", async (req, res) => {
     }
 
     if (!["owner", "requester"].includes(role)) {
+      console.error("❌ Invalid role:", role);
       return res.status(400).json({
         error: 'Role must be either "owner" or "requester"',
         success: false,
       });
     }
 
+    console.log("🔥 Creating Firebase user...");
     // Create Firebase user using Admin SDK
     const userRecord = await admin.auth().createUser({
       email,
       password,
       displayName: name,
     });
+    console.log("✅ Firebase user created:", userRecord.uid);
 
     // Save user data to appropriate Firestore collection
     const collection = role === "owner" ? "owners" : "requesters";
@@ -209,7 +231,9 @@ router.post("/register", async (req, res) => {
       ...additionalData,
     };
 
+    console.log("💾 Saving to Firestore collection:", collection);
     await db.collection(collection).doc(userRecord.uid).set(userData);
+    console.log("✅ Saved to Firestore");
 
     // External API registration
     let apiRegistrationSuccess = false;
@@ -223,6 +247,12 @@ router.post("/register", async (req, res) => {
         process.env.EXTERNAL_API_MASTER_PASSWORD ||
         "5hnd..jk4ne!kwjs?wnsmmf";
       const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
+
+      console.log("🌐 Calling negotiation API registration...");
+      console.log("   URL:", `${externalApiUrl}/user/register`);
+      console.log("   Email:", email);
+      console.log("   Type:", role === "requester" ? "consumer" : "provider");
+
       const apiResponse = await fetch(
         `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
         {
@@ -239,17 +269,12 @@ router.post("/register", async (req, res) => {
         }
       );
 
-      console.log("External API registration request:", {
-        url: `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
-        email: email,
-        name: name,
-        type: role === "requester" ? "consumer" : "provider",
-      });
+      console.log("📡 Negotiation API response status:", apiResponse.status);
 
       apiRegistrationSuccess = apiResponse.ok;
       if (apiResponse.ok) {
         const successData = await apiResponse.json();
-        console.log("External API registration successful:", successData);
+        console.log("✅ Negotiation API registration successful:", successData);
 
         // Extract MongoDB user ID from the response
         if (
@@ -261,11 +286,13 @@ router.post("/register", async (req, res) => {
           console.log("🎯 MongoDB user ID received:", mongoUserId);
 
           // Update the Firebase user document with the MongoDB user ID
+          console.log("💾 Updating Firebase with mongoUserId...");
           await db.collection(collection).doc(userRecord.uid).update({
             mongoUserId: mongoUserId,
             apiRegistrationSuccess: true,
             apiRegistrationDate: new Date().toISOString(),
           });
+          console.log("✅ Firebase updated with mongoUserId");
 
           console.log(
             "✅ MongoDB user ID stored in Firebase for user:",
@@ -276,13 +303,23 @@ router.post("/register", async (req, res) => {
         }
       } else {
         const errorData = await apiResponse.json();
-        console.log("External API registration failed:", {
+        console.error("❌ External API registration failed:", {
           status: apiResponse.status,
+          statusText: apiResponse.statusText,
           error: errorData,
+          email: email,
+          name: name,
+          role: role,
+          type: role === "requester" ? "consumer" : "provider",
         });
       }
-    } catch (apiError) {
-      console.log("External API registration failed:", apiError);
+    } catch (apiError: any) {
+      console.error("❌ External API registration exception:", {
+        error: apiError.message,
+        stack: apiError.stack,
+        email: email,
+        name: name,
+      });
     }
 
     res.status(201).json({

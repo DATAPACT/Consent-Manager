@@ -5,6 +5,10 @@ import path from "path";
 
 const router = express.Router();
 
+// Get external API base URL from environment variable or use production default
+const EXTERNAL_API_BASE_URL =
+  process.env.EXTERNAL_API_BASE_URL || "https://dips.soton.ac.uk/negotiation-api";
+
 // GET /api/external/users - Proxy to external API for user list
 router.get("/users", async (req, res) => {
   try {
@@ -17,14 +21,11 @@ router.get("/users", async (req, res) => {
       });
     }
 
-    const response = await fetch(
-      "https://dips.soton.ac.uk/negotiation-api/users_list",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`${EXTERNAL_API_BASE_URL}/users_list`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`External API error: ${response.status}`);
@@ -59,8 +60,8 @@ router.get("/user-details", async (req, res) => {
     }
 
     const url = user_id
-      ? `https://dips.soton.ac.uk/negotiation-api/user/details/?user_id=${user_id}`
-      : "https://dips.soton.ac.uk/negotiation-api/user/details/";
+      ? `${EXTERNAL_API_BASE_URL}/user/details/?user_id=${user_id}`
+      : `${EXTERNAL_API_BASE_URL}/user/details/`;
 
     const response = await fetch(url, {
       headers: {
@@ -199,6 +200,23 @@ function transformConsentToNegotiation(
   ].filter(Boolean);
 
   const naturalLanguageDoc = additionalTextFields.join("\n\n");
+
+  // Build custom_clauses from extraTerms and extraText
+  const customClauses: { [key: string]: string[] } = {};
+
+  if (requestData.extraTerms) {
+    customClauses["data_usage_restrictions"] = requestData.extraTerms
+      .split("\n")
+      .filter((line: string) => line.trim())
+      .map((line: string) => line.trim());
+  }
+
+  if (requestData.extraText) {
+    customClauses["additional_terms_and_conditions"] = requestData.extraText
+      .split("\n\n")
+      .filter((para: string) => para.trim())
+      .map((para: string) => para.trim().replace(/\n/g, " "));
+  }
 
   // Transform to ODRL policy
   const odrlPermissions = permissions.map((perm) => {
@@ -359,6 +377,7 @@ function transformConsentToNegotiation(
     },
     odrl_policy: {
       odrl: odrlPolicy,
+      ...(Object.keys(customClauses).length > 0 ? customClauses : {}),
     },
   };
 
@@ -593,9 +612,8 @@ router.post("/negotiation/create-accepted", async (req, res) => {
         ? `${token.substring(0, 20)}...${token.slice(-10)}`
         : "No token provided"
     );
-    console.log(
-      "🌐 API endpoint: https://dips.soton.ac.uk/negotiation-api/negotiation/create-with-initial"
-    );
+    const apiUrl = `${EXTERNAL_API_BASE_URL}/negotiation/create-with-initial`;
+    console.log("🌐 API endpoint:", apiUrl);
     console.log(
       "📋 Request payload size:",
       JSON.stringify(finalNegotiationRequest).length,
@@ -604,8 +622,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
 
     // Send to negotiation API with accepted status
     console.log("📡 STEP 5: Sending request to external negotiation API...");
-    const response = await fetch(
-      "https://dips.soton.ac.uk/negotiation-api/negotiation/create-with-initial",
+    const response = await fetch(apiUrl,
       {
         method: "POST",
         headers: {
@@ -713,7 +730,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
   }
 });
 
-// GET /api/external/negotiation/by-request/:requestId - Get negotiation ID by consent request ID
+// GET /api/external/negotiation/by-request/:requestId - Get negotiation ID and provider info by consent request ID
 router.get("/negotiation/by-request/:requestId", async (req, res) => {
   try {
     const { requestId } = req.params;
@@ -736,14 +753,57 @@ router.get("/negotiation/by-request/:requestId", async (req, res) => {
     }
 
     const requestData = docRef.data();
+    const negotiationId = requestData?.negotiationId;
+
+    // If negotiation exists, fetch provider details from negotiation API
+    let providerMongoId = null;
+    let providerFirebaseId = null;
+    let providerEmail = null;
+
+    if (negotiationId) {
+      try {
+        const token = req.headers.authorization?.replace("Bearer ", "");
+        const negotiationResponse = await fetch(
+          `${EXTERNAL_API_BASE_URL}/negotiation/${negotiationId}`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+
+        if (negotiationResponse.ok) {
+          const negotiationData = await negotiationResponse.json();
+          providerMongoId = negotiationData.provider_id;
+
+          // Get provider Firebase ID and email from requesters collection
+          if (providerMongoId) {
+            const requestersSnapshot = await db
+              .collection("requesters")
+              .where("mongoUserId", "==", providerMongoId)
+              .limit(1)
+              .get();
+
+            if (!requestersSnapshot.empty) {
+              const providerData = requestersSnapshot.docs[0].data();
+              providerFirebaseId = requestersSnapshot.docs[0].id;
+              providerEmail = providerData.email;
+            }
+          }
+        }
+      } catch (error) {
+        console.warn("Could not fetch provider details from negotiation:", error);
+      }
+    }
 
     res.json({
       success: true,
       requestId: requestId,
-      negotiationId: requestData?.negotiationId || null,
+      negotiationId: negotiationId || null,
       negotiationStatus: requestData?.negotiationStatus || null,
       sentToNegotiationAt: requestData?.sentToNegotiationAt || null,
       acceptedNegotiationAt: requestData?.acceptedNegotiationAt || null,
+      providerMongoId: providerMongoId,
+      providerFirebaseId: providerFirebaseId,
+      providerEmail: providerEmail,
     });
   } catch (error: any) {
     console.error("Error fetching negotiation by request ID:", error);

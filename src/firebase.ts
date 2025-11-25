@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -23,3 +23,17 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Connect to emulators if USE_EMULATOR is enabled
+if (import.meta.env.VITE_USE_EMULATOR === 'true') {
+  console.log('🔧 Connecting Firebase client SDK to emulators...');
+  console.log('  - Auth Emulator: http://localhost:9099');
+  console.log('  - Firestore Emulator: localhost:8080');
+  console.log('  - Storage Emulator: localhost:9199');
+  connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "localhost", 8080);
+  connectStorageEmulator(storage, "localhost", 9199);
+  console.log('✅ Firebase client SDK connected to emulators');
+} else {
+  console.log('🚀 Using Production Firebase');
+}
