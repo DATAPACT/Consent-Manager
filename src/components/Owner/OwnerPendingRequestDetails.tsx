@@ -213,7 +213,7 @@ function OwnerPendingRequestsDetails() {
               console.log(
                 "🚀 Performing auto-redirect with provider token in iframe mode"
               );
-              const userType = user.role === "owner" ? "provider" : "consumer";
+              // const userType = user.role === "owner" ? "provider" : "consumer";
 
               try {
                 // Notify parent that we're opening negotiation in new tab
