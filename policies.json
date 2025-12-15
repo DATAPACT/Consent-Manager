@@ -1,0 +1,109 @@
+{
+  "scannedAt": "2025-06-26T15:53:20.231Z",
+  "totalRequests": 4,
+  "requestsWithPoliciesOrPermissions": 4,
+  "requests": [
+    {
+      "requestId": "DSbN0BcCL7tZjiItkTrv",
+      "requestName": "Marketing Audit Request - ADR Hellenic",
+      "status": "sent",
+      "createdAt": "Thursday 26 June 2025 15:55",
+      "sentAt": "Thursday 26 June 2025 15:55",
+      "policy": null,
+      "permissions": [
+        {
+          "dataset": "Marketing Data - ADR Hellenic",
+          "datasetRefinements": [],
+          "purposeRefinements": [],
+          "actionRefinements": [],
+          "constraintRefinements": []
+        }
+      ],
+      "metadata": null,
+      "requester": {
+        "requesterId": "h0zwCDl372Sh11wUl9GJTtzNO4F2",
+        "requesterName": "Cactus Account Manager",
+        "requesterEmail": "sinnay@cactusweb.gr"
+      },
+      "attachments": null
+    },
+    {
+      "requestId": "OduBb1EN1Vaq0jBKRtfR",
+      "requestName": "test",
+      "status": "sent",
+      "createdAt": "Monday 23 June 2025 16:00",
+      "sentAt": "Wednesday 25 June 2025 09:46",
+      "policy": null,
+      "permissions": [
+        {
+          "id": 1750690850722,
+          "dataset": "o",
+          "action": "w3yXnO9mGTOoHO8FTGQg",
+          "purpose": "w3yXnO9mGTOoHO8FTGQg",
+          "datasetRefinements": [],
+          "purposeRefinements": [],
+          "actionRefinements": [],
+          "constraintRefinements": []
+        }
+      ],
+      "metadata": null,
+      "requester": {
+        "requesterId": "75cGSbYYLkeq254uGmtT7bTXu8s2",
+        "requesterName": "George Requester",
+        "requesterEmail": "meissaofficial@gmail.com"
+      },
+      "attachments": null
+    },
+    {
+      "requestId": "RaSOpjRBV4jcuRo4TgYY",
+      "requestName": "Marketing Audit Request - 4All Εθνικής Αντιστάσεως",
+      "status": "sent",
+      "createdAt": "Thursday 26 June 2025 14:32",
+      "sentAt": "Thursday 26 June 2025 14:32",
+      "policy": null,
+      "permissions": [
+        {
+          "dataset": "Marketing Data - 4All Εθνικής Αντιστάσεως",
+          "datasetRefinements": [],
+          "purposeRefinements": [],
+          "actionRefinements": [],
+          "constraintRefinements": []
+        }
+      ],
+      "metadata": null,
+      "requester": {
+        "requesterId": "h0zwCDl372Sh11wUl9GJTtzNO4F2",
+        "requesterName": "Cactus Account Manager",
+        "requesterEmail": "sinnay@cactusweb.gr"
+      },
+      "attachments": null
+    },
+    {
+      "requestId": "l2paagbD0U9FB3DyL8yB",
+      "requestName": "lalakis",
+      "status": "sent",
+      "createdAt": "Wednesday 25 June 2025 17:09",
+      "sentAt": "Wednesday 25 June 2025 15:50",
+      "policy": null,
+      "permissions": [
+        {
+          "id": 1750860535689,
+          "dataset": "lalakis",
+          "action": "ontology_0zu02v4ODmSWmrZDRlvKcF0gvAd2_1750859123676",
+          "purpose": "ontology_0zu02v4ODmSWmrZDRlvKcF0gvAd2_1750859123676",
+          "datasetRefinements": [],
+          "purposeRefinements": [],
+          "actionRefinements": [],
+          "constraintRefinements": []
+        }
+      ],
+      "metadata": null,
+      "requester": {
+        "requesterId": "0zu02v4ODmSWmrZDRlvKcF0gvAd2",
+        "requesterName": "Tester Requester",
+        "requesterEmail": "testerrequester@gmail.com"
+      },
+      "attachments": null
+    }
+  ]
+}

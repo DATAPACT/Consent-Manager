@@ -1,0 +1,62 @@
+{
+  "name": "",
+  "requester": {
+    "id": "",
+    "name": "",
+    "email": ""
+  },
+  "created_at": "",
+  "status": "draft",
+  "policy_id": "",
+  "rules": [
+    {
+      "dataset": {
+        "dataset_name": "",
+        "dataset_refinements": [
+          {
+            "attribute": "",
+            "dataset_attribute_label": "",
+            "operator": "",
+            "dataset_operator_label": "",
+            "value": ""
+          }
+        ]
+      },
+      "action": {
+        "action_name": "",
+        "action_label": "",
+        "action_refinements": [
+          {
+            "attribute": "",
+            "action_attribute_label": "",
+            "operator": "",
+            "action_operator_label": "",
+            "value": ""
+          }
+        ]
+      },
+      "purpose": {
+        "purpose_name": "",
+        "purpose_label": "",
+        "purpose_refinements": [
+          {
+            "attribute": "",
+            "purpose_attribute_label": "",
+            "operator": "",
+            "purpose_operator_label": "",
+            "value": ""
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "attribute": "",
+          "constraints_attribute_label": "",
+          "operator": "",
+          "constraints_operator_label": "",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

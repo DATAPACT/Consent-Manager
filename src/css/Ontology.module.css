@@ -1,0 +1,67 @@
+.dashboard {
+  margin-top: 4%;
+}
+
+.primaryButton {
+  background-color: #0690b6;
+  color: white;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.primaryButton:hover {
+  background-color: #0681a3;
+  color: white;
+  font-weight: 400;
+}
+
+.dangerButton {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 0;
+  font-weight: 400;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.dangerButton:hover {
+  background-color: #c03b48;
+  color: white;
+  font-weight: 400;
+}
+
+.secondaryButton {
+  background-color: #dee0e2;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.secondaryButton:hover {
+  background-color: #c8c8c8;
+  font-weight: 400;
+}
+
+.formInput {
+  border-width: 1px;
+  border-color: #262626;
+  border-radius: 0;
+}
+
+.formLabel {
+  font-weight: 500;
+}
+
+.autocomplete {
+  border-radius: 0;
+  width: 24.4%;
+}
+
+@media only screen and (max-width: 600px) {
+  .dashboard {
+    width: 100% !important;
+  }
+}

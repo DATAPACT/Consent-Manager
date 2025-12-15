@@ -1,0 +1,145 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// css
+import "./css/index.css";
+
+// components
+import Home from "./components/Home/Home";
+import GetStarted from "./components/Home/GetStarted";
+import Login from "./components/Login/Login";
+import OwnerBase from "./components/Owner/OwnerBase";
+import OwnerDashboard from "./components/Owner/OwnerDashboard";
+import RequesterBase from "./components/Requester/RequesterBase";
+import RequesterDashboard from "./components/Requester/RequesterDashboard";
+import Ontologies from "./components/Requester/Ontologies";
+import RequesterRequests from "./components/Requester/RequesterRequests";
+import CreateRequest from "./components/Requester/CreateRequest";
+import OwnerRegister from "./components/Login/OwnerRegister";
+import RequesterRegister from "./components/Login/RequesterRegister";
+import RequesterOtp from "./components/Login/RequesterOtp";
+import OwnerOtp from "./components/Login/OwnerOtp";
+import OwnerPendingRequests from "./components/Owner/OwnerPendingRequests";
+import OwnerPendingRequestsDetails from "./components/Owner/OwnerPendingRequestDetails";
+import OwnerApprovedRequests from "./components/Owner/OwnerApprovedRequests";
+import OwnerApprovedRequestsDetails from "./components/Owner/OwnerApprovedRequestDetails";
+import OwnerOtherRequests from "./components/Owner/OwnerOtherRequests";
+import OwnerOtherRequestsDetails from "./components/Owner/OwnerOtherRequestDetails";
+import SendDraftRequest from "./components/Requester/SendDraftRequest";
+import RequesterPendingRequestsDetails from "./components/Requester/RequesterPendingRequestDetails";
+import EditDraftRequest from "./components/Requester/EditDraftRequest";
+import PrivateRoute from "./PrivateRoute";
+import UploadOntology from "./components/Requester/UploadOntology";
+import Unauthorized from "./components/Unauthorized";
+import RequesterSentRequestsDetails from "./components/Requester/RequesterSentRequestDetails";
+import RequesterProfile from "./components/Requester/Profile/RequesterProfile";
+import Test from "./Test";
+import ImportRequest from "./components/Requester/ImportRequest";
+import UserDetails from "./API/UserDetails";
+// Context
+import { AuthProvider } from "./AuthContext";
+import { IframeProvider } from "./IframeContext";
+
+import AllUsers from "./API/AllUsers";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <AuthProvider>
+      <IframeProvider>
+        <Router basename="/consent-manager/">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/getStarted" element={<GetStarted />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/ownerRegister" element={<OwnerRegister />} />
+            <Route path="/requesterRegister" element={<RequesterRegister />} />
+            <Route path="/requesterOtp" element={<RequesterOtp />} />
+            <Route path="/ownerOtp" element={<OwnerOtp />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/test" element={<Test />} />
+            <Route path="/allUsers" element={<AllUsers />} />
+            <Route path="/userDetails" element={<UserDetails />} />
+
+            {/* owner */}
+            <Route
+              path="/ownerBase"
+              element={
+                <PrivateRoute allowedRoles={["owner"]}>
+                  <OwnerBase />
+                </PrivateRoute>
+              }
+            >
+              <Route path="ownerDashboard" element={<OwnerDashboard />} />
+              <Route
+                path="ownerPendingRequests"
+                element={<OwnerPendingRequests />}
+              />
+              <Route
+                path="ownerPendingRequestsDetails/:requestId"
+                element={<OwnerPendingRequestsDetails />}
+              />
+              <Route
+                path="ownerApprovedRequests"
+                element={<OwnerApprovedRequests />}
+              />
+              <Route
+                path="ownerApprovedRequestsDetails/:requestId"
+                element={<OwnerApprovedRequestsDetails />}
+              />
+              <Route
+                path="ownerOtherRequests"
+                element={<OwnerOtherRequests />}
+              />
+              <Route
+                path="ownerOtherRequestsDetails/:requestId"
+                element={<OwnerOtherRequestsDetails />}
+              />
+            </Route>
+
+            {/* requester */}
+            <Route
+              path="/requesterBase"
+              element={
+                <PrivateRoute allowedRoles={["requester"]}>
+                  <RequesterBase />
+                </PrivateRoute>
+              }
+            >
+              <Route
+                path="requesterDashboard"
+                element={<RequesterDashboard />}
+              />
+              <Route path="ontologies" element={<Ontologies />} />
+              <Route path="requesterRequests" element={<RequesterRequests />} />
+              <Route path="createRequest" element={<CreateRequest />} />
+              <Route path="importRequest" element={<ImportRequest />} />
+              <Route
+                path="sendDraftRequest/:requestId"
+                element={<SendDraftRequest />}
+              />
+
+              <Route
+                path="requesterPendingRequestsDetails"
+                element={<RequesterPendingRequestsDetails />}
+              />
+              <Route
+                path="editDraftRequest/:requestId"
+                element={<EditDraftRequest />}
+              />
+              <Route path="uploadOntology" element={<UploadOntology />} />
+              <Route
+                path="requesterSentRequestsDetails/:requestId"
+                element={<RequesterSentRequestsDetails />}
+              />
+              <Route
+                path="requesterProfile/:requestId"
+                element={<RequesterProfile />}
+              />
+            </Route>
+          </Routes>
+        </Router>
+      </IframeProvider>
+    </AuthProvider>
+  </StrictMode>
+);

@@ -1,0 +1,36 @@
+.loginBox {
+  margin-top: 5%;
+}
+
+.primaryButton {
+  background-color: #0690b6;
+  color: white;
+  font-weight: 400;
+  border-radius: 0;
+  border-bottom-width: 2px;
+  border-bottom-color: #262626;
+}
+
+.primaryButton:hover {
+  background-color: #0681a3;
+  color: white;
+  font-weight: 400;
+}
+
+.formInput {
+  border-width: 1px;
+  border-color: #262626;
+  border-radius: 0;
+}
+
+.formLabel {
+  font-weight: 500;
+}
+
+@media only screen and (max-width: 600px) {
+  .loginBox {
+    width: 100% !important;
+    box-shadow: none !important;
+    padding: 20px !important;
+  }
+}
