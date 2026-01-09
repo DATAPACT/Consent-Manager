@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase"; // Import Firebase utils
-import { useAuth } from "../../AuthContext"; // Import the AuthContext
+import { useAuth } from "../../AuthContext";
+import { register } from "../../services/api";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
@@ -18,36 +16,57 @@ const OwnerRegister: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission
+    e.preventDefault();
 
     if (password !== retypePassword) {
       setError("Passwords do not match.");
-      return; // Stop form submission if passwords don't match
+      return;
     }
 
     try {
-      // Create user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      // 1. Register user with Express API
+      const result = await register({
         email,
-        password
-      );
-
-      const user = userCredential.user;
-
-      // Create user data in Firestore under "owners" collection
-      await setDoc(doc(db, "owners", user.uid), {
+        password,
         name,
-        email,
         role: "owner",
-        createdAt: new Date(),
       });
 
-      // After user is created, log them in to update the user context
-      await login(email, password);
+      if (result.success) {
+        // 2. Register the user with external API (University of Southampton)
+        const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
 
-      // Redirect to Dashboard
-      navigate("/ownerBase/ownerDashboard");
+        const response = await fetch(
+          `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username_email: email,
+              password: password,
+              name: name,
+              type: "provider", // Use "consumer" for the consumer form
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errData = await response.json();
+          console.error("API registration failed:", errData);
+          setError(
+            "API registration failed: " + (errData?.detail || "Unknown error")
+          );
+          return;
+        }
+
+        // 3. Log in and redirect
+        await login(email, password);
+        navigate("/ownerBase/ownerDashboard");
+      } else {
+        setError(result.error || "Registration failed");
+      }
     } catch (error: any) {
       setError(error.message);
     }
@@ -59,7 +78,7 @@ const OwnerRegister: React.FC = () => {
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
         <h3>Register as a data owner</h3>
         <p className="mt-3">
-          Already have an account? <Link to="/ownerLogin">Login</Link>
+          Already have an account? <Link to="/login">Login</Link>
         </p>
         {error && (
           <div className="alert alert-danger" role="alert">

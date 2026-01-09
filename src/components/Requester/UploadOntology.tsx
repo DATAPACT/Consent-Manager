@@ -3,10 +3,8 @@ import styles from "../../css/Ontology.module.css";
 // libraries
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
-import { db, storage } from "../../firebase"; // Make sure you export `storage` from firebase.js
-import { doc, setDoc, Timestamp, collection } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // For file upload
-import { auth } from "../../firebase";
+import { useAuth } from "../../AuthContext";
+import { uploadOntology } from "../../services/api";
 
 const UploadOntology: React.FC = () => {
   const [name, setName] = useState("");
@@ -14,6 +12,7 @@ const UploadOntology: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,39 +22,32 @@ const UploadOntology: React.FC = () => {
       return;
     }
 
+    if (!user) {
+      setError("User not authenticated");
+      return;
+    }
+
     try {
       setLoading(true);
-      const requesterId = auth.currentUser?.uid;
 
-      if (!requesterId) {
-        setError("User not authenticated");
-        return;
-      }
-
-      const docRef = doc(collection(db, "ontologies"));
-      const storageRef = ref(storage, `ontologies/${docRef.id}/${file.name}`);
-
-      // Upload file to Firebase Storage
-      await uploadBytes(storageRef, file);
-
-      // Get file download URL
-      const fileURL = await getDownloadURL(storageRef);
-
-      // Save metadata in Firestore
-      await setDoc(docRef, {
-        name,
-        fileURL,
-        uploadedAt: Timestamp.fromDate(new Date()),
-        requesterId,
+      const result = await uploadOntology({
+        requesterUid: user.uid,
+        ontologyName: name,
+        ontologyDescription: "", // You can add a description field if needed
+        ontologyFile: file
       });
 
-      setName("");
-      setFile(null);
-      setError("");
-      alert("Ontology uploaded successfully!");
-      navigate("/requesterBase/Ontologies");
-    } catch (err) {
-      setError("Error uploading ontology");
+      if (result.success) {
+        setName("");
+        setFile(null);
+        setError("");
+        alert("Ontology uploaded successfully!");
+        navigate("/requesterBase/Ontologies");
+      } else {
+        setError(result.error || "Error uploading ontology");
+      }
+    } catch (err: any) {
+      setError(err.message || "Error uploading ontology");
       console.error(err);
     } finally {
       setLoading(false);
@@ -117,7 +109,7 @@ const UploadOntology: React.FC = () => {
         </div>
       </form>
 
-      {error && <p className="text-danger">{error}</p>}
+      {error && <p className="text-danger mt-3">{error}</p>}
 
       <h5 className="mt-5">Uploading an ontology</h5>
       <p>

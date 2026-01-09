@@ -1,6 +1,3 @@
-// css
-import styles from "../../css/Navbar.module.css";
-
 // libraries
 import { Link } from "react-router-dom";
 
@@ -11,7 +8,7 @@ function Navbar() {
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
-        <div className="container-fluid w-75">
+        <div className="container-fluid">
           <Link
             className="navbar-brand"
             to="/"
@@ -48,17 +45,12 @@ function Navbar() {
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="#">
-                  Why us
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
                   Who is it for
                 </a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="#">
-                  Documentation
+                  Contact
                 </a>
               </li>
             </ul>

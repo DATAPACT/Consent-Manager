@@ -1,0 +1,13 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dpv: <https://w3id.org/dpv/owl#> .
+@prefix : <https://eu-upcast.github.io/vocabulary/index-en.html/mint/uri#>
+
+:EmailCustomers rdf:type odrl:Action . 
+:EmailCustomers rdfs:label "Email Customers" . 
+	  
+:RemindPolicyExpiration rdf:type <https://w3id.org/dpv/owl#Purpose> . 
+:RemindPolicyExpiration skos:prefLabel "Remind Policy Expiration" . 

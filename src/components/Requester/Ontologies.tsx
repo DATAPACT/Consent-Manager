@@ -3,15 +3,8 @@ import styles from "../../css/Ontology.module.css";
 // libraries
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth, db } from "../../firebase"; // Ensure your Firebase instance is imported
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  doc,
-} from "firebase/firestore"; // Import Firestore queries
+import { useAuth } from "../../AuthContext";
+import { getOntologies, deleteOntology, getRequests } from "../../services/api";
 
 const Ontologies: React.FC = () => {
   const [ontologies, setOntologies] = useState<any[]>([]);
@@ -20,81 +13,80 @@ const Ontologies: React.FC = () => {
   const [ontologyNameToDelete, setOntologyNameToDelete] = useState<
     string | null
   >(null);
-  const [isOntologyInUse, setIsOntologyInUse] = useState<boolean>(false); // Track if ontology is in use
+  const [isOntologyInUse, setIsOntologyInUse] = useState<boolean>(false);
+  const { user } = useAuth();
 
-  // Fetch ontologies from Firestore
   useEffect(() => {
     const fetchOntologies = async () => {
-      const user = auth.currentUser;
-
       if (!user) {
-        return; // If user is not logged in, do nothing
+        setLoading(false);
+        return;
       }
 
       try {
-        const q = query(
-          collection(db, "ontologies"),
-          where("requesterId", "==", user.uid) // Filter ontologies by requesterId
-        );
-
-        const querySnapshot = await getDocs(q);
-        const ontologiesData: any[] = [];
-        querySnapshot.forEach((doc) => {
-          ontologiesData.push({
-            id: doc.id,
-            ...doc.data(),
-          });
-        });
-
-        setOntologies(ontologiesData);
+        const result = await getOntologies(user.uid);
+        
+        if (result.success) {
+          // Filter out default ontology and any ontologies without names
+          const userOntologies = result.ontologies
+            .filter((ontology: any) => ontology.id !== "default" && ontology.name);
+          
+          setOntologies(userOntologies);
+        } else {
+          console.error("Failed to fetch ontologies:", result.error);
+          setOntologies([]);
+        }
       } catch (error) {
-        console.error("Error fetching ontologies:", error);
+        console.error("Error fetching user ontologies:", error);
+        setOntologies([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchOntologies();
-  }, []);
+  }, [user]);
 
-  // Function to check if the ontology is used by any request
   const checkIfOntologyIsUsed = async (ontologyId: string) => {
     try {
-      const q = query(
-        collection(db, "requests"),
-        where("ontologies", "array-contains", ontologyId) // Check if ontology is in the ontologies array of any request
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.size > 0; // Returns true if any request uses this ontology
+      if (!user) return false;
+      
+      const result = await getRequests({ uid: user.uid, role: 'requester' });
+      
+      if (result.success) {
+        // Check if any request uses this ontology
+        return result.requests.some((request: any) => 
+          request.selectedOntologies?.some((ont: any) => ont.id === ontologyId)
+        );
+      }
+      return false;
     } catch (error) {
       console.error("Error checking ontology usage:", error);
       return false;
     }
   };
 
-  // Function to handle the deletion of an ontology
   const handleDeleteOntology = async (ontologyId: string) => {
-    // Check if the ontology is used in any request
+    if (!user) return;
+    
     const isUsed = await checkIfOntologyIsUsed(ontologyId);
     if (isUsed) {
-      setIsOntologyInUse(true); // Show the modal indicating it's in use
+      setIsOntologyInUse(true);
     } else {
       try {
-        // Get a reference to the ontology document
-        const docRef = doc(db, "ontologies", ontologyId);
-
-        // Delete the document
-        await deleteDoc(docRef);
-
-        // Remove the deleted ontology from state
-        setOntologies(
-          ontologies.filter((ontology) => ontology.id !== ontologyId)
-        );
-
-        alert("Ontology deleted successfully!");
-      } catch (error) {
+        const result = await deleteOntology(ontologyId, user.uid);
+        
+        if (result.success) {
+          setOntologies(
+            ontologies.filter((ontology) => ontology.id !== ontologyId)
+          );
+          alert("Ontology deleted successfully!");
+        } else {
+          alert(`Error deleting ontology: ${result.error}`);
+        }
+      } catch (error: any) {
         console.error("Error deleting ontology:", error);
-        alert("Error deleting ontology.");
+        alert(`Error deleting ontology: ${error.message}`);
       }
     }
   };
@@ -155,7 +147,7 @@ const Ontologies: React.FC = () => {
                 <tr key={ontology.id}>
                   <td className="py-4">{ontology.name}</td>
                   <td className="py-4">
-                    {ontology.uploadedAt?.toDate().toLocaleString()}
+                    {ontology.uploadedAt ? new Date(ontology.uploadedAt).toLocaleString() : 'Unknown'}
                   </td>
                   <td className="py-4 text-center">
                     <button
@@ -164,9 +156,9 @@ const Ontologies: React.FC = () => {
                       data-bs-target="#deleteOntologyModal"
                       onClick={async () => {
                         setOntologyToDelete(ontology.id);
-                        setOntologyNameToDelete(ontology.name); // Store the name of the ontology to delete
+                        setOntologyNameToDelete(ontology.name);
                         const isUsed = await checkIfOntologyIsUsed(ontology.id);
-                        setIsOntologyInUse(isUsed); // Set whether the ontology is in use
+                        setIsOntologyInUse(isUsed);
                       }}
                     >
                       <i className="fa-solid fa-trash"></i>
@@ -219,18 +211,17 @@ const Ontologies: React.FC = () => {
                 type="button"
                 className={`${styles.secondaryButton} btn`}
                 data-bs-dismiss="modal"
-                onClick={() => setIsOntologyInUse(false)} // Reset state and close modal
+                onClick={() => setIsOntologyInUse(false)}
               >
                 Cancel
               </button>
-              {/* Hide delete button if ontology is in use */}
               {!isOntologyInUse && (
                 <button
                   type="button"
                   className={`${styles.dangerButton} btn`}
                   onClick={async () => {
                     if (ontologyToDelete) {
-                      await handleDeleteOntology(ontologyToDelete); // Proceed with deletion if not in use
+                      await handleDeleteOntology(ontologyToDelete);
                     }
                   }}
                   data-bs-dismiss="modal"

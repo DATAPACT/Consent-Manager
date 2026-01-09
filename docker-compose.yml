@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"  # Frontend static server
+      - "8019:8019"  # API server
+    volumes:
+      - ./.env:/app/.env:ro  # Mount .env file (read-only)
+      - ./firebase-admin-key.json:/app/firebase-admin-key.json:ro
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+    container_name: consent-react
+    restart: always
+    networks:
+      - cactus-crm_sail  # Connect to CRM network
+
+networks:
+  cactus-crm_sail:
+    external: true  # Use existing CRM network

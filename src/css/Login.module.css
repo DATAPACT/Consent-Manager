@@ -26,3 +26,11 @@
 .formLabel {
   font-weight: 500;
 }
+
+@media only screen and (max-width: 600px) {
+  .loginBox {
+    width: 100% !important;
+    box-shadow: none !important;
+    padding: 20px !important;
+  }
+}

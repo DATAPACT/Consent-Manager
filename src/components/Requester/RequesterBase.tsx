@@ -4,13 +4,16 @@ import RequesterNavbar from "../UerNavbar/RequesterNavbar";
 
 // libraries
 import { Outlet } from "react-router-dom";
+import { useIframe } from "../../IframeContext";
 
 function RequesterBase() {
+  const { isIframeMode } = useIframe();
+
   return (
     <>
-      <RequesterNavbar />
+      {!isIframeMode && <RequesterNavbar />}
       <Outlet />
-      <Footer />
+      {!isIframeMode && <Footer />}
     </>
   );
 }

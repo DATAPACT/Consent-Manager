@@ -44,3 +44,11 @@
   background-color: #c8c8c8;
   font-weight: 400;
 }
+
+@media only screen and (max-width: 600px) {
+  .dashboard {
+    width: 100% !important;
+    box-shadow: none !important;
+    padding: 20px !important;
+  }
+}

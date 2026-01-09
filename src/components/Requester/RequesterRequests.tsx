@@ -1,23 +1,17 @@
 import styles from "../../css/Ontology.module.css";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db, auth } from "../../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
+import { getRequests, deleteRequest } from "../../services/api";
+import { useAuth } from "../../AuthContext";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
 
 function RequesterRequests() {
+  const { user } = useAuth();
   const [draftRequests, setDraftRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
-  const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
+  const [, setApprovedRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
@@ -25,53 +19,32 @@ function RequesterRequests() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const requestsRef = collection(db, "requests");
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
+        if (!user) {
           setError("User not logged in.");
           setLoading(false);
           return;
         }
 
-        // Fetch draft requests
-        const draftQuery = query(
-          requestsRef,
-          where("requester.requesterId", "==", userId),
-          where("status", "==", "draft")
-        );
-        const draftSnapshot = await getDocs(draftQuery);
-        const draftRequests = draftSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        // Fetch all requests for this user via Express API
+        const result = await getRequests({
+          uid: user.uid,
+          role: 'requester'
+        });
 
-        // Fetch sent requests
-        const sentQuery = query(
-          requestsRef,
-          where("requester.requesterId", "==", userId),
-          where("status", "==", "sent")
-        );
-        const sentSnapshot = await getDocs(sentQuery);
-        const sentRequests = sentSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        // Fetch approved requests
-        const approvedQuery = query(
-          requestsRef,
-          where("requester.requesterId", "==", userId),
-          where("status", "==", "approved")
-        );
-        const approvedSnapshot = await getDocs(approvedQuery);
-        const approvedRequests = approvedSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setDraftRequests(draftRequests);
-        setSentRequests(sentRequests);
-        setApprovedRequests(approvedRequests);
+        if (result.success) {
+          const allRequests = result.requests;
+          
+          // Separate requests by status
+          const drafts = allRequests.filter((req: any) => req.status === 'draft');
+          const sent = allRequests.filter((req: any) => req.status === 'sent');
+          const approved = allRequests.filter((req: any) => req.status === 'approved');
+          
+          setDraftRequests(drafts);
+          setSentRequests(sent);
+          setApprovedRequests(approved);
+        } else {
+          setError("Failed to fetch requests.");
+        }
         setLoading(false);
       } catch (error) {
         console.error("Error fetching requests:", error);
@@ -81,16 +54,20 @@ function RequesterRequests() {
     };
 
     fetchRequests();
-  }, []);
+  }, [user]);
 
   const handleDelete = async () => {
     if (requestToDelete) {
       try {
-        await deleteDoc(doc(db, "requests", requestToDelete));
-        setDraftRequests((prev) =>
-          prev.filter((request) => request.id !== requestToDelete)
-        );
-        setRequestToDelete(null);
+        const result = await deleteRequest(requestToDelete);
+        if (result.success) {
+          setDraftRequests((prev) =>
+            prev.filter((request) => request.id !== requestToDelete)
+          );
+          setRequestToDelete(null);
+        } else {
+          setError("Failed to delete the request.");
+        }
       } catch (error) {
         console.error("Error deleting request:", error);
         setError("An error occurred while deleting the request.");
@@ -117,12 +94,35 @@ function RequesterRequests() {
             <p>Manage and organize your requests.</p>
           </div>
           <div className="align-self-center">
-            <Link
-              className={`${styles.primaryButton} btn`}
-              to="/requesterBase/createRequest"
-            >
-              Create request
-            </Link>
+            <div className="dropdown">
+              <button
+                className={`${styles.primaryButton} btn dropdown-toggle`}
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                New request
+              </button>
+              <ul className="dropdown-menu">
+                <li>
+                  <Link
+                    className="dropdown-item"
+                    to="/requesterBase/createRequest"
+                  >
+                    <i className="fa-solid fa-plus me-2"></i> Create new request
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    className="dropdown-item"
+                    to="/requesterBase/importRequest"
+                  >
+                    <i className="fa-solid fa-arrow-up-from-bracket me-2"></i>{" "}
+                    Import existing request
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -158,45 +158,69 @@ function RequesterRequests() {
                 </p>
               </div>
             ) : (
-              <table className="table mt-4">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Date Created</th>
-                    <th className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {draftRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td className="py-3">{request.requestName}</td>
-                      <td className="py-3">{request.createdAt}</td>
-                      <td className="py-3 text-center">
-                        <Link
-                          className="btn btn-sm text-dark"
-                          to={`/requesterBase/editDraftRequest/${request.id}`}
-                        >
-                          <i className="fa-solid fa-pen-to-square fa-lg"></i>
-                        </Link>
-                        <button
-                          className="btn btn-sm text-dark"
-                          onClick={() => setRequestToDelete(request.id)}
-                          data-bs-toggle="modal"
-                          data-bs-target="#deleteRequestModal"
-                        >
-                          <i className="fa-solid fa-trash fa-lg"></i>
-                        </button>
-                        <Link
-                          className="btn btn-sm text-dark"
-                          to={`/requesterBase/sendDraftRequest/${request.id}`}
-                        >
-                          <i className="fa-solid fa-file-import fa-lg"></i>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="mt-4">
+                {draftRequests.map((request) => (
+                  <div className="border mt-3" key={request.id}>
+                    <div className="d-flex p-3">
+                      <div
+                        className="me-auto p-2"
+                        style={{ fontWeight: "500" }}
+                      >
+                        {request.requestName}
+                      </div>
+                      <div className="p-2">{request.createdAt}</div>
+                      <div className="p-2">
+                        <div className="dropdown d-inline">
+                          <button
+                            className="btn btn-sm text-dark"
+                            type="button"
+                            id={`dropdownMenu-${request.id}`}
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="fa-solid fa-ellipsis-vertical"></i>
+                          </button>
+
+                          <ul
+                            className="dropdown-menu"
+                            aria-labelledby={`dropdownMenu-${request.id}`}
+                          >
+                            <li>
+                              <Link
+                                className="dropdown-item"
+                                to={`/requesterBase/editDraftRequest/${request.id}`}
+                              >
+                                <i className="fa-solid fa-pen-to-square me-2"></i>
+                                Edit
+                              </Link>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setRequestToDelete(request.id)}
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteRequestModal"
+                              >
+                                <i className="fa-solid fa-trash me-2"></i>
+                                Delete
+                              </button>
+                            </li>
+                            <li>
+                              <Link
+                                className="dropdown-item"
+                                to={`/requesterBase/sendDraftRequest/${request.id}`}
+                              >
+                                <i className="fa-solid fa-file-import me-2"></i>
+                                Send
+                              </Link>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

@@ -1,10 +1,11 @@
-import { db } from "../firebase";
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { createRequest } from "../services/api";
 import { Refinement } from "./PermissionsUtils";
 
 interface RequestData {
   requestName: string;
+  description?: string;
+  extraTerms?: string;
+  extraText?: string;
   permissions: {
     dataset: string;
     datasetRefinements: Refinement[];
@@ -12,76 +13,38 @@ interface RequestData {
     actionRefinements: Refinement[];
     constraintRefinements: Refinement[];
   }[];
+  selectedOntologies: {
+    id: string;
+    name: string;
+  }[];
 }
 
-export const addRequest = async (data: RequestData) => {
-  try {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const now = new Date();
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
+interface UserContext {
+  uid: string;
+  email: string | null;
+  userData: {
+    name: string;
+    [key: string]: any;
+  };
+}
 
+export const addRequest = async (data: RequestData, user: UserContext) => {
+  try {
     if (!user) {
       throw new Error("User not authenticated");
     }
 
-    // Fetch requester name from Firestore using UID
-    const requesterDoc = await getDoc(doc(db, "requesters", user.uid));
-    const requesterData = requesterDoc.exists() ? requesterDoc.data() : null;
-
-    const requesterName = requesterData?.name || user.displayName || "Unknown";
-
-    // default request values
-    const requestWithDefaults = {
+    const requestWithRequester = {
       ...data,
       requester: {
         requesterId: user.uid,
-        requesterName: requesterName,
+        requesterName: user.userData.name || "Unknown",
         requesterEmail: user.email || "Unknown",
       },
-      createdAt: `${days[now.getDay()]} ${now
-        .getDate()
-        .toString()
-        .padStart(2, "0")} ${months[now.getMonth()]} ${now.getFullYear()} ${now
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
-      sentAt: "",
-      status: "draft",
-      owners: [],
-      ownersAccepted: [],
-      ownersRejected: [],
-      ownersPending: [],
     };
 
-    const docRef = await addDoc(
-      collection(db, "requests"),
-      requestWithDefaults
-    );
-
-    return { id: docRef.id, success: true };
+    const result = await createRequest(requestWithRequester);
+    return result;
   } catch (error) {
     console.error("Error adding request:", error);
     return { error, success: false };

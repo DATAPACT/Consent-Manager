@@ -1,8 +1,9 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { getRequest, getUserDetails } from "../../services/api";
+import { useIframe } from "../../IframeContext";
+import { getRequestPermissions } from "../../utils/policyParser";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -21,6 +22,21 @@ interface Permission {
   purpose: string;
   purposeRefinements: Refinement[];
   constraintRefinements: Refinement[];
+  constraints?: Array<{
+    leftOperand: string;
+    operator: string;
+    rightOperand: any;
+    description: string;
+  }>;
+  assignees?: Array<{
+    source: string;
+    refinements?: Array<{
+      leftOperand: string;
+      operator: string;
+      rightOperand: any;
+      description: string;
+    }>;
+  }>;
 }
 
 interface Request {
@@ -31,6 +47,7 @@ interface Request {
     requesterEmail: string;
   };
   permissions: Permission[];
+  policy?: any; // ODRL policy
   status: string;
   owners: string[];
   ownersPending: string[];
@@ -40,6 +57,7 @@ interface Request {
 
 function RequesterSentRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
+  const { isIframeMode } = useIframe();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -60,11 +78,10 @@ function RequesterSentRequestsDetails() {
       const owners = requestDetails.owners;
       const ownerDetailsPromises = owners.map(async (ownerId) => {
         try {
-          // Fetch user details for each owner ID from the "owners" collection
-          const userDocRef = doc(db, "owners", ownerId);
-          const userDocSnap = await getDoc(userDocRef);
+          // Fetch user details for each owner ID using the API
+          const result = await getUserDetails(ownerId);
 
-          if (userDocSnap.exists()) {
+          if (result.success && result.user) {
             // Determine the status based on the owner's arrays
             let status = "Waiting for response"; // Default status
             if (requestDetails.ownersAccepted.includes(ownerId)) {
@@ -77,8 +94,8 @@ function RequesterSentRequestsDetails() {
 
             // Return the user details (name, email, and status)
             return {
-              name: userDocSnap.data().name,
-              email: userDocSnap.data().email,
+              name: result.user.name || result.user.displayName || "Unknown",
+              email: result.user.email || "N/A",
               status,
             };
           } else {
@@ -109,11 +126,10 @@ function RequesterSentRequestsDetails() {
       }
 
       try {
-        const requestDocRef = doc(db, "requests", requestId);
-        const docSnap = await getDoc(requestDocRef);
-
-        if (docSnap.exists()) {
-          setRequestDetails({ id: docSnap.id, ...docSnap.data() } as Request);
+        const result = await getRequest(requestId);
+        
+        if (result.success) {
+          setRequestDetails(result.data as Request);
         } else {
           setError("Request not found.");
         }
@@ -155,15 +171,17 @@ function RequesterSentRequestsDetails() {
     return <div className="text-danger">No request details available.</div>;
   return (
     <>
-      <div className={`${styles.dashboard} container w-50`}>
-        <Link
-          className="text-decoration-none"
-          to="/requesterBase/requesterRequests"
-          role="button"
-        >
-          <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
-        </Link>
-        <h3 className="mt-4">{requestDetails.requestName}</h3>
+      <div className={`${styles.dashboard} container w-50`} style={isIframeMode ? { marginTop: '20px' } : {}}>
+        {!isIframeMode && (
+          <Link
+            className="text-decoration-none"
+            to="/requesterBase/requesterRequests"
+            role="button"
+          >
+            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+          </Link>
+        )}
+        <h3 className={isIframeMode ? "mt-2" : "mt-4"}>{requestDetails.requestName}</h3>
 
         <ul className="nav nav-tabs mt-4" id="myTab" role="tablist">
           <li className="nav-item" role="presentation">
@@ -204,7 +222,11 @@ function RequesterSentRequestsDetails() {
             role="tabpanel"
             aria-labelledby="home-tab"
           >
-            {requestDetails.permissions?.map((permission, ruleIndex) => (
+            {(() => {
+              // Parse permissions from ODRL policy or fallback to legacy permissions
+              const parsedPermissions = getRequestPermissions(requestDetails);
+              
+              return parsedPermissions.map((permission, ruleIndex) => (
               <div key={ruleIndex} className="mb-4 mt-4">
                 <h5>Permission {ruleIndex + 1}</h5>
                 <h5 className="mt-4">What’s being requested</h5>
@@ -220,6 +242,37 @@ function RequesterSentRequestsDetails() {
                   <strong>Purpose:</strong> This request is for{" "}
                   <strong>{permission.purpose}</strong> reasons.
                 </p>
+                
+                {/* Show generic ODRL constraints */}
+                {permission.constraints && permission.constraints.length > 0 && (
+                  <div className="mt-3">
+                    <h6>Policy Constraints:</h6>
+                    <ul className="list-unstyled ms-3">
+                      {permission.constraints.map((constraint, i) => (
+                        <li key={i} className="mb-1">
+                          <small className="text-muted">• {constraint.description}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Show generic ODRL assignees */}
+                {permission.assignees && permission.assignees.length > 0 && (
+                  <div className="mt-3">
+                    <h6>Assigned To:</h6>
+                    {permission.assignees.map((assignee, i) => (
+                      <div key={i} className="ms-3">
+                        <p className="mb-1"><strong>{assignee.source}</strong></p>
+                        {assignee.refinements && assignee.refinements.map((ref, j) => (
+                          <p key={j} className="mb-1 ms-2">
+                            <small className="text-muted">└ {ref.description}</small>
+                          </p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {permission.datasetRefinements?.length > 0 && (
                   <div>
@@ -278,7 +331,8 @@ function RequesterSentRequestsDetails() {
                   </div>
                 )}
               </div>
-            ))}
+            ));
+            })()}
 
             <button className={`${styles.primaryButton} btn mt-3`}>
               Download request

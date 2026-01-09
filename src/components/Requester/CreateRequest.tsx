@@ -3,15 +3,16 @@ import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { useState, useEffect } from "react";
 
 import { addRequest } from "../../helperFunctions/AddRequest";
+import { useAuth } from "../../AuthContext";
 
 // dropdowns
 import {
   getFeatureDropdownValue,
-  getDefaultDropdownOptions,
   getAttributeDropdownValue,
   getOperandDropdownValue,
   fetchOntologies,
   Ontology,
+  Option,
 } from "../../helperFunctions/RequestDropdowns";
 
 // permissions utils
@@ -19,6 +20,7 @@ import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
+  const { user } = useAuth();
 
   // steps
   const [step, setStep] = useState(0);
@@ -29,24 +31,58 @@ function CreateRequest() {
   // onotlogies
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
-  const [error, setError] = useState<string | null>(null);
+
+  const [, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     requestName: "",
+    extraText: "",
   });
+
+  const [actionOptions, setActionOptions] = useState<Option[]>([]);
+  const [purposeOptions, setPurposeOptions] = useState<Option[]>([]);
 
   useEffect(() => {
     const loadOntologies = async () => {
+      if (!user) {
+        setError("User not authenticated");
+        return;
+      }
+
       try {
-        const data = await fetchOntologies();
+        const data = await fetchOntologies(user.uid);
         setOntologies(data);
+
+        const defaultOntology = data.find((o) => o.id === "default");
+        if (defaultOntology) {
+          setSelectedOntologies([defaultOntology]);
+        }
       } catch (err: any) {
         setError(err.message);
+        console.error(err);
       }
     };
 
     loadOntologies();
-  }, []);
+  }, [user]); // Depend on user to reload when auth state changes
+
+  useEffect(() => {
+    const loadDropdownValues = async () => {
+      const actions = await getFeatureDropdownValue(
+        selectedOntologies,
+        "action"
+      );
+      const purposes = await getFeatureDropdownValue(
+        selectedOntologies,
+        "purpose"
+      );
+
+      setActionOptions(actions);
+      setPurposeOptions(purposes);
+    };
+
+    loadDropdownValues();
+  }, [selectedOntologies]);
 
   const handleDoubleClick = (id: string) => {
     const existing = selectedOntologies.find((o) => o.id === id);
@@ -62,7 +98,7 @@ function CreateRequest() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -70,7 +106,18 @@ function CreateRequest() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await addRequest({ ...formData, permissions });
+    
+    if (!user) {
+      alert("User not authenticated");
+      return;
+    }
+
+    const result = await addRequest({
+      ...formData,
+      selectedOntologies,
+      permissions,
+    }, user);
+    
     if (result.success) {
       navigate("/requesterBase/RequesterRequests");
     } else {
@@ -176,6 +223,20 @@ function CreateRequest() {
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
+                Additional Terms (Optional)
+              </label>
+              <textarea
+                name="extraText"
+                value={formData.extraText}
+                className={`${styles.formInput} form-control`}
+                id="extraText"
+                onChange={handleChange}
+                rows={4}
+                placeholder="Enter any additional terms or requirements for this consent request..."
+              />
+            </div>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
                 Ontologies
               </label>
 
@@ -193,32 +254,38 @@ function CreateRequest() {
                     <option className="mb-2" disabled selected>
                       Double-click to select
                     </option>
-                    {ontologies.map(({ id, name }) => (
-                      <option key={id} value={id}>
-                        {name}
-                      </option>
-                    ))}
+                    {ontologies
+                      .filter((ontology) => ontology.id !== "default")
+                      .map(({ id, name }) => (
+                        <option key={id} value={id}>
+                          {name}
+                        </option>
+                      ))}
                   </>
                 )}
               </select>
 
               <div style={{ marginTop: "1rem" }}>
-                <span
-                  className="border bg-light px-2 py-1 me-2 text-muted"
-                  style={{ cursor: "pointer" }}
-                >
-                  Default ontology <span style={{ marginLeft: 5 }}></span>
-                </span>
-                {selectedOntologies.map(({ id, name }) => (
-                  <span
-                    key={id}
-                    className="border px-2 py-1 me-2"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => removeOntology(id)}
-                  >
-                    {name} <span style={{ marginLeft: 5 }}>&times;</span>
-                  </span>
-                ))}
+                {selectedOntologies.map(({ id, name }) =>
+                  id === "default" ? (
+                    <span
+                      key={id}
+                      className="border bg-light px-2 py-1 me-2 text-muted"
+                      style={{ cursor: "not-allowed" }}
+                    >
+                      {name}
+                    </span>
+                  ) : (
+                    <span
+                      key={id}
+                      className="border px-2 py-1 me-2"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => removeOntology(id)}
+                    >
+                      {name} <span style={{ marginLeft: 5 }}>&times;</span>
+                    </span>
+                  )
+                )}
               </div>
 
               <div className="alert alert-warning mt-3" role="alert">
@@ -408,32 +475,12 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {/* {getFeatureDropdownValue("action").map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))} */}
-                          {/* Default options first */}
-                          {getDefaultDropdownOptions("action").map((opt) => (
-                            <option
-                              key={`default-${opt.value}`}
-                              value={opt.value}
-                            >
+                          {/* Ontology-based options */}
+                          {actionOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
                               {opt.label}
                             </option>
                           ))}
-
-                          {/* Ontology-based options */}
-                          {selectedOntologies.flatMap(() =>
-                            getFeatureDropdownValue(
-                              selectedOntologies,
-                              "action"
-                            ).map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))
-                          )}
                         </select>
                       </div>
 
@@ -544,32 +591,12 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {/* {getFeatureDropdownValue("purpose").map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))} */}
-                          {/* Default options first */}
-                          {getDefaultDropdownOptions("purpose").map((opt) => (
-                            <option
-                              key={`default-${opt.value}`}
-                              value={opt.value}
-                            >
+                          {/* Ontology-based options */}
+                          {purposeOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
                               {opt.label}
                             </option>
                           ))}
-
-                          {/* Ontology-based options */}
-                          {selectedOntologies.flatMap(() =>
-                            getFeatureDropdownValue(
-                              selectedOntologies,
-                              "purpose"
-                            ).map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))
-                          )}
                         </select>
                       </div>
 
