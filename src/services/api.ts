@@ -2,7 +2,7 @@
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://dips.soton.ac.uk/consent-manager-api/api";
+  "https://10.22.38.111:8019/api";
 
 interface ContractRequest {
   id: string; // required for contract creation

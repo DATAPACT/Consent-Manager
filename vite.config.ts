@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
    base: '/consent-manager/',
+   build: { sourcemap: true },
    server: {
     host: true, // Expose to local network (e.g. tablet)
     allowedHosts: ["dips.soton.ac.uk"],

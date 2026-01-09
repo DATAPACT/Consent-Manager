@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run server client",
     "client": "vite --host 0.0.0.0 --port 5173",
-    "server": "tsx watch server/app.ts",
+    "server": "tsx server/app.ts",
     "serve-static": "tsx server/static-server.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

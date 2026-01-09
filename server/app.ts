@@ -17,7 +17,7 @@ dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const app = express();
-const PORT = process.env.PORT || 8010;
+const PORT = process.env.PORT || 8019;
 
 // Configure payload limits from environment variables
 const JSON_LIMIT = process.env.JSON_LIMIT || "10mb";
@@ -44,15 +44,27 @@ const corsOrigins = process.env.CORS_ORIGINS
     : process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
   : ["*"]; // fallback to allow all
 
-app.use(
-  cors({
-    // use this for production
-    // origin: corsOrigins,
-    // use this for localhost
-    origin: ["http://localhost:5173", "http://localhost:8019"],
-    credentials: true,
-  })
+const allowAllOrigins = corsOrigins.includes("*");
+console.log(
+  "CORS configuration:",
+  allowAllOrigins ? "* (reflect request origin)" : corsOrigins
 );
+
+// Use dynamic origin function so credentials work with "*"
+const corsOptions: any = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow non-browser requests (no Origin header)
+    if (!origin) return callback(null, true);
+    if (allowAllOrigins) return callback(null, true);
+    if (corsOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+// Explicitly handle preflight for all routes (Express 5: avoid "*" which breaks path-to-regexp)
+app.options(/.*/, cors(corsOptions));
 
 app.use(morgan("combined"));
 app.use(express.json({ limit: JSON_LIMIT }));
