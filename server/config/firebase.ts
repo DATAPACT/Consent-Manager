@@ -35,10 +35,17 @@ if (!admin.apps.length) {
       const localServiceAccountPath = join(__dirname, '../../firebase-admin-key.local.json');
       const localServiceAccount = JSON.parse(readFileSync(localServiceAccountPath, 'utf8'));
 
+      //admin.initializeApp({
+      //  credential: admin.credential.cert(localServiceAccount),
+      //  projectId: "upconsent",
+      //});
+
       admin.initializeApp({
-        credential: admin.credential.cert(localServiceAccount),
+    	credential: admin.credential.cert(localServiceAccount),
         projectId: "upconsent",
+        storageBucket: "upconsent.firebasestorage.app",
       });
+
     } else {
       // Production Firebase mode
       console.log("🚀 Using Production Firebase");
