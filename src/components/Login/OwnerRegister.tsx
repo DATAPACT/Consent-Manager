@@ -7,12 +7,13 @@ import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
 
 const OwnerRegister: React.FC = () => {
-  const { login } = useAuth(); // Access the login function from the context
+  const { login } = useAuth();
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [retypePassword, setRetypePassword] = useState<string>(""); // State for re-type password
+  const [retypePassword, setRetypePassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false); // Add loading state
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,8 +24,39 @@ const OwnerRegister: React.FC = () => {
       return;
     }
 
+    setLoading(true); // Start loading
+    setError(""); // Clear previous errors
+
     try {
-      // 1. Register user with Express API
+      // 1. Try Southampton API FIRST
+      const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf";
+      const response = await fetch(
+        `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username_email: email,
+            password: password,
+            name: name,
+            type: "provider",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("API registration failed:", errData);
+        setError(
+          "API registration failed: " + (errData?.detail || "Unknown error")
+        );
+        setLoading(false); // Stop loading
+        return;
+      }
+
+      // 2. Only create Firebase user if Southampton succeeded
       const result = await register({
         email,
         password,
@@ -33,42 +65,16 @@ const OwnerRegister: React.FC = () => {
       });
 
       if (result.success) {
-        // 2. Register the user with external API (University of Southampton)
-        const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf"; // Replace with your actual password or env variable
-
-        const response = await fetch(
-          `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username_email: email,
-              password: password,
-              name: name,
-              type: "provider", // Use "consumer" for the consumer form
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          const errData = await response.json();
-          console.error("API registration failed:", errData);
-          setError(
-            "API registration failed: " + (errData?.detail || "Unknown error")
-          );
-          return;
-        }
-
         // 3. Log in and redirect
         await login(email, password);
         navigate("/ownerBase/ownerDashboard");
       } else {
         setError(result.error || "Registration failed");
+        setLoading(false); // Stop loading
       }
     } catch (error: any) {
       setError(error.message);
+      setLoading(false); // Stop loading
     }
   };
 
@@ -96,6 +102,7 @@ const OwnerRegister: React.FC = () => {
               id="exampleInputEmail1"
               onChange={(e) => setName(e.target.value)}
               required
+              disabled={loading} // Disable during loading
             />
           </div>
           <div className="mb-3">
@@ -109,6 +116,7 @@ const OwnerRegister: React.FC = () => {
               id="exampleInputEmail1"
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading} // Disable during loading
             />
           </div>
           <div className="mb-3">
@@ -120,6 +128,7 @@ const OwnerRegister: React.FC = () => {
               id="exampleInputPassword1"
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading} // Disable during loading
             />
           </div>
           <div className="mb-3">
@@ -131,8 +140,9 @@ const OwnerRegister: React.FC = () => {
               className={`${styles.formInput} form-control`}
               id="exampleInputPassword2"
               value={retypePassword}
-              onChange={(e) => setRetypePassword(e.target.value)} // Handle re-type password
+              onChange={(e) => setRetypePassword(e.target.value)}
               required
+              disabled={loading} // Disable during loading
             />
           </div>
           <div className="mb-3 form-check">
@@ -141,6 +151,7 @@ const OwnerRegister: React.FC = () => {
               className="form-check-input"
               id="exampleCheck1"
               required
+              disabled={loading} // Disable during loading
             />
             <label className="form-check-label">
               I have read and agree to the{" "}
@@ -155,10 +166,13 @@ const OwnerRegister: React.FC = () => {
             </label>
           </div>
 
-          {/* Show error message */}
           <div className="mb-3 mt-4">
-            <button type="submit" className={`${styles.primaryButton} btn`}>
-              Register
+            <button
+              type="submit"
+              className={`${styles.primaryButton} btn`}
+              disabled={loading} // Disable button during loading
+            >
+              {loading ? "Registering..." : "Register"}
             </button>
           </div>
         </form>
