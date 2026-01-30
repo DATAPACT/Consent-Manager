@@ -78,9 +78,25 @@ export async function authorizeRequest(
     }
 
     const requestData = requestSnap.data();
+    console.log("Token payload is: ", tokenPayload);
+    console.log("User data is: ", userData);
+    console.log("Request data is: ", requestData);
+    const ownerDocs = db.collection("owners");
+    const ownerEmails: string[] = [];
+    await ownerDocs.get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          console.log("doc is: ", doc);
+          ownerEmails.push( 
+            //id: doc.id, 
+            doc.data().email )
+        })
+    });
+    console.log(ownerEmails);
+    console.log(userData.email);
+    console.log(ownerEmails.includes(userData.email));
+    // This follows the assumption that emails are unique.
     const ownsRequest =
-      (role === "owner" &&
-        requestData?.ownerEmails?.includes(userData.email)) ||
+      (role === "owner" && ownerEmails.includes(userData.email)) ||
       (role === "requester" && requestData?.requesterEmail === userData.email);
 
     if (!ownsRequest) {
@@ -108,6 +124,7 @@ router.post(
       const { requestId } = req.params;
       const { policy } = req.body;
 
+      console.log("Fetching request to verify existence.");
       // --- Fetch the request to verify existence ---
       const requestSnap = await db.collection("requests").doc(requestId).get();
       if (!requestSnap.exists) {
@@ -117,6 +134,7 @@ router.post(
       }
 
       const requestData = requestSnap.data();
+      console.log("Collecting natural language document.");
 
       // --- Collect natural language document from extraText and extraTerms ---
       const naturalLanguageFields = [
@@ -125,6 +143,7 @@ router.post(
       ].filter(Boolean);
 
       const naturalLanguageDocument = naturalLanguageFields.join("\n\n");
+      console.log("Preparing payload");
 
       // --- Prepare payload for external contract API ---
       const payload = {
@@ -133,16 +152,16 @@ router.post(
           consent_id: requestId,
         },
         cactus_format: 1,
-        contract_type: "consent_contract",
-        validity_period: 0,
+        contract_type: "pda",
+        validity_period: 12,
         notice_period: 0,
         contacts: {},
         resource_description: {},
         definitions: {},
         custom_clauses: {},
         dpw: {},
-        odrl: policy || {},
-        natural_language_document: naturalLanguageDocument || undefined,
+        odrl: {policy: policy},
+        nlp: naturalLanguageDocument || "",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -153,6 +172,7 @@ router.post(
       const externalApiUrl =
         process.env.CONTRACT_SERVICE_URL ||
         "https://dips.soton.ac.uk/contract-service-api";
+      console.log("the external api is: ", externalApiUrl);
       const response = await fetch(`${externalApiUrl}/contract/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,7 +184,7 @@ router.post(
       if (!response.ok) {
         return res.status(response.status).json({
           success: false,
-          error: data.message || "Failed to create contract",
+          error: data.message || "Failed to create contract at: " + externalApiUrl,
         });
       }
 

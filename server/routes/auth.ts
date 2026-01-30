@@ -69,6 +69,7 @@ router.post("/login", async (req, res) => {
       const externalApiUrl =
         process.env.EXTERNAL_API_BASE_URL ||
         "https://dips.soton.ac.uk/negotiation-api";
+      console.log("external api url is: ", externalApiUrl);
       const apiResponse = await fetch(`${externalApiUrl}/user/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

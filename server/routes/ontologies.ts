@@ -64,11 +64,16 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
         contentType: file.mimetype
       }
     });
-    
-    const downloadURL = await storageRef.getSignedUrl({
+
+    let downloadURL = await storageRef.getSignedUrl({
       action: 'read',
       expires: '03-09-2030'
     }).then(urls => urls[0]);
+
+    if (process.env.USE_EMULATOR) { //Check if using emulator so we can give a different URL.
+      console.log("Using emulator.")
+      downloadURL = downloadURL.replace("firebase-emulator", "localhost");
+    }
 
     const ontologyId = `ontology_${requesterUid}_${timestamp}`;
 
@@ -169,6 +174,11 @@ router.get('/', async (req, res) => {
           ...defaultOntologyDoc.data()
         });
       }
+
+      allAvailableOntologies.forEach(async value => {
+        console.log(value);
+      }
+      )
       
       res.json({
         success: true,

@@ -29,32 +29,33 @@ const OwnerRegister: React.FC = () => {
 
     try {
       // 1. Try Southampton API FIRST
-      const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf";
-      const response = await fetch(
-        `https://dips.soton.ac.uk/negotiation-api/user/register?master_password_input=${masterPassword}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username_email: email,
-            password: password,
-            name: name,
-            type: "provider",
-          }),
-        }
-      );
+      // Try LOCALLY FIRST
+      // const masterPassword = "5hnd..jk4ne!kwjs?wnsmmf";
+      // const response = await fetch(
+      //   `http://negotiation-api:8001/negotiation-api/user/register?master_password_input=${masterPassword}`,
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify({
+      //       username_email: email,
+      //       password: password,
+      //       name: name,
+      //       type: "provider",
+      //     }),
+      //   }
+      // );
 
-      if (!response.ok) {
-        const errData = await response.json();
-        console.error("API registration failed:", errData);
-        setError(
-          "API registration failed: " + (errData?.detail || "Unknown error")
-        );
-        setLoading(false); // Stop loading
-        return;
-      }
+      // if (!response.ok) {
+      //   const errData = await response.json();
+      //   console.error("API registration failed:", errData);
+      //   setError(
+      //     "API registration failed: " + (errData?.detail || "Unknown error")
+      //   );
+      //   // setLoading(false); // Stop loading
+      //   // return; JS NOTE: This is commented while I'm developing. Ideally there should be an external API.
+      // }
 
       // 2. Only create Firebase user if Southampton succeeded
       const result = await register({
