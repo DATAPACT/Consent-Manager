@@ -545,8 +545,11 @@ export const redirectToNegotiationDisplay = async (
   });
 
   // Build URL with authentication parameters
+  const negotiationBaseUrl =
+    import.meta.env.VITE_NEGOTIATION_BASE_URL ||
+    "https://dips.soton.ac.uk/negotiation/organization/negotiation";
   const negotiationUrl =
-    `https://dips.soton.ac.uk/negotiation/organization/negotiation?` +
+    `${negotiationBaseUrl}?` +
     `negotiation_id=${negotiationId}&` +
     `access_token=${encodeURIComponent(accessToken)}&` +
     `user_id=${userId}&` +

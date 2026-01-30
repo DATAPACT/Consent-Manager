@@ -232,11 +232,21 @@ router.get(
       // Optional: re-check ownership if middleware does not already enforce it
       const requestData = requestSnap.data();
       const userEmail = req.user?.email;
+      const ownerIds = [
+        ...(requestData?.ownersAccepted || []),
+        ...(requestData?.ownersPending || []),
+        ...(requestData?.ownersRejected || []),
+      ];
+      const requesterEmail =
+        requestData?.requesterEmail || requestData?.requester?.requesterEmail;
+      const requesterId =
+        requestData?.requesterId || requestData?.requester?.requesterId;
       const ownsRequest =
         (req.user?.role === "owner" &&
-          requestData?.ownerEmails?.includes(userEmail)) ||
+          (ownerIds.includes(req.user?.uid) ||
+            requestData?.ownerEmails?.includes(userEmail))) ||
         (req.user?.role === "requester" &&
-          requestData?.requesterEmail === userEmail);
+          (requesterId === req.user?.uid || requesterEmail === userEmail));
 
       if (!ownsRequest) {
         return res.status(403).json({
