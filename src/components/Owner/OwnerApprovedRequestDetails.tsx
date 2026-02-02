@@ -118,7 +118,7 @@ function OwnerApprovedRequestsDetails() {
     const sanitizedPolicy = sanitizeODRL(requestDetails.policy);
 
     return {
-      contract_type: "consent_contract",
+      contract_type: "pda",
       effective_date: "2025-09-11",
       validity_period: 24,
       contacts: {
