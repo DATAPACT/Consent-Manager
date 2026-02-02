@@ -1,0 +1,148 @@
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://dips.soton.ac.uk/consent-manager-api/api/auth/login. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 204.
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://dips.soton.ac.uk/consent-manager-api/api/auth/login. (Reason: CORS request did not succeed). Status code: (null).
+Error logging in: TypeError: NetworkError when attempting to fetch resource. index-XRBv5xXi.js:60:28399
+Login error: TypeError: NetworkError when attempting to fetch resource.
+
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://dips.soton.ac.uk/consent-manager-api/api/auth/register. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 204
+
+I assume this error is because we are trying to access a specific URL rather than a relative path.
+
+http://localhost:8002/negotiation-api/docs for the Negotiation API
+
+Looking at services/api.ts, Lines 3 to 5: 
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://dips.soton.ac.uk/consent-manager-api/api";
+  
+Looking at .env:
+
+VITE_API_BASE_URL=http://localhost:8019/api
+
+Should probably be changed to:
+
+VITE_API_BASE_URL=http://localhost:5173/api
+
+Upon inspection, the upcast-local-dev doesn't seem to start a service for the consent-manager-api. In theory, we should add an URL to the consent-manager-api to VITE_API_BASE_URL.
+Also, https://dips.soton.ac.uk/consent-manager-api/api cannot be found.
+
+In app.ts, I had to change line 20 from 'const PORT = process.env.PORT || 8010;' to 'const PORT = process.env.PORT || 8019;'. This seems to be because the Dockerfile was exposing port 8019 for the API, but
+process.env.PORT must have been undefined, so it would default to 8010.
+
+We had to change rootpassword in the docker-compose file from 'rootpassword' to gz1mQj9JuNty4R1TNT2qeChDPtJFhsdGP00wUxHeytWvnXke3wFnpjjfC7Q6zy3YTiWT7CDXYRue5quZ5EnQw13MmizHdcpqm6Mp. Except for mongo-contract
+which was 12345678.
+
+The container for the negotiation web app needs to apply the migrations for Django:
+
+docker exec <CONTAINER_ID> python manage.py makemigrations & python manage.py migrate
+
+For some reason, the consent manager files don't see the values defined in .env. Upon research, it seems this may be influenced by what is contained
+in vite.config.ts, but I don't know how to edit without possibly breaking something else. In the meantime, I'll edit api.ts to explicitly declare
+localhost:8019/api as the URL to the API.
+
+In package.json, added the option '--sourcemap' to typescript compilations.
+
+When I tried to upload an ontology, I got the following error:
+
+172.18.0.1 - - [15/Jan/2026:11:16:55 +0000] "GET /api/ontologies?requesterUid=tC0n4QJmM8ce7DYaDsG7Io5AlSdS HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0"
+API request: POST /ontologies
+Error uploading ontology: FirebaseError: Bucket name not specified or invalid. Specify a valid bucket name via the storageBucket option when initializing the app, or specify the bucket name explicitly when calling the getBucket() method.
+    at Storage.bucket (/app/node_modules/firebase-admin/lib/storage/storage.js:106:15)
+    at <anonymous> (/app/server/routes/ontologies.ts:60:32)
+    at Layer.handleRequest (/app/node_modules/router/lib/layer.js:152:17)
+    at next (/app/node_modules/router/lib/route.js:157:13)
+    at done (/app/node_modules/multer/lib/make-middleware.js:59:7)
+    at indicateDone (/app/node_modules/multer/lib/make-middleware.js:63:68)
+    at Multipart.<anonymous> (/app/node_modules/multer/lib/make-middleware.js:187:7)
+    at Multipart.emit (node:events:524:28)
+    at emitCloseNT (node:internal/streams/destroy:147:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21) {
+  errorInfo: {
+    code: 'storage/invalid-argument',
+    message: 'Bucket name not specified or invalid. Specify a valid bucket name via the storageBucket option when initializing the app, or specify the bucket name explicitly when calling the getBucket() method.'
+  }
+}
+172.18.0.1 - - [15/Jan/2026:11:18:18 +0000] "POST /api/ontologies HTTP/1.1" 500 224 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0"
+
+> I think it might have to do with the fact that the values in .env files are undefined.
+
+There exists an option to edit an existing draft, but no ontologies can be selected. Thus, it is not possible to finalise the process. Reason: Error: User not authenticated, even though I am authenticated.
+Fix: EditDraftRequest.tsx Line 104 const data = result.request -> result.data fixes one of the issues.
+There is still an error: "Error loading ontologies Error: User not authenticated" despite the fact I am authenticated.
+This means that we cannot add new ontologies to an existing request.
+Fix: EditDraftRequest.tsx Line 74 'await fetchOntologies();' -> 'await fetchOntologies(user.uid)' had to import useAuth and other TS things.
+
+> create Request tab seems to have a bug when you have only one ontology and want to move from the Permissions tab to Review & Submit tab. 
+> I think it has to do with the Next button only being enabled when the Action and Purpose dropdowns have been changed, and since there is only one
+> action and purpose per ontology, it cannot be changed. Something to fix with default values.
+
+Errors in RequestDropdown.ts:
+
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://firebase-emulator:9199/upconsent.firebasestorage.app/ontologies/tC0n4QJmM8ce7DYaDsG7Io5AlSdS_1768493168765_nhrf.owl?GoogleAccessId=firebase-adminsdk-local%40upconsent.iam.gserviceaccount.com&Expires=1899244800&Signature=fct3NILrKzavqEF14%2ByojATxRwGdVtfGtIUgA7rW46TUwT4fS6eCC4ZgIfXMfxptUT9mbmHHOg9ior29BH40XDat%2BTrpxx%2FX6VtenEQDKEACZo10QNe612lP2a9tA4FkxcGQuPURi8l1%2FR%2FWIayihy0Tcc%2Fb0TPpKamxIJ4lpzWelvzUY2VovYMaiMqKYk89loUHxzcSA5eE9%2BqZNF1xFXMXP0tMrrnh5FTRZ7BKP9OMuqaTGXnhhjTVHJwkhv0HChHyG6wz6uKk7LTWBmUvMK71Hb2lGAV7SetrSK0IBjdQY1EQEdAfmyh5EqPn45%2B0BLF5lgLOl%2BbRO7bzPJNbCw%3D%3D. (Reason: CORS request did not succeed). Status code: (null).
+
+Error fetching content for ontology_tC0n4QJmM8ce7DYaDsG7Io5AlSdS_1768493168765: TypeError: NetworkError when attempting to fetch resource. RequestDropdowns.ts:56:19
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://firebase-emulator:9199/upconsent.firebasestorage.app/ontologies/tC0n4QJmM8ce7DYaDsG7Io5AlSdS_1768493274428_mdatOntology.owl?GoogleAccessId=firebase-adminsdk-local%40upconsent.iam.gserviceaccount.com&Expires=1899244800&Signature=OHcwSN3CEnQxZVpWKLf%2B0JWkjGOR3mxBh9q6enBpOHPbBDT2%2BfNpjmUPhR2GF6FLLg8SmTmr43NkvZJxjdYPnbFbYEQ%2FGEVdsKR2tI0Y8%2FTeHf8dcjVyrjcmLkwCJereoDyRwT2NVhja9%2BpU7EazkqbxKK2sZrxodYhjNoz5cwb02t0HBI1WvYo3gSwjVnzpdm0ONil1iOHag9ju6Tnla665O3LcBst03CCf6ZD1BM2t9MZRhbLox7d%2BKmz6qVWp%2FHIX48Iv4ZIani96erMXH8URm7CAtIJRAjG3ytPIsmLj60SAEtt6DNaD2L7RvlaCMzNnRRKnBLGv1IkTQOqLqg%3D%3D. (Reason: CORS request did not succeed). Status code: (null).
+
+Error fetching content for ontology_tC0n4QJmM8ce7DYaDsG7Io5AlSdS_1768493274428: TypeError: NetworkError when attempting to fetch resource.
+
+> To fix this, I changed the environment values in the docker-compose file, where appropriate, from firebase-emulator to localhost. However, this breaks login.
+>> Note that this works in my laptop rather than the desktop I'm using. This is because the downloadURL property is set to https://storage.googleapis.com/upconsent.firebasestorage.app/ontologies/hTf5l4hjwaaXZxsmQxgowvIPqf13_1768492617176_nhrf.owl?GoogleAccessId=firebase-adminsdk-fbsvc%40upconsent.iam.gserviceaccount.com&Expires=1899244800&Signature=hBrf3gOTbD%2BPs1ccd3zQcWC2p4L0csVEqTW1OEdUMP0I31jQ4ZH05XjPNqAOZiIubm5iQGZ1g%2ByUGtAGQmEFGa91K%2BLI2ybPzO65Emi2%2BJumo0FS2pq3jj2oASJ55kke0UIms6dM8GnpsYDvOFBRgZFhmRJPvGxwu%2BIsGxlTMMb7a2xGapEdoHgZldmt0FDzspdy2uatXrFbcWJ%2FB6t5iV2DZE9vbFiU1YHS3lNxAb99aShIPPbZlmiqd2oI1vN62VhmL1k93ZfFim%2B2x%2FFzd%2BL2eI7LzlWRw23t649jYLYyvzTb5MCaR89y4nn644FSVTx8qq5iH7U0DRjn1tuncA%3D%3D. Even though apparently I'm also using the emulator.
+>> Upon checking the emulator, it is empty so this is not working locally. So even though it says it's running in emulator mode, it's not.
+>> Thus I conclude that it is working with the Google API but not the emulator.
+
+Maybe this is related to the fact I can't get the actions and purposes.
+
+DownloadURL value in RequestDropdown.ts should be localhost, but I don't know if this should allow for a remote location as well.
+signedUrl in ontologies.ts seems to be in charge of assigning a download URL. I found this issue in StackOverflow: https://stackoverflow.com/questions/74810333/firebase-functions-and-storage-getsignedurl-with-emulators
+
+There was a bug in SendDraftRequest.tsx where it failed to show the list of users. This was because the request data was undefined.
+The fix simply involved changing line 63 from result.request to result.data. Fixing this also finally allowed me to send a request to a provider, so now it shows up in their dashboard.
+Note that George G had fixed this in his own branch, but this was not fixed in the main branch.
+
+>>>> This part in OwnerPendingRequestsDetails
+const acceptRequest = async () => {
+    if (!requestDetails || !user) return;
+
+    log.info("test");
+
+    const requestsResult = await getRequests({
+      uid: user.uid,
+      role: user.role,
+    });
+    const userRequestsCount = requestsResult.data?.length || 0;
+
+    setUpdating(true);
+>>>> requestsResult is undefined so we don't get ODRL policies.
+
+>>>> Then in:
+try {
+          const contractResult = await createContractAPI({
+            id: requestId!, // make sure requestId exists
+            policy: updatedRequest.policy,
+          });
+          console.log("Contract created successfully:", contractResult);
+>>>> updatedRequest.policy is undefined because (at least while debugging) updatedRequest has no field policy.
+
+> Note that on the consumer side, it correctly shows that upcast_provider@example.com has accepted the consent request. What's missing is the contract.
+
+> Why does OwnerRegister call the external API at dips.soton.ac.uk whereas RequesterRegister does not?
+
+> Registration is still dodgy. I made changes to OwnerRegister in line with RequesterRegister, which allowed me to create a new user (owner) in the firebase emulator.
+> Hopefully, this means that it will run locally.
+> However, I did not get a success code, even though the user was created and now I can log in with said user.
+
+> The problem with creating contracts had much to do with the middleware authentication method, specifically Line 80 in contractRoutes.ts:
+    const requestData = requestSnap.data();
+    console.log("Request data is: ", requestData);
+    const ownsRequest =
+      (role === "owner" &&
+        requestData?.ownerEmails?.includes(userData.email)) ||
+      (role === "requester" && requestData?.requesterEmail === userData.email);
+
+    if (!ownsRequest) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Not authorized for this request" });
+    }
+
+> requestData has no field 'ownerEmails', so it is always false.

@@ -2,6 +2,9 @@
 
 // const API_BASE_URL =
   // import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
+//const API_BASE_URL =
+  //import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://10.22.38.111:8019/api";
 
@@ -542,8 +545,11 @@ export const redirectToNegotiationDisplay = async (
   });
 
   // Build URL with authentication parameters
+  const negotiationBaseUrl =
+    import.meta.env.VITE_NEGOTIATION_BASE_URL ||
+    "https://dips.soton.ac.uk/negotiation/organization/negotiation";
   const negotiationUrl =
-    `https://dips.soton.ac.uk/negotiation/organization/negotiation?` +
+    `${negotiationBaseUrl}?` +
     `negotiation_id=${negotiationId}&` +
     `access_token=${encodeURIComponent(accessToken)}&` +
     `user_id=${userId}&` +

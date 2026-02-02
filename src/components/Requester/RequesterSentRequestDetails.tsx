@@ -1,7 +1,7 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getRequest, getUserDetails } from "../../services/api";
+import { getRequest, getAllOwners } from "../../services/api";
 import { useIframe } from "../../IframeContext";
 import { getRequestPermissions } from "../../utils/policyParser";
 
@@ -65,56 +65,67 @@ function RequesterSentRequestsDetails() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [allOwners, setAllOwners] = useState<
+    { email: string; id: string; name?: string }[]
+  >([]);
 
   const [ownerDetails, setOwnerDetails] = useState<
     { name: string; email: string; status: string }[]
-  >([]); // Add status to store the status of each owner
+  >([]);
+
+  // Fetching all owners from the database
+  useEffect(() => {
+    const fetchAllOwners = async () => {
+      try {
+        const ownersResult = await getAllOwners();
+        if (ownersResult.success) {
+          setAllOwners(ownersResult.owners);
+        } else {
+          console.error("Failed to fetch owners:", ownersResult.error);
+          setAllOwners([]);
+        }
+      } catch (error) {
+        console.error("Error fetching all owners:", error);
+        setAllOwners([]);
+      }
+    };
+
+    fetchAllOwners();
+  }, []);
 
   // Fetching the owners' details
   useEffect(() => {
-    const fetchOwnerDetails = async () => {
-      if (!requestDetails?.owners) return;
+    const fetchOwnerDetails = () => {
+      if (!requestDetails?.owners || allOwners.length === 0) return;
 
       const owners = requestDetails.owners;
-      const ownerDetailsPromises = owners.map(async (ownerId) => {
-        try {
-          // Fetch user details for each owner ID using the API
-          const result = await getUserDetails(ownerId);
+      const ownersDetails = owners.map((ownerId) => {
+        // Find the owner in allOwners by ID
+        const owner = allOwners.find((o) => o.id === ownerId);
 
-          if (result.success && result.user) {
-            // Determine the status based on the owner's arrays
-            let status = "Waiting for response"; // Default status
-            if (requestDetails.ownersAccepted.includes(ownerId)) {
-              status = "Accepted";
-            } else if (requestDetails.ownersRejected.includes(ownerId)) {
-              status = "Rejected";
-            } else if (requestDetails.ownersPending.includes(ownerId)) {
-              status = "Pending";
-            }
-
-            // Return the user details (name, email, and status)
-            return {
-              name: result.user.name || result.user.displayName || "Unknown",
-              email: result.user.email || "N/A",
-              status,
-            };
-          } else {
-            // If user doesn't exist, return mock data or handle accordingly
-            return { name: "Unknown", email: "N/A", status: "Unknown" };
-          }
-        } catch (error) {
-          console.error("Error fetching owner details:", error);
-          return { name: "Unknown", email: "N/A", status: "Unknown" };
+        // Determine the status based on the owner's arrays
+        let status = "Waiting for response"; // Default status
+        if (requestDetails.ownersAccepted.includes(ownerId)) {
+          status = "Accepted";
+        } else if (requestDetails.ownersRejected.includes(ownerId)) {
+          status = "Rejected";
+        } else if (requestDetails.ownersPending.includes(ownerId)) {
+          status = "Pending";
         }
+
+        // Return the user details (name, email, and status)
+        return {
+          name: owner?.name || "Unknown",
+          email: owner?.email || "N/A",
+          status,
+        };
       });
 
-      // Wait for all user details to be fetched
-      const ownersDetails = await Promise.all(ownerDetailsPromises);
-      setOwnerDetails(ownersDetails); // Set the fetched owner details in state
+      setOwnerDetails(ownersDetails);
     };
 
     fetchOwnerDetails();
-  }, [requestDetails]); // Re-fetch when requestDetails change
+  }, [requestDetails, allOwners]); // Re-fetch when requestDetails or allOwners change
 
   // Fetching request details
   useEffect(() => {
@@ -127,7 +138,7 @@ function RequesterSentRequestsDetails() {
 
       try {
         const result = await getRequest(requestId);
-        
+
         if (result.success) {
           setRequestDetails(result.data as Request);
         } else {
@@ -147,9 +158,10 @@ function RequesterSentRequestsDetails() {
   const filteredOwners = ownerDetails.filter((owner) => {
     const matchesStatus =
       statusFilter === "All" || owner.status === statusFilter;
-    const matchesSearch = owner.email
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+
+    const matchesSearch =
+      owner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      owner.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesStatus && matchesSearch;
   });
@@ -169,9 +181,13 @@ function RequesterSentRequestsDetails() {
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails)
     return <div className="text-danger">No request details available.</div>;
+
   return (
     <>
-      <div className={`${styles.dashboard} container w-50`} style={isIframeMode ? { marginTop: '20px' } : {}}>
+      <div
+        className={`${styles.dashboard} container w-50`}
+        style={isIframeMode ? { marginTop: "20px" } : {}}
+      >
         {!isIframeMode && (
           <Link
             className="text-decoration-none"
@@ -181,7 +197,9 @@ function RequesterSentRequestsDetails() {
             <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
           </Link>
         )}
-        <h3 className={isIframeMode ? "mt-2" : "mt-4"}>{requestDetails.requestName}</h3>
+        <h3 className={isIframeMode ? "mt-2" : "mt-4"}>
+          {requestDetails.requestName}
+        </h3>
 
         <ul className="nav nav-tabs mt-4" id="myTab" role="tablist">
           <li className="nav-item" role="presentation">
@@ -217,7 +235,7 @@ function RequesterSentRequestsDetails() {
         <div className="tab-content" id="myTabContent">
           {/* request details tab */}
           <div
-            className="tab-pane fade show active"
+            className="tab-pane fade show active mt-5"
             id="home-tab-pane"
             role="tabpanel"
             aria-labelledby="home-tab"
@@ -225,118 +243,76 @@ function RequesterSentRequestsDetails() {
             {(() => {
               // Parse permissions from ODRL policy or fallback to legacy permissions
               const parsedPermissions = getRequestPermissions(requestDetails);
-              
+
               return parsedPermissions.map((permission, ruleIndex) => (
-              <div key={ruleIndex} className="mb-4 mt-4">
-                <h5>Permission {ruleIndex + 1}</h5>
-                <h5 className="mt-4">What’s being requested</h5>
-                <p>
-                  <strong>Dataset:</strong> The requester has access to data
-                  from <strong>{permission.dataset}</strong>.
-                </p>
-                <p>
-                  <strong>Action:</strong> The requester can{" "}
-                  <strong>{permission.action}</strong> to this dataset.
-                </p>
-                <p>
-                  <strong>Purpose:</strong> This request is for{" "}
-                  <strong>{permission.purpose}</strong> reasons.
-                </p>
-                
-                {/* Show generic ODRL constraints */}
-                {permission.constraints && permission.constraints.length > 0 && (
-                  <div className="mt-3">
-                    <h6>Policy Constraints:</h6>
-                    <ul className="list-unstyled ms-3">
-                      {permission.constraints.map((constraint, i) => (
-                        <li key={i} className="mb-1">
-                          <small className="text-muted">• {constraint.description}</small>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {/* Show generic ODRL assignees */}
-                {permission.assignees && permission.assignees.length > 0 && (
-                  <div className="mt-3">
-                    <h6>Assigned To:</h6>
-                    {permission.assignees.map((assignee, i) => (
-                      <div key={i} className="ms-3">
-                        <p className="mb-1"><strong>{assignee.source}</strong></p>
-                        {assignee.refinements && assignee.refinements.map((ref, j) => (
-                          <p key={j} className="mb-1 ms-2">
-                            <small className="text-muted">└ {ref.description}</small>
-                          </p>
+                <div key={ruleIndex} className="mb-4">
+                  <h4>Permission {ruleIndex + 1}</h4>
+
+                  <h5>Dataset:</h5>
+                  <p>{permission.dataset}</p>
+
+                  {permission.datasetRefinements?.length > 0 && (
+                    <div>
+                      <h5>Dataset permissions:</h5>
+                      <ul className="list-unstyled">
+                        {permission.datasetRefinements.map((ref, i) => (
+                          <li key={i}>
+                            Read access to <strong>{ref.attribute}</strong>{" "}
+                            items greater than <strong>{ref.value}</strong>.
+                          </li>
                         ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </ul>
+                    </div>
+                  )}
 
-                {permission.datasetRefinements?.length > 0 && (
-                  <div>
-                    <h5>Dataset permissions:</h5>
-                    <ul className="list-unstyled">
-                      {permission.datasetRefinements.map((ref, i) => (
-                        <li key={i}>
-                          Data about <strong>{ref.attribute}</strong> items
-                          greater than <strong>{ref.value}</strong>.
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  <h5>Action:</h5>
+                  <p>{permission.action}</p>
 
-                {permission.actionRefinements?.length > 0 && (
-                  <div>
-                    <h5>Action permissions:</h5>
-                    <ul className="list-unstyled">
-                      {permission.actionRefinements.map((ref, i) => (
-                        <li key={i}>
-                          Write access to <strong>{ref.attribute}</strong> items
-                          greater than <strong>{ref.value}</strong>.
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  {permission.actionRefinements?.length > 0 && (
+                    <div>
+                      <h5>Action permissions:</h5>
+                      <ul className="list-unstyled">
+                        {permission.actionRefinements.map((ref, i) => (
+                          <li key={i}>
+                            Write access to <strong>{ref.attribute}</strong>{" "}
+                            items greater than <strong>{ref.value}</strong>.
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                {permission.purposeRefinements?.length > 0 && (
-                  <div>
-                    <h5>Purpose permissions:</h5>
-                    <ul className="list-unstyled">
-                      {permission.purposeRefinements.map((ref, i) => (
-                        <li key={i}>
-                          Data are used for <strong>{ref.attribute}</strong>{" "}
-                          items greater than <strong>{ref.value}</strong>.
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  {permission.purposeRefinements?.length > 0 && (
+                    <div>
+                      <h5>Purpose permissions:</h5>
+                      <ul className="list-unstyled">
+                        {permission.purposeRefinements.map((ref, i) => (
+                          <li key={i}>
+                            Data are used for <strong>{ref.attribute}</strong>{" "}
+                            items greater than <strong>{ref.value}</strong>.
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                {permission.constraintRefinements?.length > 0 && (
-                  <div>
-                    <h5>Constraints:</h5>
-                    <ul className="list-unstyled">
-                      {permission.constraintRefinements.map((ref, i) => (
-                        <li key={i}>
-                          Data meet the constraint:{" "}
-                          <strong>{ref.attribute}</strong> {ref.instance}{" "}
-                          <strong>{ref.value}</strong>.
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ));
+                  {permission.constraintRefinements?.length > 0 && (
+                    <div>
+                      <h5>Constraints:</h5>
+                      <ul className="list-unstyled">
+                        {permission.constraintRefinements.map((ref, i) => (
+                          <li key={i}>
+                            Data meet the constraint:{" "}
+                            <strong>{ref.attribute}</strong> {ref.instance}{" "}
+                            <strong>{ref.value}</strong>.
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ));
             })()}
-
-            <button className={`${styles.primaryButton} btn mt-3`}>
-              Download request
-            </button>
           </div>
           {/* status tab */}
           <div
@@ -347,7 +323,7 @@ function RequesterSentRequestsDetails() {
           >
             {/* filters */}
             <div className="d-flex align-items-center gap-3 mt-4 mb-2">
-              <div>
+              <div className="align-self-center">
                 <label
                   htmlFor="statusFilter"
                   className={`${styles.formLabel} form-label me-2`}
@@ -367,23 +343,21 @@ function RequesterSentRequestsDetails() {
                 </select>
               </div>
 
-              <div className="ms-auto w-25">
-                <input
-                  type="text"
-                  className={`${styles.formInput} form-control`}
-                  placeholder="Search by owner email"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div>
-                <button
-                  data-bs-toggle="modal"
-                  data-bs-target="#exampleModal"
-                  className={`${styles.primaryButton} btn w-100`}
-                >
-                  Request summary
-                </button>
+              <div className="ms-auto w-25 flex-grow-1 align-self-center">
+                <div className="input-group">
+                  <input
+                    type="text"
+                    className={`${styles.formInput} form-control`}
+                    placeholder="Search owner by name or email..."
+                    aria-label="Recipient’s username"
+                    aria-describedby="basic-addon2"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <span className="input-group-text" id="basic-addon2">
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -470,45 +444,6 @@ function RequesterSentRequestsDetails() {
                 </ul>
               </nav>
             )}
-          </div>
-        </div>
-
-        {/* summary modal */}
-        <div
-          className="modal fade"
-          id="exampleModal"
-          aria-labelledby="exampleModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h1 className="modal-title fs-5" id="exampleModalLabel">
-                  Request summary
-                </h1>
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Total owners sent: {requestDetails?.owners.length ?? 0}</p>
-                <p>Pending: {requestDetails?.ownersPending.length ?? 0}</p>
-                <p>Accepted: {requestDetails?.ownersAccepted.length ?? 0}</p>
-                <p>Rejected: {requestDetails?.ownersRejected.length ?? 0}</p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className={`${styles.secondaryButton} btn`}
-                  data-bs-dismiss="modal"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

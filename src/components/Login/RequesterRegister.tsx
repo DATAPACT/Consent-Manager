@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "../../services/api";
-import { useAuth } from "../../AuthContext"; // Import the AuthContext
+import { useAuth } from "../../AuthContext";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
 
 const RequesterRegister: React.FC = () => {
-  const { login } = useAuth(); // Access the login function from the context
+  const { login } = useAuth();
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [retypePassword, setRetypePassword] = useState<string>(""); // State for re-type password
+  const [retypePassword, setRetypePassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false); // Add loading state
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,6 +24,9 @@ const RequesterRegister: React.FC = () => {
       return;
     }
 
+    setLoading(true); // Start loading
+    setError(""); // Clear previous errors
+
     try {
       // Register user through Express API
       const result = await register({
@@ -30,8 +34,8 @@ const RequesterRegister: React.FC = () => {
         password,
         name,
         role: "requester",
-        type: "consumer", // For external API registration
-        masterPassword: "5hnd..jk4ne!kwjs?wnsmmf"
+        type: "consumer",
+        masterPassword: "5hnd..jk4ne!kwjs?wnsmmf",
       });
 
       if (result.success) {
@@ -40,9 +44,11 @@ const RequesterRegister: React.FC = () => {
         navigate("/requesterBase/requesterDashboard");
       } else {
         setError(result.error || "Registration failed");
+        setLoading(false); // Stop loading
       }
     } catch (error: any) {
       setError(error.message || "Registration failed");
+      setLoading(false); // Stop loading
     }
   };
 
@@ -70,6 +76,7 @@ const RequesterRegister: React.FC = () => {
               id="exampleInputEmail1"
               onChange={(e) => setName(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-3">
@@ -83,6 +90,7 @@ const RequesterRegister: React.FC = () => {
               id="exampleInputEmail1"
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-3">
@@ -94,6 +102,7 @@ const RequesterRegister: React.FC = () => {
               id="exampleInputPassword1"
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-3">
@@ -105,8 +114,9 @@ const RequesterRegister: React.FC = () => {
               className={`${styles.formInput} form-control`}
               id="exampleInputPassword2"
               value={retypePassword}
-              onChange={(e) => setRetypePassword(e.target.value)} // Handle re-type password
+              onChange={(e) => setRetypePassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-3 form-check">
@@ -115,6 +125,7 @@ const RequesterRegister: React.FC = () => {
               className="form-check-input"
               id="exampleCheck1"
               required
+              disabled={loading}
             />
             <label className="form-check-label">
               I have read and agree to the{" "}
@@ -129,10 +140,13 @@ const RequesterRegister: React.FC = () => {
             </label>
           </div>
 
-          {/* Show error message */}
           <div className="mb-3 mt-4">
-            <button type="submit" className={`${styles.primaryButton} btn`}>
-              Register
+            <button
+              type="submit"
+              className={`${styles.primaryButton} btn`}
+              disabled={loading}
+            >
+              {loading ? "Registering..." : "Register"}
             </button>
           </div>
         </form>

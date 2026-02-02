@@ -67,6 +67,7 @@ function CreateRequest() {
   }, [user]); // Depend on user to reload when auth state changes
 
   useEffect(() => {
+    console.log("Loading actions and purposes for ontologies.");
     const loadDropdownValues = async () => {
       const actions = await getFeatureDropdownValue(
         selectedOntologies,

@@ -19,17 +19,19 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+const USE_EMULATOR = import.meta.env.VITE_USE_EMULATOR || 'true';
+
 // Connect to emulators if USE_EMULATOR is enabled
-if (import.meta.env.VITE_USE_EMULATOR === 'true') {
+if (USE_EMULATOR === 'true') {
   console.log('🔧 Connecting Firebase client SDK to emulators...');
-  console.log('  - Auth Emulator: http://localhost:9099');
-  console.log('  - Firestore Emulator: localhost:8080');
-  console.log('  - Storage Emulator: localhost:9199');
+  console.log('  - Auth Emulator: firebase-emulator:9099');
+  console.log('  - Firestore Emulator: firebase-emulator:8080');
+  console.log('  - Storage Emulator: firebase-emulator:9199');
   connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
   connectFirestoreEmulator(db, "localhost", 8080);
   connectStorageEmulator(storage, "localhost", 9199);
