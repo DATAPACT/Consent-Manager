@@ -3,6 +3,7 @@ import { db } from "../config/firebase.js";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
+import { permissionsToODRLPolicy } from "../../src/utils/policyParser.ts"
 
 const router = express.Router();
 
@@ -80,7 +81,7 @@ export async function authorizeRequest(
     const requestData = requestSnap.data();
     console.log("Token payload is: ", tokenPayload);
     console.log("User data is: ", userData);
-    console.log("Request data is: ", requestData);
+    console.log("Request data is: ", JSON.stringify(requestData));
     const ownerDocs = db.collection("owners");
     const ownerEmails: string[] = [];
     await ownerDocs.get().then((querySnapshot) => {
@@ -145,6 +146,9 @@ router.post(
       const naturalLanguageDocument = naturalLanguageFields.join("\n\n");
       console.log("Preparing payload");
 
+      const odrlPolicy = permissionsToODRLPolicy(requestId, req.user.uid, requestData?.requester.requesterId, policy);
+      console.log("This is the ODRL policy: ", JSON.stringify(odrlPolicy));
+
       // --- Prepare payload for external contract API ---
       const payload = {
         _id: requestId,
@@ -160,7 +164,7 @@ router.post(
         definitions: {},
         custom_clauses: {},
         dpw: {},
-        odrl: {policy: policy},
+        odrl: {policy: odrlPolicy},
         nlp: naturalLanguageDocument || "",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

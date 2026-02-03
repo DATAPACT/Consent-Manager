@@ -8,6 +8,7 @@ export interface Refinement {
   value?: string;
   label?: string;
 }
+// NOTE JS: Perhaps we should change the fields in Refinement to align with ODRL constraints.
 
 export interface Permission {
   id: number;

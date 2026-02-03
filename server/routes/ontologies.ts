@@ -72,8 +72,8 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
 
     if (process.env.USE_EMULATOR) { //Check if using emulator so we can give a different URL.
       console.log("Using emulator.")
-      // downloadURL = downloadURL.replace("firebase-emulator", "localhost");
-      downloadURL = downloadURL.replace("firebase-emulator", "10.22.38.111");
+      downloadURL = downloadURL.replace("firebase-emulator", "localhost");
+      //downloadURL = downloadURL.replace("firebase-emulator", "10.22.38.111");
     }
 
     const ontologyId = `ontology_${requesterUid}_${timestamp}`;

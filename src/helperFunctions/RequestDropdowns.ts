@@ -101,37 +101,7 @@ export const getFeatureDropdownValue = async (
   for (const ontology of ontologies) {
       const textStream = ontology.content;
       const rdf_formats = ["text/turtle", "text/n3", "application/rdf+xml", "application/ld+json", "application/n-quads", "application/n-triples",  "application/xml", "application/json"];
-      // switch(extension){
-      //   case "trig":
-      //     mimetype = "application/trig";
-      //     break;
-      //   case "nq":
-      //   case "nquads":
-      //     mimetype = "application/n-quads";
-      //     break;
-      //   case "nt":
-      //   case "ntriples":
-      //     mimetype = "application/n-triples";
-      //     break;
-      //   case "n3":
-      //     mimetype = "text/n3";
-      //     break;
-      //   case "ttl":
-      //     break;
-      //   case "xml":
-      //     mimetype = "application/xml";
-      //     break;
-      //   case "rdf":
-      //   case "rdfxml":
-      //   case "owl":
-      //     mimetype = "application/rdf+xml";
-      //     break;
-      //   case "json":
-      //     mimetype = "application/json";
-      //     break;
-      //   case "jsonld":
-      //     mimetype = "application/ld+json";
-      // }
+
       let success = false;
       for (let mimetype of rdf_formats) {
         try{
@@ -149,39 +119,23 @@ export const getFeatureDropdownValue = async (
       } 
   }
 
-  // const projected_value = rdflib.variable("value");
-  // const ns = {
-  //   ex: rdflib.Namespace('http://example.org/', RDFlibDataFactory),
-  //   rdf: rdflib.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', RDFlibDataFactory)
-  // }
-  // const variable_node = rdflib.variable("variable");
-  // const label_node = rdflib.namedNode('http://www.w3.org/2000/01/rdf-schema#label')
-  // store.statements.forEach((st) => {
-  //   if (st.predicate.equals(sym("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))) {
-
-  //   }
-  //   if (st.object.termType === "Literal") {
-  //     const value = st.object.value.toLowerCase();
-  //     if (value.startsWith("a")) {
-  //       literals.add(st.object.value);
-  //     }
-  //   }
-  // });
-
   if (type === "action") {
-    // const action_query = sparql.select([projected_value])
-    // .where([
-    //   [variable_node, type_node, rdflib.namedNode('http://www.w3.org/ns/odrl/2/Action')],
-    //   [variable_node, rdflib.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#label'), projected_value]
-    // ]);
-    //const sparql_action_query = "SELECT ?value WHERE {?variable <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Action> . ?variable <http://www.w3.org/2000/01/rdf-schema#label> ?value . }";
+    // NOTE: Currently, we can only retrieve actions that are explicitly odrl:Action or dpv:Processing.
     const sparql_action_query = `
     SELECT DISTINCT ?variable ?value 
     WHERE { ?variable <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Action> . 
     ?variable <http://www.w3.org/2000/01/rdf-schema#label> ?value . }`;
+    const sparql_action_query_2 = `
+    SELECT DISTINCT ?variable ?value 
+    WHERE { ?variable <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/dpv/owl#Processing> . 
+    ?variable <http://www.w3.org/2000/01/rdf-schema#label> ?value . }`;
     const query = rdflib.SPARQLToQuery(sparql_action_query, false, store);
+    const query2 = rdflib.SPARQLToQuery(sparql_action_query_2, false, store);
     //@ts-ignore
     let ans = store.querySync(query);
+    //@ts-ignore
+    let ans2 = store.querySync(query2);
+    ans = ans.concat(ans2);
     return ans.map((binding) => ({
       value: binding['?variable'].value,
       label: binding['?value'].value,
@@ -189,11 +143,6 @@ export const getFeatureDropdownValue = async (
   }
 
   if (type === "purpose") {
-    // const purpose_query = sparql.select([projected_value])
-    // .where([
-    //   [variable_node, type_node, rdflib.namedNode('https://w3id.org/dpv/owl#Purpose')],
-    //   [variable_node, rdflib.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#label'), projected_value]
-    // ])
     const sparql_purpose_query = `
     SELECT ?value 
     WHERE {
@@ -211,7 +160,45 @@ export const getFeatureDropdownValue = async (
   return [];
 };
 
-export const getAttributeDropdownValue = (): Option[] => {
+export const getAttributeDropdownValue = async (
+  ontologies: Ontology[],
+): Promise<Option[]> => {
+  const store = rdflib.graph();
+
+  for (const ontology of ontologies) {
+      const textStream = ontology.content;
+      const rdf_formats = ["text/turtle", "text/n3", "application/rdf+xml", "application/ld+json", "application/n-quads", "application/n-triples",  "application/xml", "application/json"];
+
+      let success = false;
+      for (let mimetype of rdf_formats) {
+        try{
+          rdflib.parse(textStream, store, "http://example.org/base#", mimetype);
+          success = true
+          break;
+        }
+        catch (e){
+          console.log("Tried: ", mimetype);
+          continue;
+        }
+      }
+      if (!success) {
+        console.error("Failed to parse ontology:", ontology.name);
+      } 
+  }
+  const sparql_left_operands_query = `
+    SELECT ?value 
+    WHERE {
+    ?variable <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/LeftOperand> . 
+    ?variable <http://www.w3.org/2000/01/rdf-schema#label> ?value . }`;
+    const query = rdflib.SPARQLToQuery(sparql_left_operands_query, false, store);
+    //@ts-ignore
+    let ans = store.querySync(query);
+    if (ans.length > 0) {
+      return ans.map((binding) => ({
+      value: binding['?variable'].value,
+      label: binding['?value'].value,
+    }));
+    }
   return [
     { value: "", label: "Choose attribute" },
     { value: "comercial", label: "Comercial" },
@@ -222,7 +209,7 @@ export const getAttributeDropdownValue = (): Option[] => {
 
 export const getOperandDropdownValue = (): Option[] => {
   return [
-    { value: "", label: "Choose instance" },
+    { value: "", label: "Choose an operator" },
     { value: "eq", label: "eq" },
     { value: "gt", label: "gt" },
     { value: "gteq", label: "gteq" },

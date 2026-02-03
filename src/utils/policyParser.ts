@@ -30,13 +30,45 @@ interface ODRLPermission {
     "rdf:value": {
       "@id": string;
     };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    }[];
   };
   "odrl:target": {
     "odrl:source": {
       "@id": string;
     };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    }[];
   };
   "odrl:assignee"?: {
+    "odrl:source": {
+      "@id": string;
+    };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    };
+  };
+  "odrl:assigner"?: {
     "odrl:source": {
       "@id": string;
     };
@@ -66,6 +98,64 @@ interface ODRLPolicy {
   "@id": string;
   "@type": string;
   "odrl:permission": ODRLPermission[];
+}
+
+export function permissionsToODRLPolicy(requestId: string, ownerId: string, requesterId: string, request: PolicyPermission[]) {
+  let odrlPolicy : ODRLPolicy = {
+    "@context": {
+      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "odrl": "http://www.w3.org/ns/odrl/2/",
+      "dpv": "https://w3id.org/dpv/owl#",
+      "foaf": "http://xmlns.com/foaf/0.1/"},
+    "@id": requestId,
+    "@type": "odrl:Policy",
+    "odrl:permission": []};
+
+  for (let permission of request) {
+    const constraints = permission.constraintRefinements.concat(permission.purposeRefinements);
+    let temp_permission = {
+      "odrl:action": {"rdf:value": {"@id": permission.action},
+                      "odrl:refinement": permission.actionRefinements.map(
+                        (refinement) =>
+                        { const constraint = {
+                          "odrl:leftOperand": {"@id": refinement.attribute},
+                          "odrl:operator": {"@id": refinement.instance},
+                          "odrl:rightOperand": refinement.value
+                        }
+                        return constraint
+                        }
+                      )},
+      "odrl:target": {"odrl:source": {"@id": permission.dataset},
+                      "odrl:refinement": permission.datasetRefinements.map(
+                        (refinement) =>
+                        { const constraint = {
+                          "odrl:leftOperand": {"@id": refinement.attribute},
+                          "odrl:operator": {"@id": refinement.instance},
+                          "odrl:rightOperand": refinement.value
+                        }
+                        return constraint
+                        }
+                      )},
+      "odrl:assignee": {"odrl:source": {"@id": requesterId}},
+      "odrl:assigner": {"odrl:source": {"@id": ownerId}},
+      "odrl:constraint": constraints.map(constraint => {
+        return {
+        "odrl:leftOperand": {"@id": constraint.attribute},
+        "odrl:operator": {"@id": constraint.attribute},
+        "odrl:rightOperand": constraint.value
+      }})
+    }
+    temp_permission["odrl:constraint"].push({
+      "odrl:leftOperand": {"@id": "dpv:purpose"},
+      "odrl:operator": {"@id": "odrl:eq"},
+      "odrl:rightOperand": permission.purpose
+    })
+    odrlPolicy["odrl:permission"].push(temp_permission);
+  }
+  return odrlPolicy;
 }
 
 /**
@@ -325,5 +415,4 @@ export function getRequestPermissions(request: any): PolicyPermission[] {
     }));
   }
 
-  return [];
-}
+  return [];}
