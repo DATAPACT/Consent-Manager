@@ -351,6 +351,81 @@ router.get(
   }
 );
 
+// GET /api/requests/:requestId/GetContract/:contractId
+router.get(
+  "/:requestId/GetContract/:contractId",
+  authorizeRequest,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { requestId, contractId } = req.params;
+
+      // --- Fetch the request to verify existence and ownership ---
+      const requestSnap = await db.collection("requests").doc(requestId).get();
+      if (!requestSnap.exists) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Request not found" });
+      }
+
+      // Optional: re-check ownership if middleware does not already enforce it
+      const requestData = requestSnap.data();
+      const userEmail = req.user?.email;
+      const ownerIds = [
+        ...(requestData?.ownersAccepted || []),
+        ...(requestData?.ownersPending || []),
+        ...(requestData?.ownersRejected || []),
+      ];
+      const requesterEmail =
+        requestData?.requesterEmail || requestData?.requester?.requesterEmail;
+      const requesterId =
+        requestData?.requesterId || requestData?.requester?.requesterId;
+      const ownsRequest =
+        (req.user?.role === "owner" &&
+          (ownerIds.includes(req.user?.uid) ||
+            requestData?.ownerEmails?.includes(userEmail))) ||
+        (req.user?.role === "requester" &&
+          (requesterId === req.user?.uid || requesterEmail === userEmail));
+
+      if (!ownsRequest) {
+        return res.status(403).json({
+          success: false,
+          error: "Not authorized to view this contract",
+        });
+      }
+
+      // --- Fetch the contract details from external API ---
+      const contractServiceUrl =
+        process.env.CONTRACT_SERVICE_URL ||
+        "https://dips.soton.ac.uk/contract-service-api";
+      const response = await fetch(
+        `${contractServiceUrl}/contract/get_contract/${contractId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({
+          success: false,
+          error: `External API error: ${errorText}`,
+        });
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (err) {
+      console.error("Error fetching contract details:", err);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to fetch contract details" });
+    }
+  }
+);
+
 // GET /api/requests/:requestId/downloadContract/:contractId
 router.get(
   "/:requestId/downloadContract/:contractId",
