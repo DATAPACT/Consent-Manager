@@ -11,6 +11,53 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
+const extractAccessToken = (apiToken: any): string | undefined => {
+  if (!apiToken) return undefined;
+  if (typeof apiToken === "string") {
+    if (apiToken.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(apiToken);
+        return parsed.access_token || parsed.token || apiToken;
+      } catch {
+        return apiToken;
+      }
+    }
+    return apiToken;
+  }
+  return apiToken.access_token || apiToken.token;
+};
+
+const fetchUserDetails = async (
+  baseUrl: string,
+  token: string,
+  userId: string,
+  label: "consumer" | "provider"
+) => {
+  try {
+    const url = `${baseUrl}/user/details/?user_id=${encodeURIComponent(
+      userId
+    )}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log(`User details fetch (${label}) status:`, response.status);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`User details fetch (${label}) failed:`, errorText);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.warn(`User details fetch (${label}) error:`, error);
+    return null;
+  }
+};
+
 // Middleware to check API token
 export async function authorizeRequest(
   req: AuthRequest,
@@ -125,6 +172,8 @@ router.post(
       const { requestId } = req.params;
       const { policy } = req.body;
 
+      console.log("AuthRequest Info", req);
+
       console.log("Fetching request to verify existence.");
       // --- Fetch the request to verify existence ---
       const requestSnap = await db.collection("requests").doc(requestId).get();
@@ -148,6 +197,93 @@ router.post(
 
       const odrlPolicy = permissionsToODRLPolicy(requestId, req.user.uid, requestData?.requester.requesterId, policy);
       console.log("This is the ODRL policy: ", JSON.stringify(odrlPolicy));
+      //get user details:
+      const negotiationApiUrl =
+        process.env.EXTERNAL_API_BASE_URL ||
+        "https://dips.soton.ac.uk/negotiation-api";
+
+      const requesterUid = requestData?.requester?.requesterId;
+      const providerUid = req.user?.uid;
+      console.log("Contract contacts lookup:", {
+        requesterUid,
+        providerUid,
+        hasRequesterUid: !!requesterUid,
+        hasProviderUid: !!providerUid,
+      });
+
+      const contacts: Record<string, any> = {};
+
+      if (requesterUid) {
+        const requesterDoc = await db
+          .collection("requesters")
+          .doc(requesterUid)
+          .get();
+        const requesterData = requesterDoc.exists ? requesterDoc.data() : null;
+        const consumerMongoId = requesterData?.mongoUserId;
+        const consumerToken = extractAccessToken(requesterData?.apiToken);
+
+        console.log("Consumer lookup:", {
+          consumerMongoId,
+          hasConsumerToken: !!consumerToken,
+        });
+
+        if (consumerMongoId && consumerToken) {
+          const consumerDetails = await fetchUserDetails(
+            negotiationApiUrl,
+            consumerToken,
+            consumerMongoId,
+            "consumer"
+          );
+          if (consumerDetails) {
+            contacts.consumer = consumerDetails;
+          } else {
+            contacts.consumer = { user_id: consumerMongoId };
+          }
+        } else if (consumerMongoId) {
+          contacts.consumer = { user_id: consumerMongoId };
+        }
+      }
+
+      if (providerUid) {
+        const providerDoc = await db
+          .collection("owners")
+          .doc(providerUid)
+          .get();
+        const providerData = providerDoc.exists ? providerDoc.data() : null;
+        const providerMongoId = providerData?.mongoUserId;
+        const providerToken = extractAccessToken(providerData?.apiToken);
+
+        console.log("Provider lookup:", {
+          providerMongoId,
+          hasProviderToken: !!providerToken,
+        });
+        console.log("providerMongoId", providerMongoId)
+        if (providerMongoId && providerToken) {
+          const providerDetails = await fetchUserDetails(
+            negotiationApiUrl,
+            providerToken,
+            providerMongoId,
+            "provider"
+          );
+          if (providerDetails) {
+            contacts.provider = providerDetails;
+          } else {
+            contacts.provider = { user_id: providerMongoId };
+          }
+        } else if (providerMongoId) {
+          contacts.provider = { user_id: providerMongoId };
+        }
+      }
+
+      //add another items, which is not retrieved form Negotiation!
+      contacts.provider = {
+        ...contacts.provider,
+        citizen: "UK (this is a fixed value, need to be set according to payload)",
+        passport_id: "NO222222 (this is a fixed value, need to be set according to payload)",
+      };
+
+
+      console.log("Resolved contacts for contract payload:", contacts);
 
       // --- Prepare payload for external contract API ---
       const payload = {
@@ -160,6 +296,7 @@ router.post(
         validity_period: 12,
         notice_period: 0,
         contacts: {},
+        contacts:contacts,
         resource_description: {},
         definitions: {},
         custom_clauses: {},
@@ -171,6 +308,7 @@ router.post(
       };
 
       console.log("the payload is: ", payload);
+      console.log("contract payload JSON:", JSON.stringify(payload, null, 2));
 
       // --- Call external contract creation API ---
       const externalApiUrl =
@@ -214,6 +352,81 @@ router.get(
     const contractId = requestSnap.data()?.contractId || null;
 
     res.json({ success: true, contractId });
+  }
+);
+
+// GET /api/requests/:requestId/GetContract/:contractId
+router.get(
+  "/:requestId/GetContract/:contractId",
+  authorizeRequest,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { requestId, contractId } = req.params;
+
+      // --- Fetch the request to verify existence and ownership ---
+      const requestSnap = await db.collection("requests").doc(requestId).get();
+      if (!requestSnap.exists) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Request not found" });
+      }
+
+      // Optional: re-check ownership if middleware does not already enforce it
+      const requestData = requestSnap.data();
+      const userEmail = req.user?.email;
+      const ownerIds = [
+        ...(requestData?.ownersAccepted || []),
+        ...(requestData?.ownersPending || []),
+        ...(requestData?.ownersRejected || []),
+      ];
+      const requesterEmail =
+        requestData?.requesterEmail || requestData?.requester?.requesterEmail;
+      const requesterId =
+        requestData?.requesterId || requestData?.requester?.requesterId;
+      const ownsRequest =
+        (req.user?.role === "owner" &&
+          (ownerIds.includes(req.user?.uid) ||
+            requestData?.ownerEmails?.includes(userEmail))) ||
+        (req.user?.role === "requester" &&
+          (requesterId === req.user?.uid || requesterEmail === userEmail));
+
+      if (!ownsRequest) {
+        return res.status(403).json({
+          success: false,
+          error: "Not authorized to view this contract",
+        });
+      }
+
+      // --- Fetch the contract details from external API ---
+      const contractServiceUrl =
+        process.env.CONTRACT_SERVICE_URL ||
+        "https://dips.soton.ac.uk/contract-service-api";
+      const response = await fetch(
+        `${contractServiceUrl}/contract/get_contract/${contractId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({
+          success: false,
+          error: `External API error: ${errorText}`,
+        });
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (err) {
+      console.error("Error fetching contract details:", err);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to fetch contract details" });
+    }
   }
 );
 

@@ -576,6 +576,27 @@ export async function createContractAPI(request: ContractRequest) {
     console.log("📄 ODRL policy:", request.policy);
 
     const token = localStorage.getItem("token");
+    // print users info
+    const storedUser = localStorage.getItem("user");
+    let userSummary: { uid?: string; email?: string; role?: string } | null =
+      null;
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        userSummary = {
+          uid: parsed?.uid,
+          email: parsed?.email,
+          role: parsed?.role,
+        };
+      } catch {
+        userSummary = null;
+      }
+    }
+    console.log("createContractAPI user info:", {
+      user: userSummary,
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+    });
 
     const response = await fetch(
       `${API_BASE_URL}/requests/${request.id}/createContract`,

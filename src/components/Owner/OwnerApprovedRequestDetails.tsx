@@ -80,6 +80,9 @@ function OwnerApprovedRequestsDetails() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [showContract, setShowContract] = useState<boolean>(false);
+  const [contractDetails, setContractDetails] = useState<any | null>(null);
+  const [contractLoading, setContractLoading] = useState<boolean>(false);
+  const [contractError, setContractError] = useState<string>("");
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -207,6 +210,54 @@ function OwnerApprovedRequestsDetails() {
       console.log("Contract downloaded successfully.");
     } catch (err) {
       console.error("Error downloading contract:", err);
+    }
+  };
+
+  const handleToggleContract = async () => {
+    if (showContract) {
+      setShowContract(false);
+      return;
+    }
+
+    const contractId = requestDetails?.contractId;
+    if (!contractId) {
+      alert(
+        "Contract ID not found. Please ensure the contract has been created."
+      );
+      return;
+    }
+
+    setShowContract(true);
+    setContractLoading(true);
+    setContractError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL ||
+        "https://dips.soton.ac.uk/consent-manager-api/api";
+
+      const response = await fetch(
+        `${API_BASE_URL}/requests/${requestId}/GetContract/${contractId}`,
+        {
+          method: "GET",
+          headers: {
+            "x-api-token": token || "",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch contract: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setContractDetails(data);
+    } catch (err: any) {
+      console.error("Error fetching contract details:", err);
+      setContractError(err.message || "Failed to fetch contract details.");
+    } finally {
+      setContractLoading(false);
     }
   };
 
@@ -367,6 +418,7 @@ function OwnerApprovedRequestsDetails() {
           <button
             className="btn btn-outline-secondary"
             onClick={() => setShowContract(!showContract)}
+            onClick={handleToggleContract}
           >
             {showContract ? "Hide Contract" : "Show Contract"}
           </button>
@@ -376,6 +428,15 @@ function OwnerApprovedRequestsDetails() {
           <pre className="mt-3 bg-light p-3 rounded border">
             {JSON.stringify(buildContract(), null, 2)}
           </pre>
+          <div className="mt-3 bg-light p-3 rounded border">
+            {contractLoading && <p>Loading contract...</p>}
+            {contractError && <p className="text-danger">{contractError}</p>}
+            {!contractLoading && !contractError && (
+              <pre style={{ whiteSpace: "pre-wrap" }}>
+                {JSON.stringify(contractDetails || buildContract(), null, 2)}
+              </pre>
+            )}
+          </div>
         )}
       </div>
     </>
