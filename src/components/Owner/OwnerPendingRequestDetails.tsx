@@ -761,6 +761,8 @@ function OwnerPendingRequestsDetails() {
     if (!requestDetails || !user) return;
 
     log.info("test");
+    log.info("upconsent/src/components/Owner/OwnerPendingRequestDetails.tsx ");
+    log.info("user info", user);
 
     const requestsResult = await getRequests({
       uid: user.uid,

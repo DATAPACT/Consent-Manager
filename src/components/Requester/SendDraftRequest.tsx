@@ -223,7 +223,7 @@ function SendDraftRequest() {
       };
 
       console.log("=== SENDING PAYLOAD ===");
-      console.log(updatePayload);
+      console.log("consumer dashboard", updatePayload);
       console.log("======================");
 
       const result = await updateRequest(requestId, updatePayload);

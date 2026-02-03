@@ -10,6 +10,53 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
+const extractAccessToken = (apiToken: any): string | undefined => {
+  if (!apiToken) return undefined;
+  if (typeof apiToken === "string") {
+    if (apiToken.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(apiToken);
+        return parsed.access_token || parsed.token || apiToken;
+      } catch {
+        return apiToken;
+      }
+    }
+    return apiToken;
+  }
+  return apiToken.access_token || apiToken.token;
+};
+
+const fetchUserDetails = async (
+  baseUrl: string,
+  token: string,
+  userId: string,
+  label: "consumer" | "provider"
+) => {
+  try {
+    const url = `${baseUrl}/user/details/?user_id=${encodeURIComponent(
+      userId
+    )}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log(`User details fetch (${label}) status:`, response.status);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`User details fetch (${label}) failed:`, errorText);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.warn(`User details fetch (${label}) error:`, error);
+    return null;
+  }
+};
+
 // Middleware to check API token
 export async function authorizeRequest(
   req: AuthRequest,
@@ -124,6 +171,8 @@ router.post(
       const { requestId } = req.params;
       const { policy } = req.body;
 
+      console.log("AuthRequest Info", req);
+
       console.log("Fetching request to verify existence.");
       // --- Fetch the request to verify existence ---
       const requestSnap = await db.collection("requests").doc(requestId).get();
@@ -145,6 +194,94 @@ router.post(
       const naturalLanguageDocument = naturalLanguageFields.join("\n\n");
       console.log("Preparing payload");
 
+      //get user details:
+      const negotiationApiUrl =
+        process.env.EXTERNAL_API_BASE_URL ||
+        "https://dips.soton.ac.uk/negotiation-api";
+
+      const requesterUid = requestData?.requester?.requesterId;
+      const providerUid = req.user?.uid;
+      console.log("Contract contacts lookup:", {
+        requesterUid,
+        providerUid,
+        hasRequesterUid: !!requesterUid,
+        hasProviderUid: !!providerUid,
+      });
+
+      const contacts: Record<string, any> = {};
+
+      if (requesterUid) {
+        const requesterDoc = await db
+          .collection("requesters")
+          .doc(requesterUid)
+          .get();
+        const requesterData = requesterDoc.exists ? requesterDoc.data() : null;
+        const consumerMongoId = requesterData?.mongoUserId;
+        const consumerToken = extractAccessToken(requesterData?.apiToken);
+
+        console.log("Consumer lookup:", {
+          consumerMongoId,
+          hasConsumerToken: !!consumerToken,
+        });
+
+        if (consumerMongoId && consumerToken) {
+          const consumerDetails = await fetchUserDetails(
+            negotiationApiUrl,
+            consumerToken,
+            consumerMongoId,
+            "consumer"
+          );
+          if (consumerDetails) {
+            contacts.consumer = consumerDetails;
+          } else {
+            contacts.consumer = { user_id: consumerMongoId };
+          }
+        } else if (consumerMongoId) {
+          contacts.consumer = { user_id: consumerMongoId };
+        }
+      }
+
+      if (providerUid) {
+        const providerDoc = await db
+          .collection("owners")
+          .doc(providerUid)
+          .get();
+        const providerData = providerDoc.exists ? providerDoc.data() : null;
+        const providerMongoId = providerData?.mongoUserId;
+        const providerToken = extractAccessToken(providerData?.apiToken);
+
+        console.log("Provider lookup:", {
+          providerMongoId,
+          hasProviderToken: !!providerToken,
+        });
+        console.log("providerMongoId", providerMongoId)
+        if (providerMongoId && providerToken) {
+          const providerDetails = await fetchUserDetails(
+            negotiationApiUrl,
+            providerToken,
+            providerMongoId,
+            "provider"
+          );
+          if (providerDetails) {
+            contacts.provider = providerDetails;
+          } else {
+            contacts.provider = { user_id: providerMongoId };
+          }
+        } else if (providerMongoId) {
+          contacts.provider = { user_id: providerMongoId };
+        }
+      }
+
+      //add another items, which is not retrieved form Negotiation!
+      contacts.provider = {
+        ...contacts.provider,
+        citizen: "UK (this is a fixed value, need to be set according to payload)",
+        passport_id: "NO222222 (this is a fixed value, need to be set according to payload)",
+      };
+
+
+      console.log("Resolved contacts for contract payload:", contacts);
+
       // --- Prepare payload for external contract API ---
       const payload = {
         _id: requestId,
@@ -155,7 +292,7 @@ router.post(
         contract_type: "pda",
         validity_period: 12,
         notice_period: 0,
-        contacts: {},
+        contacts:contacts,
         resource_description: {},
         definitions: {},
         custom_clauses: {},
@@ -167,6 +304,7 @@ router.post(
       };
 
       console.log("the payload is: ", payload);
+      console.log("contract payload JSON:", JSON.stringify(payload, null, 2));
 
       // --- Call external contract creation API ---
       const externalApiUrl =
