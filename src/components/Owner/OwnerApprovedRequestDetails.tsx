@@ -417,7 +417,6 @@ function OwnerApprovedRequestsDetails() {
 
           <button
             className="btn btn-outline-secondary"
-            onClick={() => setShowContract(!showContract)}
             onClick={handleToggleContract}
           >
             {showContract ? "Hide Contract" : "Show Contract"}
@@ -425,9 +424,6 @@ function OwnerApprovedRequestsDetails() {
         </div>
 
         {showContract && (
-          <pre className="mt-3 bg-light p-3 rounded border">
-            {JSON.stringify(buildContract(), null, 2)}
-          </pre>
           <div className="mt-3 bg-light p-3 rounded border">
             {contractLoading && <p>Loading contract...</p>}
             {contractError && <p className="text-danger">{contractError}</p>}
