@@ -278,7 +278,7 @@ router.post(
       //add another items, which is not retrieved form Negotiation!
       contacts.provider = {
         ...contacts.provider,
-        citizen: "UK (this is a fixed value, need to be set according to payload)",
+        citizen: "UK (this is a fixed value, need to be set according to payload, will be fixing)",
         passport_id: "NO222222 (this is a fixed value, need to be set according to payload)",
       };
 
