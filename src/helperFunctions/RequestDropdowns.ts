@@ -55,6 +55,7 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
               'Access-Control-Allow-Origin':'*'
             }
           });
+ 
           if (!response.ok) throw new Error(`Failed to fetch file: ${response.status}`);
           const text = await response.text();
           console.log(`Successfully fetched content for ${id}, length: ${text.length}`);
