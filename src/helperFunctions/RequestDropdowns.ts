@@ -49,7 +49,7 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
         try {
           console.log(`Fetching content from: ${downloadURL}`);
           //const response = await fetch(downloadURL);
-	  const response = await fetch(downloadURL, {
+          const response = await fetch(downloadURL, {
             mode: 'cors',
             headers: {
               'Access-Control-Allow-Origin':'*'

@@ -195,8 +195,8 @@ router.post(
       const naturalLanguageDocument = naturalLanguageFields.join("\n\n");
       console.log("Preparing payload");
 
-      const odrlPolicy = permissionsToODRLPolicy(requestId, req.user.uid, requestData?.requester.requesterId, policy);
-      console.log("This is the ODRL policy: ", JSON.stringify(odrlPolicy));
+      // const odrlPolicy = permissionsToODRLPolicy(requestId, req.user.uid, requestData?.requester.requesterId, policy);
+      // console.log("This is the ODRL policy: ", JSON.stringify(odrlPolicy));
       //get user details:
       const negotiationApiUrl =
         process.env.EXTERNAL_API_BASE_URL ||
@@ -300,7 +300,7 @@ router.post(
         definitions: {},
         custom_clauses: {},
         dpw: {},
-        odrl: odrlPolicy,
+        odrl: policy,
         nlp: naturalLanguageDocument || "",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
