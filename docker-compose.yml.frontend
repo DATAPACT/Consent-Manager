@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://dips.soton.ac.uk/consent-manager-api/api
+        VITE_NEGOTIATION_BASE_URL: https://dips.soton.ac.uk/negotiation/organization/negotiation
+        VITE_USE_EMULATOR: "false"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./firebase-admin-key.json:/app/firebase-admin-key.json
+      - ./src:/app/src
+    env_file:
+      - ./.env
+    container_name: consent-react
+    restart: always

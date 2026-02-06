@@ -30,3 +30,7 @@ debug-negotiations/
 check_*.cjs
 test_*.cjs
 verify_*.cjs
+.env
+Dockerfile
+docker-compose.yml
+
