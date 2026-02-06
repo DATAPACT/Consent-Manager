@@ -1,0 +1,16 @@
+services:
+    app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+        - "8010:8019"
+      volumes:
+        - ./firebase-admin-key.json:/app/firebase-admin-key.json
+        - ./server:/app/server
+        - ./src:/app/src
+        - ./dist:/app/dist
+      env_file:
+        - ./.env
+      container_name: consent-api
+      restart: always
