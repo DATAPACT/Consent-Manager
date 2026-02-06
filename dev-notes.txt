@@ -146,3 +146,7 @@ try {
     }
 
 > requestData has no field 'ownerEmails', so it is always false.
+
+06/02/2026
+
+Got a 500 error when I tried to send a request which included an action refinement. When I removed it, there was no issue. Will need to replicate.

@@ -804,7 +804,7 @@ function OwnerPendingRequestsDetails() {
         try {
           const contractResult = await createContractAPI({
             id: requestId!, // make sure requestId exists
-            policy: updatedRequest.permissions, //policy doesn't exist, will replace with permissions in the meantime and see what happens.
+            policy: updatedRequest.policy, //policy doesn't exist, will replace with permissions in the meantime and see what happens.
           });
           console.log("Contract created successfully:", contractResult);
 

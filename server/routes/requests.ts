@@ -1,6 +1,7 @@
 import express from "express";
 import { collection, query, where, getDocs, Query } from "firebase/firestore";
 import { db } from "../config/firebase.js";
+import { permissionsToODRLPolicy } from "../../src/utils/policyParser.js";
 
 const router = express.Router();
 
@@ -16,6 +17,8 @@ interface RequestData {
   extraText?: string;
   permissions: {
     dataset: string;
+    action: string;
+    purpose: string;
     datasetRefinements: Refinement[];
     purposeRefinements: Refinement[];
     actionRefinements: Refinement[];
@@ -73,6 +76,8 @@ router.post("/", async (req, res) => {
       });
     }
 
+    let odrlPolicy = permissionsToODRLPolicy("", "", data.requester.requesterId, data.permissions);
+
     const requestWithDefaults = {
       ...data,
       selectedOntologies: data.selectedOntologies.map(({ id, name }) => ({
@@ -88,6 +93,7 @@ router.post("/", async (req, res) => {
         .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       sentAt: "",
       status: "draft",
+      policy: odrlPolicy,
       owners: [],
       ownersAccepted: [],
       ownersRejected: [],

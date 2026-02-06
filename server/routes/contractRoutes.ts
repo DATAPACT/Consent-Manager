@@ -3,7 +3,6 @@ import { db } from "../config/firebase.js";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
-import { permissionsToODRLPolicy } from "../../src/utils/policyParser.ts"
 
 const router = express.Router();
 
@@ -126,22 +125,15 @@ export async function authorizeRequest(
     }
 
     const requestData = requestSnap.data();
-    console.log("Token payload is: ", tokenPayload);
-    console.log("User data is: ", userData);
-    console.log("Request data is: ", JSON.stringify(requestData));
     const ownerDocs = db.collection("owners");
     const ownerEmails: string[] = [];
     await ownerDocs.get().then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
-          console.log("doc is: ", doc);
           ownerEmails.push( 
             //id: doc.id, 
             doc.data().email )
         })
     });
-    console.log(ownerEmails);
-    console.log(userData.email);
-    console.log(ownerEmails.includes(userData.email));
     // This follows the assumption that emails are unique.
     const ownsRequest =
       (role === "owner" && ownerEmails.includes(userData.email)) ||
@@ -171,8 +163,6 @@ router.post(
     try {
       const { requestId } = req.params;
       const { policy } = req.body;
-
-      console.log("AuthRequest Info", req);
 
       console.log("Fetching request to verify existence.");
       // --- Fetch the request to verify existence ---
@@ -282,6 +272,12 @@ router.post(
         passport_id: "NO222222 (this is a fixed value, need to be set according to payload)",
       };
 
+      // Assign the provider's unique id to the policy as an ODRL assigner.
+      if (policy["odrl:permission"] instanceof Array) {
+          policy["odrl:permission"].forEach(permission => {
+          permission["odrl:assigner"] = {"odrl:source": {"@id": providerUid}}
+        });
+      }
 
       console.log("Resolved contacts for contract payload:", contacts);
 
