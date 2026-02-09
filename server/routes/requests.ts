@@ -76,8 +76,16 @@ router.post("/", async (req, res) => {
       });
     }
 
-    let odrlPolicy = permissionsToODRLPolicy("", "", data.requester.requesterId, data.permissions);
+    console.log("Creating new request for payload: ", data);
 
+    let odrlPolicy = null;
+    if (data.policy) {
+      odrlPolicy = data.policy;
+    }
+    else {
+      odrlPolicy = permissionsToODRLPolicy("", "", data.requester.requesterId, data.permissions);
+    }
+  
     const requestWithDefaults = {
       ...data,
       selectedOntologies: data.selectedOntologies.map(({ id, name }) => ({
