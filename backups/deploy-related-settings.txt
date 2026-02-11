@@ -1,0 +1,153 @@
+deploy on VM, local-test branch:
+consent-manager:
+.env:
+[mh1f25@srv04418 (PROD) consent-manager]$ cat .env
+PORT=8019
+JSON_LIMIT=50mb
+URL_LIMIT=50mb
+FILE_UPLOAD_LIMIT=100mb
+
+# Frontend Configuration
+FRONTEND_URL=https://dips.soton.ac.uk/consent-manager
+
+# CORS Configuration
+CORS_ORIGINS="*"
+
+# External API Configuration
+EXTERNAL_API_BASE_URL=https://dips.soton.ac.uk/negotiation-api
+EXTERNAL_API_MASTER_PASSWORD=5hnd..jk4ne!kwjs?wnsmmf
+
+# Vite build-time variables
+#  VITE_API_BASE_URL=http://localhost:8019/api
+VITE_API_BASE_URL=https://dips.soton.ac.uk/consent-manager-api/api
+
+VITE_NEGOTIATION_BASE_URL=https://dips.soton.ac.uk/negotiation/organization/negotiation
+
+
+# Server config
+VITE_USE_EMULATOR=false
+
+
+Dockerfile:
+[mh1f25@srv04418 (PROD) consent-manager]$ cat Dockerfile
+# Stage 1: Build the frontend
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+# Vite build-time args
+ARG VITE_API_BASE_URL
+ARG VITE_NEGOTIATION_BASE_URL
+ARG VITE_USE_EMULATOR
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_NEGOTIATION_BASE_URL=$VITE_NEGOTIATION_BASE_URL \
+    VITE_USE_EMULATOR=$VITE_USE_EMULATOR
+
+RUN npm run build
+
+# Stage 2: Production image
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY --from=builder /app/dist ./dist
+COPY server ./server
+COPY vite.config.ts ./vite.config.ts
+COPY src ./src
+
+EXPOSE 5173
+CMD ["npm", "run", "serve-static"]
+
+
+docker-compose.yml:
+[mh1f25@srv04418 (PROD) consent-manager]$ cat docker-compose.yml
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://dips.soton.ac.uk/consent-manager-api/api
+        VITE_NEGOTIATION_BASE_URL: https://dips.soton.ac.uk/negotiation/organization/negotiation
+        VITE_USE_EMULATOR: "false"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./firebase-admin-key.json:/app/firebase-admin-key.json
+      - ./src:/app/src
+    env_file:
+      - ./.env
+    container_name: consent-react
+    restart: always
+
+
+
+On consent-manager-api:
+.env:
+PORT=8019
+JSON_LIMIT=50mb
+URL_LIMIT=50mb
+FILE_UPLOAD_LIMIT=100mb
+
+# Frontend Configuration
+FRONTEND_URL=https://dips.soton.ac.uk/consent-manager
+
+# CORS Configuration
+ CORS_ORIGINS="*"
+#  CORS_ORIGINS="https://dips.soton.ac.uk,http://localhost:5173,http://localhost:8019"
+
+# External API Configuration
+EXTERNAL_API_BASE_URL=https://dips.soton.ac.uk/negotiation-api
+EXTERNAL_API_MASTER_PASSWORD=5hnd..jk4ne!kwjs?wnsmmf
+CONTRACT_SERVICE_URL=https://dips.soton.ac.uk/contract-service-api
+
+#  VITE_API_BASE_URL=http://localhost:8019/api
+
+VITE_API_BASE_URL=https://dips.soton.ac.uk/consent-manager-api/api
+
+
+# Server config
+USE_EMULATOR=false
+
+Dockerfile:
+[mh1f25@srv04418 (PROD) consent-manager-api]$ cat Dockerfile
+# Stage 1: Build the frontend
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Production image
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY --from=builder /app/dist ./dist
+COPY server ./server
+EXPOSE 8010
+CMD ["npm", "run", "server"]
+
+
+docker-compose.yml:
+[mh1f25@srv04418 (PROD) consent-manager-api]$ cat docker-compose.yml
+services:
+    app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+        - "8010:8019"
+      volumes:
+        - ./firebase-admin-key.json:/app/firebase-admin-key.json
+        - ./server:/app/server
+        - ./src:/app/src
+        - ./dist:/app/dist
+      env_file:
+        - ./.env
+      container_name: consent-api
+      restart: always
