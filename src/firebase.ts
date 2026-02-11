@@ -24,7 +24,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-const USE_EMULATOR = import.meta.env.VITE_USE_EMULATOR || true;
+const USE_EMULATOR = import.meta.env.VITE_USE_EMULATOR;
 
 // Connect to emulators if USE_EMULATOR is enabled
 if (USE_EMULATOR) {
