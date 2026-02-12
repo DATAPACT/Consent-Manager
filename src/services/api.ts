@@ -10,6 +10,7 @@ const API_BASE_URL =
 
 interface ContractRequest {
   id: string; // required for contract creation
+  user?: any,
   policy?: any; // ODRL policy JSON
 }
 
@@ -606,7 +607,9 @@ export async function createContractAPI(request: ContractRequest) {
           "Content-Type": "application/json",
           "x-api-token": token || "",
         },
-        body: JSON.stringify({ policy: request.policy }),
+        body: JSON.stringify({ 
+          user: userSummary,
+          policy: request.policy }),
       }
     );
 

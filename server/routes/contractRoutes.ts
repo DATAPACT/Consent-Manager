@@ -63,10 +63,11 @@ export async function authorizeRequest(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers["x-api-token"] as string | undefined;
+  const input_accesstoken = req.headers["x-api-token"] as string | undefined;
+
   const { requestId } = req.params;
 
-  if (!token) {
+  if (!input_accesstoken) {
     return res
       .status(401)
       .json({ success: false, error: "API token is required" });
@@ -74,36 +75,64 @@ export async function authorizeRequest(
 
   try {
     // --- Find user by token ---
-    const ownersSnap = await db
+    let ownersSnap = await db
       .collection("owners")
-      .where("apiToken.access_token", "==", token)
+      .where("apiToken.access_token", "==", input_accesstoken)//look for user id
       .get();
-    const requestersSnap = await db
+
+    let requestersSnap = await db
       .collection("requesters")
-      .where("apiToken.access_token", "==", token)
+      .where("apiToken.access_token", "==", input_accesstoken)//look for user id
       .get();
 
     let userDoc = null;
     let role: "owner" | "requester" | null = null;
-
-    if (!ownersSnap.empty) {
+    if (!ownersSnap.empty) {   
       userDoc = ownersSnap.docs[0];
       role = "owner";
     } else if (!requestersSnap.empty) {
       userDoc = requestersSnap.docs[0];
       role = "requester";
-    } else {
+    }
+    else if (req.body["user"]) {
+      const request_user_id = req.body["user"]["uid"];
+      const ownersSnap = await db
+      .collection("owners").doc(request_user_id).get(); // NOTE: user uid is not the same as the user_id in the api token. request user id is the name of the doc for the user in firebase.
+    
+      const requestersSnap = await db
+      .collection("requesters").doc(request_user_id).get();
+
+      if (ownersSnap) {
+        userDoc = ownersSnap;
+        role = "owner"
+        }
+      else if (requestersSnap) {
+        userDoc = requestersSnap;
+        role = "requester";
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, error: "Invalid user." });
+      }
+    }
+    else { // If not found by token, check for user_id.
       return res
         .status(401)
         .json({ success: false, error: "Invalid API token" });
     }
 
     const userData = userDoc.data();
+    console.log("user data is: ", userData);
+    if (!userData) {
+      return res
+        .status(401)
+        .json({ success: false, error: "User not found." });
+    }
 
     // --- Decode JWT to get email ---
     let tokenPayload: any;
     try {
-      tokenPayload = jwt.decode(token);
+      tokenPayload = jwt.decode(input_accesstoken);
     } catch {
       return res
         .status(400)
@@ -124,26 +153,26 @@ export async function authorizeRequest(
         .json({ success: false, error: "Request not found" });
     }
 
-    const requestData = requestSnap.data();
-    const ownerDocs = db.collection("owners");
-    const ownerEmails: string[] = [];
-    await ownerDocs.get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          ownerEmails.push( 
-            //id: doc.id, 
-            doc.data().email )
-        })
-    });
+    // const requestData = requestSnap.data();
+    // const ownerDocs = db.collection("owners");
+    // const ownerEmails: string[] = [];
+    // await ownerDocs.get().then((querySnapshot) => {
+    //     querySnapshot.forEach((doc) => {
+    //       ownerEmails.push( 
+    //         //id: doc.id, 
+    //         doc.data().email )
+    //     })
+    // });
     // This follows the assumption that emails are unique.
-    const ownsRequest =
-      (role === "owner" && ownerEmails.includes(userData.email)) ||
-      (role === "requester" && requestData?.requesterEmail === userData.email);
+    // const ownsRequest =
+    //   (role === "owner" && ownerEmails.includes(userData.email)) ||
+    //   (role === "requester" && requestData?.requesterEmail === userData.email);
 
-    if (!ownsRequest) {
-      return res
-        .status(403)
-        .json({ success: false, error: "Not authorized for this request" });
-    }
+    // if (!ownsRequest) {
+    //   return res
+    //     .status(403)
+    //     .json({ success: false, error: "Not authorized for this request" });
+    // }
 
     // --- Attach user info to request ---
     req.user = { uid: userDoc.id, email: userData.email, role };
@@ -357,6 +386,7 @@ router.get(
   async (req: AuthRequest, res: Response) => {
     try {
       const { requestId, contractId } = req.params;
+      console.log("got here");
 
       // --- Fetch the request to verify existence and ownership ---
       const requestSnap = await db.collection("requests").doc(requestId).get();
