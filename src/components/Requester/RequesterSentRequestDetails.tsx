@@ -39,6 +39,81 @@ interface Permission {
   }>;
 }
 
+interface ODRLPermission {
+  "odrl:action": {
+    "rdf:value": {
+      "@id": string;
+    };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    }[];
+  };
+  "odrl:target": {
+    "odrl:source": {
+      "@id": string;
+    };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    }[];
+  };
+  "odrl:assignee"?: {
+    "odrl:source": {
+      "@id": string;
+    };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    };
+  };
+  "odrl:assigner"?: {
+    "odrl:source": {
+      "@id": string;
+    };
+    "odrl:refinement"?: {
+      "odrl:leftOperand": {
+        "@id": string;
+      };
+      "odrl:operator": {
+        "@id": string;
+      };
+      "odrl:rightOperand": string[];
+    };
+  };
+  "odrl:constraint"?: Array<{
+    "odrl:leftOperand": {
+      "@id": string;
+    };
+    "odrl:operator": {
+      "@id": string;
+    };
+    "odrl:rightOperand": any;
+  }>;
+}
+
+interface ODRLPolicy {
+  "@context": any;
+  "@id": string;
+  "@type": string;
+  "odrl:permission": ODRLPermission[];
+}
+
 interface Request {
   id: string;
   requestName: string;
@@ -47,12 +122,13 @@ interface Request {
     requesterEmail: string;
   };
   permissions: Permission[];
-  policy?: any; // ODRL policy
+  policy?: ODRLPolicy; // ODRL policy
   status: string;
   owners: string[];
   ownersPending: string[];
   ownersAccepted: string[];
   ownersRejected: string[];
+  contractId?: any;
 }
 
 function RequesterSentRequestsDetails() {
@@ -72,6 +148,44 @@ function RequesterSentRequestsDetails() {
   const [ownerDetails, setOwnerDetails] = useState<
     { name: string; email: string; status: string }[]
   >([]);
+
+  const downloadODRL = async (policy: ODRLPolicy | undefined, owner: {name: string, email: string, status: string}) => {
+    if (!policy) {
+      alert(
+        "Policy data not found."
+      );
+      return;
+    }
+
+    try {
+      policy["odrl:permission"].forEach(permission => {
+        delete permission["odrl:assignee"];
+        if (owner) {
+          if (permission["odrl:assigner"]){
+            permission["odrl:assigner"]["odrl:source"]["@id"] = owner.email;
+          }
+          else{
+            permission["odrl:assigner"] = {"odrl:source": {"@id": owner.email}};
+          }
+        }
+      })
+      console.log("policy is: ", policy);
+      const json = JSON.stringify(policy, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `odrl_policy_${owner.name}.json`; // filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log("ODRL downloaded successfully.");
+    } catch (err) {
+      console.error("Error downloading ODRL:", err);
+    }
+  };
 
   // Fetching all owners from the database
   useEffect(() => {
@@ -376,6 +490,7 @@ function RequesterSentRequestsDetails() {
                     <th scope="col">Name</th>
                     <th scope="col">Email</th>
                     <th scope="col">Status</th>
+                    <th scope="col"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -394,6 +509,16 @@ function RequesterSentRequestsDetails() {
                       >
                         {owner.status}
                       </td>
+                      {owner.status === "Accepted" ? 
+                        <td>
+                        <button
+                          className={`${styles.primaryButton} btn`}
+                          onClick={() => downloadODRL(requestDetails?.policy, owner)}
+                        >
+                          Download ODRL
+                        </button>
+                      </td>
+                      : <td></td>}           
                     </tr>
                   ))}
                 </tbody>

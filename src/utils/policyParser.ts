@@ -144,7 +144,7 @@ export function permissionsToODRLPolicy(requestId: string, ownerId: string, requ
       "odrl:constraint": constraints.map(constraint => {
         return {
         "odrl:leftOperand": {"@id": constraint.attribute},
-        "odrl:operator": {"@id": constraint.attribute},
+        "odrl:operator": {"@id": constraint.instance},
         "odrl:rightOperand": constraint.value
       }})
     }

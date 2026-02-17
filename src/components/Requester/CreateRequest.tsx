@@ -83,9 +83,9 @@ function CreateRequest() {
       );
       // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
       const actionRefinements = await getAttributeDropdownValue(selectedOntologies);
-      const purposeRefinements = await getAttributeDropdownValue(selectedOntologies);
-      const datasetRefinements = await getAttributeDropdownValue(selectedOntologies);
-      const generalRefinements = await getAttributeDropdownValue(selectedOntologies);
+      const purposeRefinements = actionRefinements;
+      const datasetRefinements = actionRefinements;
+      const generalRefinements = actionRefinements;
 
       setActionOptions(actions);
       setPurposeOptions(purposes);
@@ -94,7 +94,7 @@ function CreateRequest() {
       setDatasetRefinementsOptions(datasetRefinements);
       setGeneralRefinementsOptions(generalRefinements);
     };
-
+    
     loadDropdownValues();
   }, [selectedOntologies]);
 
@@ -489,6 +489,7 @@ function CreateRequest() {
                           }
                           required
                         >
+                          <option disabled selected> -- Select an action -- </option>
                           {/* Ontology-based options */}
                           {actionOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -605,6 +606,7 @@ function CreateRequest() {
                           }
                           required
                         >
+                          <option disabled selected> -- Select a purpose -- </option>
                           {/* Ontology-based options */}
                           {purposeOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -829,11 +831,11 @@ function CreateRequest() {
         {step === 2 && (
           <>
             <p className="text-muted mt-4">
-              Bofore you create your request please make sure that all your
+              Before you create your request please make sure that all your
               permissions and refinements are correct. Wrong values can lead to
               rejection by the data owner. <br />
               <br /> If you're not sure please contact the data owner or see our{" "}
-              <a href="#">Guidline seciton</a>.
+              <a href="#">Guideline section</a>.
             </p>
             <button
               type="button"

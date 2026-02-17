@@ -4,6 +4,7 @@ import * as rdflib from "rdflib";
 export interface Option {
   value: string;
   label: string;
+  selected?: boolean;
 }
 
 export type Ontology = {
@@ -143,10 +144,18 @@ export const getFeatureDropdownValue = async (
     //@ts-ignore
     let ans2 = store.querySync(query2);
     ans = ans.concat(ans2);
-    return ans.map((binding) => ({
+    return ans.map((binding, index) => (
+      index === 0 ?
+      {
       value: binding['?variable'].value,
       label: binding['?value'].value,
-    }));
+      selected: true,
+    } : 
+    {
+      value: binding['?variable'].value,
+      label: binding['?value'].value,
+    }
+  ));
   }
 
   if (type === "purpose") {
@@ -158,10 +167,18 @@ export const getFeatureDropdownValue = async (
     const query = rdflib.SPARQLToQuery(sparql_purpose_query, false, store);
     //@ts-ignore
     let ans = store.querySync(query);
-    return ans.map((binding) => ({
+    return ans.map((binding, index) => (
+      index === 0 ?
+      {
       value: binding['?variable'].value,
       label: binding['?value'].value,
-    }));
+      selected: true,
+    } : 
+    {
+      value: binding['?variable'].value,
+      label: binding['?value'].value,
+    }
+  ));
   }
 
   return [];
@@ -217,17 +234,17 @@ export const getAttributeDropdownValue = async (
 export const getOperandDropdownValue = (): Option[] => {
   return [
     { value: "", label: "Choose an operator" },
-    { value: "eq", label: "eq" },
-    { value: "gt", label: "gt" },
-    { value: "gteq", label: "gteq" },
-    { value: "hasPart", label: "hasPart" },
-    { value: "isA", label: "isA" },
-    { value: "isAllOf", label: "isAllOf" },
-    { value: "isAnyOf", label: "isAnyOf" },
-    { value: "isNoneOf", label: "isNoneOf" },
-    { value: "isPartOf", label: "isPartOf" },
-    { value: "lt", label: "lt" },
-    { value: "lteq", label: "lteq" },
-    { value: "neq", label: "neq" },
+    { value: "odrl:eq", label: "equals" },
+    { value: "odrl:gt", label: "greater than" },
+    { value: "odrl:gteq", label: "greater than or equal to" },
+    { value: "odrl:hasPart", label: "has part" },
+    { value: "odrl:isA", label: "is a" },
+    { value: "odrl:isAllOf", label: "is all of" },
+    { value: "odrl:isAnyOf", label: "is any of" },
+    { value: "odrl:isNoneOf", label: "is none of" },
+    { value: "odrl:isPartOf", label: "is part of" },
+    { value: "odrl:lt", label: "less than" },
+    { value: "odrl:lteq", label: "less than or equal to" },
+    { value: "odrl:neq", label: "not equal to" },
   ];
 };

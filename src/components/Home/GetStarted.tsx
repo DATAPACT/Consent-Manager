@@ -17,7 +17,7 @@ function GetStarted() {
         <Link className="text-decoration-none" to="/" role="button">
           <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
         </Link>
-        <h3 className="mt-4">Starting with UPCAST Consent Manger</h3>
+        <h3 className="mt-4">Starting with DIPS Consent Manger</h3>
         <p className="mt-4">
           Let's start by choosing your role. You can register as a Data Owner to
           manage and respond to requests for your data, or as a Data Requester

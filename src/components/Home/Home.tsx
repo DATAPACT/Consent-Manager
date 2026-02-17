@@ -20,7 +20,7 @@ function Home() {
       >
         <h1 className="fw-bold">Manage User Consent with Confidence</h1>
         <p className="mt-3">
-          UPCAST Consent Manager helps you collect, store, and control user
+          The DIPS Consent Manager helps you collect, store, and control user
           privacy preferences across all your websites and apps—while staying
           compliant with global data laws.
         </p>
@@ -50,7 +50,7 @@ function Home() {
           <div className="col-md-4">
             <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
-                <h5 className="card-title fw-bold">Centralized Dashboard</h5>
+                <h5 className="card-title fw-bold">Centralised Dashboard</h5>
                 <p className="card-text">
                   View and manage all user consents in one secure platform.
                 </p>
@@ -63,7 +63,7 @@ function Home() {
               <div className="card-body">
                 <h5 className="card-title fw-bold">Customizable UI</h5>
                 <p className="card-text">
-                  Match consent banners and forms to your brand’s look and feel.
+                  Match consent banners and forms to your brand's look and feel.
                 </p>
               </div>
             </div>
@@ -77,7 +77,7 @@ function Home() {
           <h2 className="fw-bold mb-3">Built for Compliance</h2>
           <p>
             Stay compliant with GDPR, CCPA, and other global data privacy laws.
-            UPCAST provides consent logs, version history, and audit trails out
+            DIPS provides consent logs, version history, and audit trails out
             of the box.
           </p>
         </div>

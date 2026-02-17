@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext"; // Use AuthContext
 
 // components
-import logo from "../../assets/logo.png";
+// import logo from "../../assets/logo.png";
 
 const OwnerNavbar: React.FC = () => {
   const navigate = useNavigate();
@@ -26,14 +26,14 @@ const OwnerNavbar: React.FC = () => {
             to="/ownerBase/ownerDashboard"
             style={{ fontWeight: "500" }}
           >
-            <img
+            {/* <img
               src={logo}
               alt="Logo"
               width="30"
               height="24"
               className="d-inline-block align-text-top me-2"
-            />
-            Consent Manager
+            /> */}
+            DIPS Consent Manager
           </Link>
           <button
             className="navbar-toggler"

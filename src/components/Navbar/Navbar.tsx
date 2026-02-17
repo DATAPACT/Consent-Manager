@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 
 // components
-import logo from "../../assets/logo.png";
+// import logo from "../../assets/logo.png";
 
 function Navbar() {
   return (
@@ -16,14 +16,14 @@ function Navbar() {
               fontWeight: "500",
             }}
           >
-            <img
+            {/* <img
               src={logo}
               alt="Logo"
               width="30"
               height="24"
               className="d-inline-block align-text-top me-2"
-            />
-            Consent Manager
+            /> */}
+            DIPS Consent Manager
           </Link>
           <button
             className="navbar-toggler"

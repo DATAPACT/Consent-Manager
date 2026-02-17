@@ -181,7 +181,7 @@ function OwnerApprovedRequestsDetails() {
       const token = localStorage.getItem("token");
       const API_BASE_URL =
         import.meta.env.VITE_API_BASE_URL ||
-        "https://dips.soton.ac.uk/consent-manager-api/api";
+        "http://localhost:8019/api";
 
       const response = await fetch(
         `${API_BASE_URL}/requests/${requestId}/downloadContract/${contractId}`,
@@ -235,7 +235,8 @@ function OwnerApprovedRequestsDetails() {
       const token = localStorage.getItem("token");
       const API_BASE_URL =
         import.meta.env.VITE_API_BASE_URL ||
-        "https://dips.soton.ac.uk/consent-manager-api/api";
+        "http://localhost:8019/api";
+      console.log("api base url is: ", API_BASE_URL);
 
       const response = await fetch(
         `${API_BASE_URL}/requests/${requestId}/GetContract/${contractId}`,
