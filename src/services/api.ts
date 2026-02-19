@@ -3,7 +3,7 @@
 // const API_BASE_URL =
   // import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 const API_BASE_URL =
-   import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
+   process.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 
 //const API_BASE_URL =
   //import.meta.env.VITE_API_BASE_URL || "http://10.22.38.111:8019/api";

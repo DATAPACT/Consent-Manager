@@ -147,15 +147,15 @@ export const getFeatureDropdownValue = async (
     return ans.map((binding, index) => (
       index === 0 ?
       {
-      value: binding['?variable'].value,
-      label: binding['?value'].value,
-      selected: true,
-    } : 
-    {
-      value: binding['?variable'].value,
-      label: binding['?value'].value,
-    }
-  ));
+        value: binding['?variable'].value,
+        label: binding['?value'].value,
+        selected: true,
+      } : 
+      {
+        value: binding['?variable'].value,
+        label: binding['?value'].value,
+      }
+    ));
   }
 
   if (type === "purpose") {
@@ -170,15 +170,15 @@ export const getFeatureDropdownValue = async (
     return ans.map((binding, index) => (
       index === 0 ?
       {
-      value: binding['?variable'].value,
-      label: binding['?value'].value,
-      selected: true,
-    } : 
-    {
-      value: binding['?variable'].value,
-      label: binding['?value'].value,
-    }
-  ));
+        value: binding['?variable'].value,
+        label: binding['?value'].value,
+        selected: true,
+      } : 
+      {
+        value: binding['?variable'].value,
+        label: binding['?value'].value,
+      }
+    ));
   }
 
   return [];
@@ -248,3 +248,4 @@ export const getOperandDropdownValue = (): Option[] => {
     { value: "odrl:neq", label: "not equal to" },
   ];
 };
+

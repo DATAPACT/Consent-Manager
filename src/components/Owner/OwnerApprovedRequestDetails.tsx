@@ -262,6 +262,36 @@ function OwnerApprovedRequestsDetails() {
     }
   };
 
+  function formatOperand(operand: any): string {
+    if (!operand) return "";
+
+    if (typeof operand === "string") return operand;
+
+    // JSON-LD object with @id
+    if (operand["@id"]) {
+      return operand["@id"].replace(/^.*:/, ""); // strip prefix like cactus:
+    }
+
+    // JSON-LD object with @value
+    if (operand["@value"]) {
+      return operand["@value"];
+    }
+
+    // JSON-LD object with @list
+    if (operand["@list"]) {
+      return operand["@list"]
+        .map((item: any) => formatOperand(item))
+        .join(", ");
+    }
+
+    // Plain array of objects
+    if (Array.isArray(operand)) {
+      return operand.map((item) => formatOperand(item)).join(", ");
+    }
+
+    return String(operand);
+  }
+
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails)
@@ -317,7 +347,9 @@ function OwnerApprovedRequestsDetails() {
                     {permission.constraints.map((constraint, i) => (
                       <li key={i} className="mb-1">
                         <small className="text-muted">
-                          • {constraint.description}
+                          • {formatOperand(constraint.leftOperand)}{" "}
+                          {formatOperand(constraint.operator)}{" "}
+                          {formatOperand(constraint.rightOperand)}
                         </small>
                       </li>
                     ))}

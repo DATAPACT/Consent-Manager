@@ -1,4 +1,5 @@
 // Generic ODRL policy parser for consent management
+import { getOperandDropdownValue } from "../helperFunctions/RequestDropdowns";
 
 interface PolicyPermission {
   dataset: string;
@@ -165,7 +166,8 @@ export function extractReadableName(id: string): string {
   if (!id) return "Unknown";
 
   // Remove common prefixes
-  let name = id.replace(/^(https?:\/\/[^\/]+\/[^\/]*\/|[a-zA-Z]+:|id:)/, "");
+  // let name = id.replace(/^(https?:\/\/[^\/]+\/[^\/]*\/|[a-zA-Z]+:|id:)/, "");
+  let name = id.replace(/^(https?:\/\/[^\/]+(?:\/[^\/]+)*\/(?:[^\/]+#)?|[a-zA-Z]+:|id:)/, "");
 
   // Convert underscores to spaces, but be careful with camelCase
   name = name.replace(/_/g, " ");
@@ -178,6 +180,15 @@ export function extractReadableName(id: string): string {
 
   // Capitalize first letter of each word
   return name.replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
+export function extractReadableOperator(id: string): string {
+  const operators = getOperandDropdownValue();
+
+    const operator_string = operators.filter(element => element.value === id);
+
+    if (operator_string[0]) return operator_string[0].label
+    else return id;
 }
 
 /**
@@ -232,7 +243,7 @@ export function parseConstraints(
 
     return {
       leftOperand: extractReadableName(leftOperand),
-      operator: extractReadableName(operator),
+      operator: extractReadableOperator(operator),
       rightOperand,
       description,
     };
@@ -308,6 +319,10 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): PolicyPermission[] {
       permission["odrl:target"]["odrl:source"]["@id"]
     );
 
+    const actionRefinements = parseConstraints(permission["odrl:action"]["odrl:refinement"]);
+
+    const datasetRefinements = parseConstraints(permission["odrl:target"]["odrl:refinement"]);
+
     // Parse constraints generically
     const constraints = parseConstraints(permission["odrl:constraint"]);
 
@@ -317,8 +332,7 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): PolicyPermission[] {
     // Extract purpose from constraints (look for Purpose-related constraints)
     const purposeConstraints = constraints.filter(
       (c) =>
-        c.leftOperand.toLowerCase().includes("purpose") &&
-        c.operator.toLowerCase().includes("any")
+        c.leftOperand.toLowerCase().includes("purpose")
     );
 
     let purpose = "General use";
@@ -365,15 +379,15 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): PolicyPermission[] {
           return String(rightOp);
         })
         .join(", ");
-      purpose = purposeValues || "General use";
+      purpose = extractReadableName(purposeValues) || "General use";
     }
 
     return {
       dataset,
       action,
       purpose,
-      datasetRefinements: [],
-      actionRefinements: [],
+      datasetRefinements: datasetRefinements,
+      actionRefinements: actionRefinements,
       purposeRefinements: [],
       constraintRefinements: [],
       constraints, // Generic constraint info

@@ -909,7 +909,7 @@ function OwnerPendingRequestsDetails() {
           return parsedPermissions.map((permission, ruleIndex) => (
             <div key={ruleIndex} className="mb-4 mt-4">
               <h5>Permission {ruleIndex + 1}</h5>
-              <h5 className="mt-4">What’s being requested</h5>
+              <h5 className="mt-4">What's being requested</h5>
               <p>
                 <strong>Dataset:</strong> The requester wants access to data
                 from <strong>{permission.dataset}</strong>.

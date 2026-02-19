@@ -243,10 +243,12 @@ router.post("/register", async (req, res) => {
       const externalApiUrl =
         process.env.EXTERNAL_API_BASE_URL ||
         "https://dips.soton.ac.uk/negotiation-api";
-      const masterPasswordParam =
-        masterPassword ||
-        process.env.EXTERNAL_API_MASTER_PASSWORD ||
-        "5hnd..jk4ne!kwjs?wnsmmf";
+      // const masterPasswordParam =
+      //   masterPassword ||
+      //   process.env.EXTERNAL_API_MASTER_PASSWORD ||
+      //   "5hnd..jk4ne!kwjs?wnsmmf";
+      const masterPasswordParam = "master_password";
+
       const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
 
       console.log("🌐 Calling negotiation API registration...");
