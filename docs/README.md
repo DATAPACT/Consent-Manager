@@ -11,7 +11,7 @@ The Consent Manger provides an interface and API to manage consent requests. Req
 
 ### **Screenshot**
 
-![Consent Manager](./images/ConsentManager.png)
+![Consent Manager](./images/ConsentManager2.png)
 
 
 ## **Commercial Information**
