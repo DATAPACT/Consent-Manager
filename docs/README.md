@@ -9,6 +9,10 @@ Powered by
 
 The Consent Manger provides an interface and API to manage consent requests. Requesters can create consent requests based on ODRL Policies, and customised using domain specific terminology (through ontology files). Consent requests can be sent to users who can accept them, reject them. They have the ability to revoke them later.
 
+### **Screenshot**
+
+![Consent Manager](./images/ConsentManager.png)
+
 
 ## **Commercial Information**
 
