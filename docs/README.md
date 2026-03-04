@@ -80,4 +80,7 @@ The project should now be running locally.
 
 | What | How | Values |
 | --- | --- | --- |
-| 1) Engagement and satisfaction with consent manager  2) Scalability of reviewing stored consent | 1) Questionnaire for users of the consent manager (or pilots that are testing it, if the consent manager has not been deployed yet to a sufficient amount of users)  2) Experiment with synthetic data, and policies with 5 different permissions. | 1) ≥5/7 Likert scale rating in user satisfaction with usability of the tool, the ease to accept and/or revoke consent, and the ease to understand the policy clauses. 2) computing, based on the stored data on agred/revoked consents, which subset of a batch of 1000 users provided their consent to a complete policy (this should be computed in under a second), and which ones to a particular subset of permissions for a policy (this should be computed in under 5 seconds). |
+| 1) Engagement and satisfaction with consent manager; 2) Scalability of supporting/reviewing/editing consent |1) Questionnaire for pilot users of the consent manager; 2) Experiment with synthetic data, and policies with different permission requests and users. | 1) ≥5/7 Likert scale rating in user satisfaction with usability of the tool, the ease to accept and/or revoke consent, and the ease to understand the policy clauses; 2) Support >20 concurrent consent requests/updates with >20 different users over policies of average size (>5 rules) |
+
+Progress towards KPIs:
+* 04/03/2026: 1) resolved stability issues 2) created dataset of 20 consent policies of average size
