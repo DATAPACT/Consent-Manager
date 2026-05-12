@@ -33,6 +33,8 @@ import UploadOntology from "./components/Requester/UploadOntology";
 import Unauthorized from "./components/Unauthorized";
 import RequesterSentRequestsDetails from "./components/Requester/RequesterSentRequestDetails";
 import RequesterProfile from "./components/Requester/Profile/RequesterProfile";
+import OwnerProfile from "./components/Owner/Profile/OwnerProfile";
+import EmailLogin from "./components/Login/EmailLogin";
 import Test from "./Test";
 import ImportRequest from "./components/Requester/ImportRequest";
 import UserDetails from "./API/UserDetails";
@@ -58,6 +60,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/test" element={<Test />} />
             <Route path="/allUsers" element={<AllUsers />} />
             <Route path="/userDetails" element={<UserDetails />} />
+            <Route path="/emailLogin" element={<EmailLogin />} />
 
             {/* owner */}
             <Route
@@ -92,6 +95,10 @@ createRoot(document.getElementById("root")!).render(
               <Route
                 path="ownerOtherRequestsDetails/:requestId"
                 element={<OwnerOtherRequestsDetails />}
+              />
+              <Route
+                path="ownerProfile/:requestId"
+                element={<OwnerProfile />}
               />
             </Route>
 

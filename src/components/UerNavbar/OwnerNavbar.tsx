@@ -10,9 +10,9 @@ import { useAuth } from "../../AuthContext"; // Use AuthContext
 
 const OwnerNavbar: React.FC = () => {
   const navigate = useNavigate();
-  const { logout, userData } = useAuth();
+  const { logout, userData, user } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout();
     navigate("/");
   };
@@ -64,14 +64,12 @@ const OwnerNavbar: React.FC = () => {
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
-                    <a className="dropdown-item" href="#">
-                      Action
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Another action
-                    </a>
+                    <Link
+                      className="dropdown-item"
+                      to={`/ownerBase/ownerProfile/${user?.uid}`}
+                    >
+                      My Profile
+                    </Link>
                   </li>
                   <li>
                     <hr className="dropdown-divider" />

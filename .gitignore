@@ -22,7 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-firebase-admin.key.json
+firebase-admin-key.json
 
 # Debug files
 debug-negotiations/

@@ -1,0 +1,16 @@
+cd  /opt/
+cd dips_services/consent-manager
+git branch
+git status
+git pull
+ 
+cd ../consent-manager-api/
+git branch
+git status
+git restore Dockerfile docker-compose.yml
+git pull
+cp ../backups/consent-manager-backups/consent-manager-api-settings/Dockerfile  ./
+cp ../backups/consent-manager-backups/consent-manager-api-settings/docker-compose.yml  ./
+docker compose up -d --build
+cd ../consent-manager
+docker compose up -d --build

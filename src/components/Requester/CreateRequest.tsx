@@ -28,7 +28,7 @@ function CreateRequest() {
   const prevStep = () => setStep((s) => s - 1);
   const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
 
-  // onotlogies
+  // ontologies
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
 

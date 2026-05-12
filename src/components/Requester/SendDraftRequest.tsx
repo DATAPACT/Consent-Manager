@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getRequest, updateRequest, getAllOwners } from "../../services/api";
+import { getRequest, updateRequest, getAllOwners, registerTemporaryUser } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
 function SendDraftRequest() {
@@ -46,6 +46,38 @@ function SendDraftRequest() {
     "November",
     "December",
   ];
+
+// Source - https://stackoverflow.com/a/46181
+// Posted by John Rutherford, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-03-20, License - CC BY-SA 4.0
+
+const validateEmail = (email: string) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
+  // const sendEmailToUnregisteredUser = (email: string) => {
+  //   const actionCodeSettings = {
+  //     // URL you want to redirect back to. The domain (www.example.com) for this
+  //     // URL must be in the authorized domains list in the Firebase Console.
+  //     url: "https://dips.soton.ac.uk/consent-manager/login",
+  //     // This must be true.
+  //     handleCodeInApp: true,
+  //     iOS: {
+  //       bundleId: 'com.example.ios'
+  //     },
+  //     android: {
+  //       packageName: 'com.example.android',
+  //       installApp: true,
+  //       minimumVersion: '12'
+  //     },
+  //     // The domain must be configured in Firebase Hosting and owned by the project.
+  //     linkDomain: 'custom-domain.com'
+  //   };
+  // }
 
   // Get owner details by ID
   const getOwnerById = (ownerId: string) => {
@@ -174,6 +206,23 @@ function SendDraftRequest() {
     setShowDropdown(false);
   };
 
+  const addOwner = (owner: {
+    email: string;
+    id: string;
+    name?: string;
+  }) => {
+    if (validateEmail(owner.email)){
+      setSelectedOwners((prev) => [...prev, owner]);
+      setEmailInput("");
+      setFilteredOwners([]);
+      setShowDropdown(false);
+    }
+    else{
+      alert("Please input a valid email address.");
+      return;
+    }
+  };
+
   const removeOwner = (email: string) => {
     setSelectedOwners(selectedOwners.filter((o) => o.email !== email));
   };
@@ -192,13 +241,32 @@ function SendDraftRequest() {
     setLoading(true);
 
     try {
-      const newOwnerIds = selectedOwners.map((o) => o.id);
+      const newOwnerIds = selectedOwners.filter((o) => o.id != "").map((o) => o.id);
+      const unregisterdOwners = selectedOwners.filter((o) => o.id === "");
 
       console.log("=== BEFORE SENDING ===");
       console.log("Current owners state:", owners);
       console.log("Current ownersPending state:", ownersPending);
       console.log("New owner IDs to add:", newOwnerIds);
+      console.log("Unregistered users:", unregisterdOwners);
 
+      //TODO: Register new users for each unregistered user.
+      for (let owner of unregisterdOwners) {
+        let tempResponse = await registerTemporaryUser(
+          {
+            email: owner.email,
+            name: "default",
+            role: "owner",
+            emailVerified: false
+          }
+        );
+        if (tempResponse.success) {
+          newOwnerIds.push(tempResponse.user.uid);
+        }
+        else {
+          console.error("Unable to register email: ", owner.email);
+        }
+      }
       // Combine existing owners with new owners (avoid duplicates)
       const allOwnerIds = [...new Set([...owners, ...newOwnerIds])];
       const allPendingIds = [...new Set([...ownersPending, ...newOwnerIds])];
@@ -254,6 +322,7 @@ function SendDraftRequest() {
           setOwnersAccepted(requestData.ownersAccepted || []);
           setOwnersRejected(requestData.ownersRejected || []);
         }
+        
         console.log("======================");
       } else {
         alert("Error sending request. Please try again.");
@@ -263,6 +332,7 @@ function SendDraftRequest() {
       alert("Error sending request. Please try again.");
     } finally {
       setLoading(false);
+      location.reload();
     }
   };
 
@@ -323,7 +393,7 @@ function SendDraftRequest() {
           <label className={`${styles.formLabel} form-label`}>
             Add New Recipients
           </label>
-          <div className="position-relative">
+          <div className="position-relative w-75" style={{display: "inline-block"}}>
             <input
               type="text"
               className={`${styles.formInput} form-control`}
@@ -360,6 +430,15 @@ function SendDraftRequest() {
                 ))}
               </div>
             )}
+          </div>
+          <div className="position-relative w-25" style={{display: "inline-block"}}>
+            <button
+              type="button"
+              className="btn btn-sm text-center"
+              onClick={() => addOwner({email: emailInput, id: ""})}
+            >
+              <i className="fa-solid fa-plus"></i>
+            </button>
           </div>
 
           {selectedOwners.length > 0 && (

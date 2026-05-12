@@ -24,6 +24,7 @@ COPY --from=builder /app/dist ./dist
 COPY server ./server
 COPY vite.config.ts ./vite.config.ts
 COPY src ./src
+COPY emails ./emails
 
 EXPOSE 5173
 CMD ["npm", "run", "serve-static"]

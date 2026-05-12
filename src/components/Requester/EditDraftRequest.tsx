@@ -10,6 +10,7 @@ import styles from "../../css/CreateRequest.module.css";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getRequest, updateRequest } from "../../services/api";
+import { useAuth } from "../../AuthContext";
 
 import {
   getFeatureDropdownValue,
@@ -24,22 +25,148 @@ import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 
 function EditDraftRequest() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { requestId } = useParams();
+  const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState(0);
+  const nextStep = () => setStep((s) => s + 1);
+  const prevStep = () => setStep((s) => s - 1);
+  const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
+
   // const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
 
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
   const [selectedOntologies, setSelectedOntologies] = useState<Ontology[]>([]);
+  
+  const [, setError] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({ requestName: "" });
+  
   const [actionOptions, setActionOptions] = useState<Option[]>([]);
   const [purposeOptions, setPurposeOptions] = useState<Option[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [actionRefinementsOptions, setActionRefinementsOptions] = useState<Option[]>([]);
   const [purposeRefinementsOptions, setPurposeRefinementsOptions] = useState<Option[]>([]);
   const [datasetRefinementsOptions, setDatasetRefinementsOptions] = useState<Option[]>([]);
   const [generalRefinementsOptions, setGeneralRefinementsOptions] = useState<Option[]>([]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+    console.log("Loading request.")
+    const loadRequest = async () => {
+      try {
+        const result = await getRequest(requestId!);
+        if (result.success) {
+          const data = result.data;
+          setFormData({ requestName: data.requestName || "" });
+          const ontologyDocs = ontologies.filter((ontology: any)=>{
+            data.setOntologies.some((setOntology: any) => setOntology.id === ontology.id );
+          });
+          setSelectedOntologies(ontologyDocs || []);
+          setPermissions(data.permissions || []);
+        }
+      } catch (err) {
+        console.error("Failed to load request:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadRequest();
+  }, [requestId]);
+
+  useEffect(() => {
+    const loadOntologies = async () => {
+      if (!user) {
+        setError("User not authenticated");
+        return;
+      }
+
+      try {
+        const data = await fetchOntologies(user.uid);
+        setOntologies(data);
+
+        const defaultOntology = data.find((o) => o.id === "default");
+        if (defaultOntology) {
+          setSelectedOntologies([defaultOntology]);
+        }
+      } catch (err: any) {
+        setError(err.message);
+        console.error(err);
+      }
+    };
+
+    loadOntologies();
+  }, [user]); // Depend on user to reload when auth state changes
+
+
+  useEffect(() => {
+    console.log("Loading actions and purposes for ontologies.");
+    const loadDropdownValues = async () => {
+      const actions = await getFeatureDropdownValue(
+        selectedOntologies,
+        "action"
+      );
+      const purposes = await getFeatureDropdownValue(
+        selectedOntologies,
+        "purpose"
+      );
+      // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
+      const actionRefinements = await getAttributeDropdownValue(selectedOntologies);
+      const purposeRefinements = actionRefinements;
+      const datasetRefinements = actionRefinements;
+      const generalRefinements = actionRefinements;
+
+      setActionOptions(actions);
+      setPurposeOptions(purposes);
+      setActionRefinementsOptions(actionRefinements);
+      setPurposeRefinementsOptions(purposeRefinements);
+      setDatasetRefinementsOptions(datasetRefinements);
+      setGeneralRefinementsOptions(generalRefinements);
+    };
+
+    loadDropdownValues();
+  }, [selectedOntologies]);
+
+  const handleDoubleClick = (id: string) => {
+    const existing = selectedOntologies.find((o) => o.id === id);
+    if (existing) return;
+    const ontology = ontologies.find((o) => o.id === id);
+    if (ontology) {
+      setSelectedOntologies([...selectedOntologies, ontology]);
+    }
+  };
+
+  const removeOntology = (id: string) => {
+    setSelectedOntologies(selectedOntologies.filter((o) => o.id !== id));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const result = await updateRequest(requestId!, {
+        ...formData,
+        selectedOntologies,
+        permissions,
+        updatedAt: new Date().toISOString(),
+      });
+      
+      if (result.success) {
+        navigate("/requesterBase/requesterRequests");
+      } else {
+        alert("Error updating request");
+      }
+    } catch (err) {
+      console.error("Error updating request:", err);
+      alert("Error updating request");
+    }
+  };
 
   const {
     permissions,
@@ -63,95 +190,6 @@ function EditDraftRequest() {
     updateConstraintsRefinement,
   } = usePermissions();
 
-  const nextStep = () => setStep((s) => s + 1);
-  const prevStep = () => setStep((s) => s - 1);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  useEffect(() => {
-    const loadOntologies = async () => {
-      try {
-        const data = await fetchOntologies();
-        setOntologies(data);
-      } catch (err) {
-        console.error("Error loading ontologies", err);
-      }
-    };
-    loadOntologies();
-  }, []);
-
-  useEffect(() => {
-    const loadDropdownValues = async () => {
-      const actions = await getFeatureDropdownValue(
-        selectedOntologies,
-        "action"
-      );
-      const purposes = await getFeatureDropdownValue(
-        selectedOntologies,
-        "purpose"
-      );
-      // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
-      const actionRefinements = await getAttributeDropdownValue(selectedOntologies);
-      const purposeRefinements = await getAttributeDropdownValue(selectedOntologies);
-      const datasetRefinements = await getAttributeDropdownValue(selectedOntologies);
-      const generalRefinements = await getAttributeDropdownValue(selectedOntologies);
-
-      setActionOptions(actions);
-      setPurposeOptions(purposes);
-      setActionRefinementsOptions(actionRefinements);
-      setPurposeRefinementsOptions(purposeRefinements);
-      setDatasetRefinementsOptions(datasetRefinements);
-      setGeneralRefinementsOptions(generalRefinements);
-    };
-
-    loadDropdownValues();
-  }, [selectedOntologies]);
-
-  useEffect(() => {
-    const loadRequest = async () => {
-      try {
-        const result = await getRequest(requestId!);
-        if (result.success) {
-          const data = result.request;
-          setFormData({ requestName: data.requestName || "" });
-          setSelectedOntologies(data.selectedOntologies || []);
-          setPermissions(data.permissions || []);
-        }
-      } catch (err) {
-        console.error("Failed to load request:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadRequest();
-  }, [requestId]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const result = await updateRequest(requestId!, {
-        ...formData,
-        selectedOntologies,
-        permissions,
-        updatedAt: new Date().toISOString(),
-      });
-      
-      if (result.success) {
-        navigate("/requesterBase/requesterRequests");
-      } else {
-        alert("Error updating request");
-      }
-    } catch (err) {
-      console.error("Error updating request:", err);
-      alert("Error updating request");
-    }
-  };
-
   if (loading) return <div>Loading...</div>;
 
   const allFieldsFilled = permissions.every(
@@ -170,6 +208,41 @@ function EditDraftRequest() {
       <h3 className="mt-4">Edit Request</h3>
       <p>Update your request details below.</p>
       <hr />
+
+      {/* progress bar with step titles */}
+      <div className="mb-4">
+        <div className="d-flex justify-content-between mb-1">
+          {stepTitles.map((title, index) => (
+            <div
+              key={index}
+              className="text-center flex-fill"
+              style={{ fontSize: "0.875rem" }}
+            >
+              <div
+                style={{
+                  color: index <= step ? "#000" : "#ccc",
+                  fontWeight: index === step ? "bold" : "normal",
+                }}
+              >
+                {title}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="progress mt-3">
+          <div
+            className={`${styles.progressBar} progress-bar`}
+            role="progressbar"
+            style={{ width: `${((step + 1) / stepTitles.length) * 100}%` }}
+            aria-valuenow={((step + 1) / stepTitles.length) * 100}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            {stepTitles[step]}
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit}>
         {step === 0 && (
@@ -194,32 +267,26 @@ function EditDraftRequest() {
               <select
                 className={`${styles.formInput} form-select`}
                 size={5}
-                defaultValue=""
-                onDoubleClick={(e) => {
-                  const selected = ontologies.find(
-                    (o) => o.id === e.currentTarget.value
-                  );
-                  if (
-                    selected &&
-                    !selectedOntologies.find((o) => o.id === selected.id)
-                  ) {
-                    setSelectedOntologies([...selectedOntologies, selected]);
-                  }
-                }}
+                aria-label="Ontology select"
+                onDoubleClick={(e) => handleDoubleClick(e.currentTarget.value)}
+                disabled={ontologies.length === 0}
               >
-                <option value="" disabled>
-                  Double-click to select
-                </option>
-                {ontologies
-                  .filter(
-                    (ontology) =>
-                      !selectedOntologies.some((o) => o.id === ontology.id)
-                  )
-                  .map(({ id, name }) => (
-                    <option key={id} value={id}>
-                      {name}
+                {ontologies.length === 0 ? (
+                  <option disabled>Loading custom ontologies...</option>
+                ) : (
+                  <>
+                    <option className="mb-2" disabled selected>
+                      Double-click to select
                     </option>
-                  ))}
+                    {ontologies
+                      .filter((ontology) => ontology.id !== "default")
+                      .map(({ id, name }) => (
+                        <option key={id} value={id}>
+                          {name}
+                        </option>
+                      ))}
+                  </>
+                )}
               </select>
 
               <div style={{ marginTop: "1rem" }}>
@@ -238,17 +305,26 @@ function EditDraftRequest() {
                       key={id}
                       className="border px-2 py-1 me-2"
                       style={{ cursor: "pointer" }}
-                      onClick={() =>
-                        setSelectedOntologies(
-                          selectedOntologies.filter((o) => o.id !== id)
-                        )
-                      }
+                      onClick={() => removeOntology(id)}
                     >
-                      {name} <span>&times;</span>
+                      {name} <span style={{ marginLeft: 5 }}>&times;</span>
                     </span>
                   )
                 )}
               </div>
+            </div>
+
+            <div className="alert alert-warning mt-3" role="alert">
+              Select one or more ontologies. If the ontology you're looking
+              for isn't listed,{" "}
+              <Link
+                to="/requesterBase/ontologies"
+                className="text-decoration-underline"
+              >
+                go to the Ontologies page
+              </Link>{" "}
+              to upload it. The default ontology will always be used, even if
+              you don't select any ontologies.
             </div>
 
             <button

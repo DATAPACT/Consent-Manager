@@ -5,7 +5,9 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { login as apiLogin, logout as apiLogout } from "./services/api";
+import { login as apiLogin, logout as apiLogout, emailLogin as apiEmailLogin } from "./services/api";
+import { auth } from "./firebase";
+import { checkActionCode, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 
 // --- Define user profile type ---
 interface UserProfile {
@@ -32,6 +34,7 @@ interface AuthContextType {
   userData: UserProfile | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  emailLogin: (email: string, mode: string, actionCode: string, continueURL: string) => Promise<void>; 
 }
 
 // --- Create context ---
@@ -182,6 +185,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const emailLogin = async (email: string, mode: string, actionCode: string, continueURL: string) => {
+    try {
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+          console.log("Email is: ", email);
+          console.log("Mode is: ", mode);
+          console.log("Action code is: ", actionCode);
+          console.log("Continue URL is: ", continueURL);
+  
+          if (mode === "signIn") {
+              checkActionCode(auth, actionCode).then((info) => {
+                  console.log("Info is: ", info);
+              });
+          }
+          else {
+            console.error("Wrong mode in email link.");
+          }
+          let authUser: AuthUser;
+          const result = await signInWithEmailLink(auth, email, window.location.href)
+
+          if (!result.user) {
+            throw new Error("Email sign in failed.");
+          }
+          console.log("Result: ", result);
+
+          const apiLogin = await apiEmailLogin(email);
+          if (apiLogin.success) {
+            authUser = {
+              uid: result.user.uid,
+              email: result.user.email,
+              displayName: result.user.displayName,
+              role: "owner",
+              userData: apiLogin.user.userData
+            };
+            setUser(authUser);
+            setRole("owner");
+            setUserData(apiLogin.user.userData);
+
+            // Store in localStorage for persistence
+            localStorage.setItem("user", JSON.stringify(authUser));
+            let token;
+            const apiToken = apiLogin.user.apiToken;
+              if (
+                typeof apiToken === "object" &&
+                apiToken.access_token
+              ) {
+                token = apiToken.access_token;
+                console.log("Extracted access_token from apiToken object");
+              } else {
+                token = apiToken;
+                console.log("Using apiToken as-is (not an object)");
+              }
+              console.log(
+                "Storing token in localStorage:",
+                token.substring(0, 50) + "..."
+              );
+              localStorage.setItem("token", token);
+          }  
+          else {
+            throw new Error(apiLogin.error || "Login failed");
+          }
+      } 
+    }
+    catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await apiLogout();
@@ -200,7 +271,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   if (loading) return null;
 
   return (
-    <AuthContext.Provider value={{ user, role, userData, login, logout }}>
+    <AuthContext.Provider value={{ user, role, userData, login, logout, emailLogin }}>
       {children}
     </AuthContext.Provider>
   );

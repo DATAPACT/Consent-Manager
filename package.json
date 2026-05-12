@@ -10,10 +10,12 @@
     "serve-static": "tsx server/static-server.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "email:dev": "email dev"
   },
   "dependencies": {
     "@comunica/query-sparql": "^5.1.2",
+    "@react-email/components": "1.0.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
@@ -36,7 +38,9 @@
     "rdflib": "^2.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-email": "5.2.10",
     "react-router-dom": "^7.3.0",
+    "resend": "^6.9.4",
     "swagger-ui-express": "^5.0.1",
     "tsx": "^4.20.3",
     "yaml": "^2.8.1",

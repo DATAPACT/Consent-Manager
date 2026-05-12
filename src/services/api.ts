@@ -1,5 +1,7 @@
 // API service to interact with the Express backend
 
+// import { string } from "rdflib/lib/utils-js";
+
 // const API_BASE_URL =
   // import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 const API_BASE_URL =
@@ -46,6 +48,39 @@ interface RequestData {
   metadata?: any; // Additional metadata like audit request ID
 }
 
+interface EmailRequest {
+  id: string,
+  userIds: string[]
+}
+
+// function randomPassword(lower: number, upper: number, special: number, numeric: number) {
+//   let password = [];
+//   var chars = [
+//     "abcdefghijklmnopqrstuvwxyz",
+//     "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+//     "!@#$%^&*()",
+//     "0123456789"
+//   ];
+//   for (let i = 0; i < lower; i++) {
+//     let randomIndex = Math.floor(Math.random()*chars[0].length);
+//     password.push(chars[0][randomIndex]);
+//   }
+//   for (let i = 0; i < upper; i++) {
+//     let randomIndex = Math.floor(Math.random()*chars[1].length);
+//     password.push(chars[1][randomIndex]);
+//   }
+//   for (let i = 0; i < special; i++) {
+//     let randomIndex = Math.floor(Math.random()*chars[2].length);
+//     password.push(chars[2][randomIndex]);
+//   }
+//   for (let i = 0; i < numeric; i++) {
+//     let randomIndex = Math.floor(Math.random()*chars[3].length);
+//     password.push(chars[3][randomIndex]);
+//   }
+//   password.sort(() => 0.5 - Math.random());
+//   return password.join("");
+// } 
+
 // Authentication API
 export const login = async (email: string, password: string) => {
   try {
@@ -57,6 +92,29 @@ export const login = async (email: string, password: string) => {
       },
       credentials: "include",
       body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error logging in:", error);
+    throw error;
+  }
+};
+
+export const emailLogin = async (email: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-login-source": "ui",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password: "Random_Password_For_Testing_13!" }),
     });
 
     if (!response.ok) {
@@ -84,6 +142,61 @@ export const register = async (userData: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error registering:", error);
+    throw error;
+  }
+};
+
+export const updateUser = async (userData: {
+  email: string;
+  password: string;
+  name: string;
+  role: string;
+  [key: string]: any;
+}) => {
+  try {
+    
+    const response = await fetch(`${API_BASE_URL}/auth/update`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw error;
+  }
+};
+
+export const registerTemporaryUser = async (userData: {
+  email: string;
+  name: string;
+  role: string;
+  [key: string]: any;
+}) => {
+  try {
+    const newUser = {...userData}
+    const response = await fetch(`${API_BASE_URL}/auth/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newUser),
     });
 
     if (!response.ok) {
@@ -622,6 +735,35 @@ export async function createContractAPI(request: ContractRequest) {
     return data;
   } catch (error) {
     console.error("❌ Error creating contract:", error);
+    throw error;
+  }
+}
+
+export async function sendEmailsToUnregisteredUsers(request: EmailRequest) {
+  try {
+    console.log("📝 Request object received:", request);
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      `${API_BASE_URL}/email/${request.id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-token": token || "",
+        },
+        body: JSON.stringify({ 
+          id: request.id,
+          userIds: request.userIds }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending request emails:", error);
     throw error;
   }
 }

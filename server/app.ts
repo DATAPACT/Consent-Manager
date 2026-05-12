@@ -104,6 +104,7 @@ import ontologiesRouter from "./routes/ontologies.js";
 import dashboardRouter from "./routes/dashboard.js";
 import externalApiRouter from "./routes/external-api.js";
 import contractRoutes from "./routes/contractRoutes.js";
+// import emailRouter from "./routes/email.js";
 
 // API Routes
 app.use("/api", (req, res, next) => {
@@ -117,6 +118,7 @@ app.use("/api/ontologies", ontologiesRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/external", externalApiRouter);
 app.use("/api/requests", contractRoutes);
+// app.use("/api/email", emailRouter);
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {

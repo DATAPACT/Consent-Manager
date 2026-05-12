@@ -172,6 +172,15 @@ function RequesterRequests() {
                             <li>
                               <Link
                                 className="dropdown-item"
+                                to={`/requesterBase/editDraftRequest/${request.id}`}
+                              >
+                                <i className="fa-solid fa-edit me-2"></i>
+                                Edit request
+                              </Link>
+                            </li>
+                            <li>
+                              <Link
+                                className="dropdown-item"
                                 to={`/requesterBase/sendDraftRequest/${request.id}`}
                               >
                                 <i className="fa-solid fa-file-import me-2"></i>

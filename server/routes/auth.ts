@@ -166,6 +166,379 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/create", async (req, res) => {
+  try {
+    console.log("========================================");
+    console.log("📝 REGISTRATION REQUEST FOR NEW USER");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    console.log("========================================");
+
+    const {
+      email,
+      role,
+      type,
+      masterPassword,
+      ...additionalData
+    } = req.body;
+
+    console.log("📋 Parsed registration data:", {
+      email,
+      role,
+      additionalFields: Object.keys(additionalData),
+    });
+
+    if (!email || !role) {
+      console.error("Missing required fields:", {
+        hasEmail: !!email,
+        hasRole: !!role,
+      })
+      return res.status(400).json({
+        error: "Email and role are required",
+        success: false,
+      })
+    }
+
+    if (role !== "owner") {
+      console.error("Invalid role. This function can only create users who are owners.")
+      return res.status(400).json({
+        error: 'Role must be "owner"',
+        success: false,
+      })
+    }
+
+    console.log("Creating Firebase user...");
+    // Create Firebase user using Admin SDK
+    const userRecord = await admin.auth().createUser({
+      email,
+      displayName: "default",
+      disabled: true,
+    });
+    console.log("Firebase user created:", userRecord.uid);
+
+    const passwordResetLink = await admin.auth().generatePasswordResetLink(email);
+    console.log("Password reset link: ", passwordResetLink);
+
+    // Save user data to appropriate Firestore collection
+    const userData = {
+      name: "default",
+      email,
+      role: "owner",
+      createdAt: new Date().toISOString(),
+      ...additionalData,
+    };
+
+    console.log("Saving to Firestore collection: owners");
+    await db.collection("owners").doc(userRecord.uid).set(userData);
+    console.log("Saved to Firestore");
+
+    var actionCodeSettings = {
+            url: `http://localhost:5173/consent-manager/emailLogin?emailForSignIn=${email}`,
+            handleCodeInApp: true,
+          };
+
+    const emailLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
+    console.log("Email link: ", emailLink);
+
+    // External API registration
+    let apiRegistrationSuccess = false;
+    let mongoUserId = null;
+    try {
+      const externalApiUrl =
+        process.env.EXTERNAL_API_BASE_URL ||
+        "https://dips.soton.ac.uk/negotiation-api";
+      // const masterPasswordParam =
+      //   masterPassword ||
+      //   process.env.EXTERNAL_API_MASTER_PASSWORD ||
+      //   "5hnd..jk4ne!kwjs?wnsmmf";
+      const masterPasswordParam = "master_password";
+
+      const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
+
+      console.log("   Calling negotiation API registration...");
+      console.log("   URL:", `${externalApiUrl}/user/register`);
+      console.log("   Email:", email);
+      console.log("   Type:", role === "requester" ? "consumer" : "provider");
+
+      const apiResponse = await fetch(
+        `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username_email: email,
+            password: "Random_Password_For_Testing_13!",
+            name: "",
+            type: "provider",
+          }),
+        }
+      );
+
+      console.log("Negotiation API response status:", apiResponse.status);
+
+      apiRegistrationSuccess = apiResponse.ok;
+      if (apiResponse.ok) {
+        const successData = await apiResponse.json();
+        console.log("Negotiation API registration successful:", successData);
+
+        // Extract MongoDB user ID from the response
+        if (
+          successData &&
+          (successData.user_id || successData.id || successData._id)
+        ) {
+          mongoUserId =
+            successData.user_id || successData.id || successData._id;
+          console.log("MongoDB user ID received:", mongoUserId);
+
+          // Update the Firebase user document with the MongoDB user ID
+          console.log("Updating Firebase with mongoUserId...");
+          await db.collection("owners").doc(userRecord.uid).update({
+            mongoUserId: mongoUserId,
+            apiRegistrationSuccess: true,
+            apiRegistrationDate: new Date().toISOString(),
+          });
+          console.log("Firebase updated with mongoUserId");
+
+          console.log(
+            "MongoDB user ID stored in Firebase for user:",
+            userRecord.uid
+          );
+        } else {
+          console.warn("No user ID found in API response:", successData);
+        }
+      } else {
+        const errorData = await apiResponse.json();
+        console.error("External API registration failed:", {
+          status: apiResponse.status,
+          statusText: apiResponse.statusText,
+          error: errorData,
+          email: email,
+          role: "owner",
+          type: "provider",
+        });
+      }
+
+    } catch (apiError: any) {
+      console.error("External API registration exception:", {
+        error: apiError.message,
+        stack: apiError.stack,
+        email: email,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      user: {
+        uid: userRecord.uid,
+        email: userRecord.email,
+        role: "owner",
+        userData,
+        apiRegistrationSuccess,
+        mongoUserId,
+      },
+    });
+  } catch (error: any) {
+    console.error("Registration error:", error);
+    res.status(400).json({
+      error: error.message || "Registration failed",
+      success: false,
+    });
+  }
+})
+
+router.post("/update", async (req, res) => {
+  try {
+    console.log("========================================");
+    console.log("📝 UPDATE REQUEST RECEIVED");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    console.log("========================================");
+
+    const {
+      email,
+      password,
+      new_password,
+      confirm_password,
+      name,
+      role,
+      type,
+      masterPassword,
+      uid,
+      ...additionalData
+    } = req.body;
+
+    console.log("Parsed user data:", {
+      email,
+      name,
+      role,
+      hasPassword: !!password,
+      additionalFields: Object.keys(additionalData),
+    });
+
+    if (!email || !password || !name || !role) {
+      console.error("Missing required fields:", {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        hasName: !!name,
+        hasRole: !!role,
+      });
+      return res.status(400).json({
+        error: "Email, password, name, and role are required",
+        success: false,
+      });
+    }
+
+    if (!["owner", "requester"].includes(role)) {
+      console.error("Invalid role:", role);
+      return res.status(400).json({
+        error: 'Role must be either "owner" or "requester"',
+        success: false,
+      });
+    }
+
+    if (new_password !== confirm_password) {
+      console.error("New passwords do not match.");
+      return res.status(400).json({
+        error: 'New passwords do not match.',
+        success: false,
+      });
+    }
+
+    let apiToken: any = null;
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    const externalApiUrl =
+      process.env.EXTERNAL_API_BASE_URL ||
+      "https://dips.soton.ac.uk/negotiation-api";
+    console.log("external api url is: ", externalApiUrl);
+    const apiResponse = await fetch(`${externalApiUrl}/user/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+    });
+
+    if (apiResponse.ok) {
+      const tokenText = await apiResponse.text();
+      apiToken = JSON.parse(tokenText); // parse once here
+      console.log(
+        "External API login successful:",
+        tokenText.substring(0, 50)
+      );
+    }
+    else {
+      console.error("Password or email is incorrect.");
+      return res.status(400).json({
+        error: 'Password or email is incorrect.',
+        success: false,
+      });
+    }
+
+    console.log("Updating Firebase user...");
+    // Create Firebase user using Admin SDK
+    const userRecord = await admin.auth().updateUser(uid, {
+      email,
+      password: new_password,
+      displayName: name,
+    });
+    console.log("Firebase user updated:", userRecord.uid);
+
+    // Save user data to appropriate Firestore collection
+    const collection = role === "owner" ? "owners" : "requesters";
+    const userData = {
+      name,
+      email,
+      role,
+      updatedAt: new Date().toISOString(),
+      ...additionalData,
+    };
+
+    console.log("Saving changes to Firestore collection:", collection);
+    await db.collection(collection).doc(userRecord.uid).set(userData);
+    console.log("Saved to Firestore");
+
+    // External API registration
+    let apiRegistrationSuccess = false;
+    let mongoUserId = null;
+    try {
+      const externalApiUrl =
+        process.env.EXTERNAL_API_BASE_URL ||
+        "https://dips.soton.ac.uk/negotiation-api";
+      const masterPasswordParam = "master_password";
+
+      const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
+
+      console.log("   Calling negotiation API registration...");
+      console.log("   URL:", `${externalApiUrl}/user/update-password`);
+      console.log("   Email:", email);
+      console.log("   Type:", role === "requester" ? "consumer" : "provider");
+
+      const apiResponse = await fetch(
+        `${externalApiUrl}/user/update-password?master_password_input=${encodedMasterPassword}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username_email: email,
+            password: new_password,
+            name: name,
+            type: role === "requester" ? "consumer" : "provider",
+          }),
+        }
+      );
+
+      console.log("Negotiation API response status:", apiResponse.status);
+
+      apiRegistrationSuccess = apiResponse.ok;
+      if (apiResponse.ok) {
+        const successData = await apiResponse.json();
+        console.log("Negotiation API password changed successfully:", successData);
+
+        // Extract MongoDB user ID from the response
+      } else {
+        const errorData = await apiResponse.json();
+        console.error("External API registration failed:", {
+          status: apiResponse.status,
+          statusText: apiResponse.statusText,
+          error: errorData,
+          email: email,
+          name: name,
+          role: role,
+          type: role === "requester" ? "consumer" : "provider",
+        });
+      }
+    } catch (apiError: any) {
+      console.error("External API registration exception:", {
+        error: apiError.message,
+        stack: apiError.stack,
+        email: email,
+        name: name,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      user: {
+        uid: userRecord.uid,
+        email: userRecord.email,
+        role,
+        userData,
+        apiRegistrationSuccess,
+        mongoUserId,
+      },
+    });
+  } catch (error: any) {
+    console.error("Update error:", error);
+    res.status(400).json({
+      error: error.message || "Update failed",
+      success: false,
+    });
+  }
+});
+
 // POST /api/auth/register - User registration
 router.post("/register", async (req, res) => {
   try {
