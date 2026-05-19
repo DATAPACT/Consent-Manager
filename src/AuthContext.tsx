@@ -9,6 +9,8 @@ import { login as apiLogin, logout as apiLogout, emailLogin as apiEmailLogin } f
 import { auth } from "./firebase";
 import { checkActionCode, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 
+
+
 // --- Define user profile type ---
 interface UserProfile {
   name: string;

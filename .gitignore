@@ -35,4 +35,5 @@ verify_*.cjs
 .env
 Dockerfile
 docker-compose.yml
+.env.secret
 

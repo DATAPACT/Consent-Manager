@@ -2,6 +2,7 @@ import express from "express";
 import admin from "firebase-admin";
 import { db } from "../config/firebase.js";
 import "express-session";
+import keycloak from "../../src/keycloak.ts";
 
 declare module "express-session" {
   interface SessionData {
