@@ -56,7 +56,7 @@ interface Permission {
 }
 
 interface Request {
-  id: string;
+  _id: string;
   requestName: string;
   requester: {
     requesterId: string;

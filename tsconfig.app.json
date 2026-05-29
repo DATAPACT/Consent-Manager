@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "emails/email.tsx"]
+  "include": ["src", "emails/email.tsx", "server/config/keycloak.ts"]
 }

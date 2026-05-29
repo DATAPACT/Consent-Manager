@@ -8,7 +8,7 @@ export interface Option {
 }
 
 export type Ontology = {
-  id: string;
+  _id: string;
   name: string;
   content: string;
 };
@@ -39,36 +39,15 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
     // Process ontologies and fetch their content
     const ontologyDocs = await Promise.all(
       ontologyData.map(async (ontologyItem: any) => {
-        const { id, name, downloadURL } = ontologyItem;
-        console.log(`Processing ontology ${id}: ${name}, URL: ${downloadURL}`);
+        const { _id, name, content } = ontologyItem;
+        console.log(`Processing ontology ${_id}: ${name}, URL: ${content}`);
 
-        if (!downloadURL) {
-          console.warn(`No download URL for ontology ${id}`);
-          return { id, name, content: "No download URL found" };
+        if (!content) {
+          console.warn(`No content for ontology ${_id}`);
+          return { _id, name, content: "No content found" };
         }
 
-        try {
-          console.log(`Fetching content from: ${downloadURL}`);
-          //const response = await fetch(downloadURL);
-          const response = await fetch(downloadURL, {
-            mode: 'cors',
-            headers: {
-              'Access-Control-Allow-Origin':'*'
-            }
-          });
- 
-          if (!response.ok) throw new Error(`Failed to fetch file: ${response.status}`);
-          const text = await response.text();
-          console.log(`Successfully fetched content for ${id}, length: ${text.length}`);
-          return { id, name, content: text };
-        } catch (e: any) {
-          console.error(`Error fetching content for ${id}:`, e);
-          return {
-            id,
-            name,
-            content: `Error fetching file: ${e.message}`,
-          };
-        }
+        return { _id, name, content};
       })
     );
 
@@ -107,24 +86,27 @@ export const getFeatureDropdownValue = async (
   const store = rdflib.graph();
 
   for (const ontology of ontologies) {
-      const textStream = ontology.content;
-      const rdf_formats = ["text/turtle", "text/n3", "application/rdf+xml", "application/ld+json", "application/n-quads", "application/n-triples",  "application/xml", "application/json"];
-
-      let success = false;
-      for (let mimetype of rdf_formats) {
-        try{
-          rdflib.parse(textStream, store, "http://example.org/base#", mimetype);
-          success = true
-          break;
-        }
-        catch (e){
-          console.log("Tried: ", mimetype);
-          continue;
-        }
+      const textStream = JSON.stringify(ontology.content); //This is now guaranteed to be in JSON-LD.
+      try {
+        await new Promise<void>((resolve, reject) => {
+          rdflib.parse(
+            textStream,
+            store,
+            "http://example.org/base#",
+            "application/ld+json",
+            (error) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              console.log("Parsing successful:", ontology.name);
+              resolve();
+            }
+          );
+        });
+      } catch (e) {
+        console.error("Failed to parse ontology:", ontology.name, e);
       }
-      if (!success) {
-        console.error("Failed to parse ontology:", ontology.name);
-      } 
   }
 
   if (type === "action") {
@@ -190,25 +172,29 @@ export const getAttributeDropdownValue = async (
   const store = rdflib.graph();
 
   for (const ontology of ontologies) {
-      const textStream = ontology.content;
-      const rdf_formats = ["text/turtle", "text/n3", "application/rdf+xml", "application/ld+json", "application/n-quads", "application/n-triples",  "application/xml", "application/json"];
-
-      let success = false;
-      for (let mimetype of rdf_formats) {
-        try{
-          rdflib.parse(textStream, store, "http://example.org/base#", mimetype);
-          success = true
-          break;
-        }
-        catch (e){
-          console.log("Tried: ", mimetype);
-          continue;
-        }
+      const textStream = JSON.stringify(ontology.content); //This is now guaranteed to be in JSON-LD.
+      try {
+        await new Promise<void>((resolve, reject) => {
+          rdflib.parse(
+            textStream,
+            store,
+            "http://example.org/base#",
+            "application/ld+json",
+            (error) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              console.log("Parsing successful:", ontology.name);
+              resolve();
+            }
+          );
+        });
+      } catch (e) {
+        console.error("Failed to parse ontology:", ontology.name, e);
       }
-      if (!success) {
-        console.error("Failed to parse ontology:", ontology.name);
-      } 
   }
+
   const sparql_left_operands_query = `
     SELECT ?value 
     WHERE {

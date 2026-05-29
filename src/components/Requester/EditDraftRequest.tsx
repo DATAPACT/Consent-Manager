@@ -92,7 +92,7 @@ function EditDraftRequest() {
         const data = await fetchOntologies(user.uid);
         setOntologies(data);
 
-        const defaultOntology = data.find((o) => o.id === "default");
+        const defaultOntology = data.find((o) => o._id === "default");
         if (defaultOntology) {
           setSelectedOntologies([defaultOntology]);
         }
@@ -135,16 +135,16 @@ function EditDraftRequest() {
   }, [selectedOntologies]);
 
   const handleDoubleClick = (id: string) => {
-    const existing = selectedOntologies.find((o) => o.id === id);
+    const existing = selectedOntologies.find((o) => o._id === id);
     if (existing) return;
-    const ontology = ontologies.find((o) => o.id === id);
+    const ontology = ontologies.find((o) => o._id === id);
     if (ontology) {
       setSelectedOntologies([...selectedOntologies, ontology]);
     }
   };
 
   const removeOntology = (id: string) => {
-    setSelectedOntologies(selectedOntologies.filter((o) => o.id !== id));
+    setSelectedOntologies(selectedOntologies.filter((o) => o._id !== id));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -279,9 +279,9 @@ function EditDraftRequest() {
                       Double-click to select
                     </option>
                     {ontologies
-                      .filter((ontology) => ontology.id !== "default")
-                      .map(({ id, name }) => (
-                        <option key={id} value={id}>
+                      .filter((ontology) => ontology._id !== "default")
+                      .map(({ _id, name }) => (
+                        <option key={_id} value={_id}>
                           {name}
                         </option>
                       ))}
@@ -290,10 +290,10 @@ function EditDraftRequest() {
               </select>
 
               <div style={{ marginTop: "1rem" }}>
-                {selectedOntologies.map(({ id, name }) =>
-                  id === "default" ? (
+                {selectedOntologies.map(({ _id, name }) =>
+                  _id === "default" ? (
                     <span
-                      key={id}
+                      key={_id}
                       className="border px-2 py-1 me-2 bg-light text-muted"
                       style={{ cursor: "not-allowed" }}
                       title="Default ontology cannot be removed"
@@ -302,10 +302,10 @@ function EditDraftRequest() {
                     </span>
                   ) : (
                     <span
-                      key={id}
+                      key={_id}
                       className="border px-2 py-1 me-2"
                       style={{ cursor: "pointer" }}
-                      onClick={() => removeOntology(id)}
+                      onClick={() => removeOntology(_id)}
                     >
                       {name} <span style={{ marginLeft: 5 }}>&times;</span>
                     </span>

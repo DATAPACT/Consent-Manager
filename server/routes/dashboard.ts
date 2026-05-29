@@ -1,6 +1,6 @@
 import express from 'express';
-import admin from 'firebase-admin';
-import { db } from '../config/firebase.js';
+import { ObjectId } from "mongodb";
+import { db } from "../../src/services/database.service.ts";
 
 const router = express.Router();
 
@@ -9,32 +9,32 @@ router.get('/requester/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const requesterDoc = await db.collection('requesters').doc(uid).get();
-    if (!requesterDoc.exists) {
+    const requesterCollection = db.collection('users');
+    const requesterData = await requesterCollection.findOne({_id:new ObjectId(uid)});
+    console.log("Requester doc is:",requesterData);
+    if (!requesterData) {
       return res.status(404).json({
         error: 'Requester not found',
         success: false
       });
     }
 
-    const requesterData = requesterDoc.data()!;
-
     const ontologiesSnapshot = await db.collection('ontologies')
-      .where('uploadedBy', '==', uid)
-      .get();
-    const ontologiesCount = ontologiesSnapshot.size;
+      .find({ 'uploadedBy': {$eq: uid}}).toArray();
+      
+    const ontologiesCount = ontologiesSnapshot.length;
 
     const requestsSnapshot = await db.collection('requests')
-      .where('requester.requesterId', '==', uid)
-      .get();
+      .find({'requester.requesterId': {$eq: uid}})
+      .toArray();
 
     let draftCount = 0;
     let sentCount = 0;
     let approvedCount = 0;
     let rejectedCount = 0;
 
-    requestsSnapshot.docs.forEach(doc => {
-      const request = doc.data();
+    requestsSnapshot.forEach(doc => {
+      const request = doc;
       switch (request.status) {
         case 'draft':
           draftCount++;
@@ -51,7 +51,7 @@ router.get('/requester/:uid', async (req, res) => {
       }
     });
 
-    const totalRequests = requestsSnapshot.size;
+    const totalRequests = requestsSnapshot.length;
 
     res.json({
       success: true,
@@ -86,8 +86,8 @@ router.get('/owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const ownerDoc = await db.collection('owners').doc(uid).get();
-    if (!ownerDoc.exists) {
+    const ownerDoc = await db.collection('owners').findOne({_id:new ObjectId(uid), 'type': "provider"});
+    if (!ownerDoc) {
       return res.status(404).json({
         error: 'Owner not found',
         success: false
@@ -97,15 +97,15 @@ router.get('/owner/:uid', async (req, res) => {
     const ownerData = ownerDoc.data()!;
 
     const requestsSnapshot = await db.collection('requests')
-      .where('owners', 'array-contains', uid)
-      .get();
+    .find({ 'owners': {$elemMatch: { $eq: uid }}})
+    .toArray();
 
     let pendingCount = 0;
     let approvedCount = 0;
     let rejectedCount = 0;
 
-    requestsSnapshot.docs.forEach(doc => {
-      const request = doc.data();
+    requestsSnapshot.forEach(doc => {
+      const request = doc;
       if (request.ownersPending?.includes(uid)) {
         pendingCount++;
       } else if (request.ownersAccepted?.includes(uid)) {
@@ -115,7 +115,7 @@ router.get('/owner/:uid', async (req, res) => {
       }
     });
 
-    const totalRequests = requestsSnapshot.size;
+    const totalRequests = requestsSnapshot.length;
 
     res.json({
       success: true,
@@ -148,14 +148,10 @@ router.get('/requests/pending-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const querySnapshot = await db.collection('requests')
-      .where('ownersPending', 'array-contains', uid)
-      .get();
+    const querySnapshot = db.collection('requests')
+      .find({'ownersPending': {$elemMatch: { $eq: uid }}});
 
-    const pendingRequests = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const pendingRequests = await querySnapshot.toArray();
 
     res.json({
       success: true,
@@ -176,14 +172,10 @@ router.get('/requests/approved-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
-    const querySnapshot = await db.collection('requests')
-      .where('ownersAccepted', 'array-contains', uid)
-      .get();
+    const querySnapshot = db.collection('requests')
+      .find({'ownersAccepted': {$elemMatch: { $eq: uid }}});
 
-    const approvedRequests = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const approvedRequests = await querySnapshot.toArray();
 
     res.json({
       success: true,

@@ -1,7 +1,8 @@
 import express from 'express';
-import admin from 'firebase-admin';
-import { db, storage } from '../config/firebase.js';
 import multer from 'multer';
+import { db } from "../../src/services/database.service.js"
+import * as rdf from "rdflib";
+import { ObjectId } from 'mongodb';
 
 const router = express.Router();
 
@@ -41,11 +42,51 @@ const upload = multer({
   }
 });
 
+const extensionToMimetype = (extension: string | undefined) => {
+  if (extension === ".ttl") {
+    return "text/turtle";
+  }
+  else if (extension === ".rdf" || extension === ".owl" || extension === ".xml") {
+    return "application/rdf+xml";
+  }
+  else if (extension === ".n3") {
+    return "text/n3";
+  }
+  else if (extension === ".jsonld") {
+    return "application/ld+json";
+  }
+  else if (extension === ".json") {
+    return "application/rdf+json";
+  }
+  else {
+    return "text/turtle";
+  }
+}
+
 // POST /api/ontologies - Upload a new ontology
 router.post('/', upload.single('ontologyFile'), async (req, res) => {
   try {
     const { requesterUid, ontologyName, ontologyDescription } = req.body;
     const file = req.file;
+    const fileExtension = file?.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+    const fileContent = req.file?.buffer.toString();
+    const fileContentMimetype = extensionToMimetype(fileExtension);
+
+    const graph = rdf.graph();
+
+    if (fileContent) {
+      rdf.parse(fileContent, graph, "http://example.org/", fileContentMimetype);
+    }
+    else{
+      console.error("Could not parse ontology.");
+      res.status(500).json({
+        error: 'Failed to upload ontology',
+        success: false
+      });
+      return;
+    }
+    const graphContent = rdf.serialize(rdf.sym("http://example.org/"), graph, "http://example.org/", 'application/ld+json', undefined, {flags: 'o'} );
+    const content = graphContent !== undefined ? JSON.parse(graphContent) : {};
 
     if (!requesterUid || !ontologyName || !file) {
       res.status(400).json({
@@ -55,48 +96,21 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
       return;
     }
 
-    const timestamp = Date.now();
-    const filename = `${requesterUid}_${timestamp}_${file.originalname}`;
-    const storageRef = storage.bucket().file(`ontologies/${filename}`);
-
-    await storageRef.save(file.buffer, {
-      metadata: {
-        contentType: file.mimetype
-      }
-    });
-
-    let downloadURL = await storageRef.getSignedUrl({
-      action: 'read',
-      expires: '03-09-2030'
-    }).then(urls => urls[0]);
-
-    if (process.env.USE_EMULATOR) { //Check if using emulator so we can give a different URL.
-      console.log("Using emulator.")
-      downloadURL = downloadURL.replace("firebase-emulator", "localhost");
-      //downloadURL = downloadURL.replace("firebase-emulator", "10.22.38.111");
-    }
-
-    const ontologyId = `ontology_${requesterUid}_${timestamp}`;
+    const ontologyId = new ObjectId();
 
     const ontologyData = {
-      id: ontologyId,
+      _id: ontologyId,
       name: ontologyName,
       description: ontologyDescription || '',
+      content: content,
       filename: file.originalname,
-      storagePath: filename,
-      downloadURL,
       uploadedBy: requesterUid,
       uploadedAt: new Date().toISOString(),
-      size: file.size,
-      mimeType: file.mimetype
     };
 
-    await db.collection('ontologies').doc(ontologyId).set(ontologyData);
+    await db.collection('ontologies').insertOne(ontologyData);
 
-    const requesterRef = db.collection('requesters').doc(requesterUid);
-    await requesterRef.update({
-      ontologyIds: admin.firestore.FieldValue.arrayUnion(ontologyId)
-    });
+    await db.collection('users').updateOne({_id: new ObjectId(requesterUid)}, {$push: {ontologyIds: ontologyId}});
 
     res.status(201).json({
       success: true,
@@ -118,9 +132,9 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const ontologyDoc = await db.collection('ontologies').doc(id).get();
+    const ontologyDoc = await db.collection('ontologies').findOne({'_id': {$eq: new ObjectId(id)}});
 
-    if (!ontologyDoc.exists) {
+    if (!ontologyDoc) {
       res.status(404).json({
         error: 'Ontology not found',
         success: false
@@ -156,20 +170,16 @@ router.get('/', async (req, res) => {
       // 1. Ontologies they uploaded (have uploadedBy field matching their UID)
       // 2. The default ontology (id === 'default')
       
-      const userOntologiesQuery = db.collection('ontologies').where('uploadedBy', '==', requesterUid);
-      const userOntologiesSnapshot = await userOntologiesQuery.get();
+      const userOntologiesQuery = db.collection('ontologies').find({'uploadedBy': {$eq: requesterUid}});
       
       // Get the default ontology by ID
-      const defaultOntologyDoc = await db.collection('ontologies').doc('default').get();
+      const defaultOntologyDoc = await db.collection('ontologies').findOne({'default': {$eq: true}});
       
-      const userOntologies = userOntologiesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const userOntologies = await userOntologiesQuery.toArray();
       
       // Add default ontology if it exists
       const allAvailableOntologies = [...userOntologies];
-      if (defaultOntologyDoc.exists) {
+      if (defaultOntologyDoc) {
         allAvailableOntologies.push({
           id: defaultOntologyDoc.id,
           ...defaultOntologyDoc.data()
@@ -187,11 +197,7 @@ router.get('/', async (req, res) => {
       });
     } else {
       // No user specified - return all ontologies
-      const querySnapshot = await db.collection('ontologies').get();
-      const ontologies = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const ontologies = await db.collection('ontologies').find().toArray();
 
       res.json({
         success: true,
@@ -214,9 +220,9 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const { requesterUid } = req.body;
 
-    const ontologyDoc = await db.collection('ontologies').doc(id).get();
+    const ontologyDoc = await db.collection('ontologies').findOne({'_id': {$eq: new ObjectId(id)}});
     
-    if (!ontologyDoc.exists) {
+    if (!ontologyDoc) {
       res.status(404).json({
         error: 'Ontology not found',
         success: false
@@ -224,17 +230,7 @@ router.delete('/:id', async (req, res) => {
       return;
     }
 
-    const ontologyData = ontologyDoc.data();
-
-    if (!ontologyData) {
-      res.status(500).json({
-        error: 'Ontology data is missing',
-        success: false
-      });
-      return;
-    }
-
-    if (ontologyData.uploadedBy !== requesterUid) {
+    if (ontologyDoc.uploadedBy !== requesterUid) {
       res.status(403).json({
         error: 'Unauthorized to delete this ontology',
         success: false
@@ -242,15 +238,18 @@ router.delete('/:id', async (req, res) => {
       return;
     }
 
-    const storageRef = storage.bucket().file(`ontologies/${ontologyData.storagePath}`);
-    await storageRef.delete();
+    const deleteResult = await db.collection('ontologies').deleteOne({'_id': {$eq: new ObjectId(id)}});
 
-    await db.collection('ontologies').doc(id).delete();
+    if (!deleteResult) {
+      console.error('Error deleting ontology');
+      res.status(500).json({
+        error: 'Failed to delete ontology',
+        success: false
+      });
+      return;
+    }
 
-    const requesterRef = db.collection('requesters').doc(requesterUid);
-    await requesterRef.update({
-      ontologyIds: admin.firestore.FieldValue.arrayRemove(id)
-    });
+    const requesterRef = await db.collection('users').findOneAndUpdate({_id: new ObjectId(requesterUid)}, {$pull: {ontologyIds: new ObjectId(id)}});
 
     res.json({
       success: true,
@@ -274,10 +273,10 @@ router.get('/user/:uid/count', async (req, res) => {
     const { uid } = req.params;
     
     const ontologiesQuery = db.collection('ontologies')
-      .where('uploadedBy', '==', uid);
+      .find({'uploadedBy': {$eq: uid}});
     
-    const querySnapshot = await ontologiesQuery.get();
-    const count = querySnapshot.size;
+    const querySnapshot = await ontologiesQuery.toArray();
+    const count = querySnapshot.length;
 
     res.json({
       success: true,

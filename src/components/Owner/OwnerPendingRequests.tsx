@@ -9,7 +9,7 @@ import LoadingSpinner from "../LoadingSpinner";
 
 // Define the type for the request object
 interface Request {
-  id: string;
+  _id: string;
   requestName: string;
   status: string;
   ownersPending: string[]; // Array of owner IDs pending approval
@@ -104,12 +104,12 @@ function OwnerPendingRequests() {
           </thead>
           <tbody>
             {pendingRequests.map((request) => (
-              <tr key={request.id}>
+              <tr key={request._id}>
                 <td className="py-3">{request.requestName}</td>
                 <td className="py-3">{request.sentAt}</td>
                 <td className="py-3 text-center">
                   <Link
-                    to={`/ownerBase/ownerPendingRequestsDetails/${request.id}`}
+                    to={`/ownerBase/ownerPendingRequestsDetails/${request._id}`}
                     className={`${styles.primaryButton} btn btn-sm`}
                   >
                     See details

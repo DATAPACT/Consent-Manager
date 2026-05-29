@@ -7,7 +7,7 @@ import { getRequests, deleteRequest } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
 interface Request {
-  id: string;
+  _id: string;
   requestName: string;
   status: string;
   ownersAccepted: string[];
@@ -74,7 +74,7 @@ function OwnerApprovedRequests() {
 
       if (result.success) {
         setApprovedRequests(
-          approvedRequests.filter((req) => req.id !== selectedRequestId)
+          approvedRequests.filter((req) => req._id !== selectedRequestId)
         ); // Update UI
         setSelectedRequestId(null); // Clear selected request
       } else {
@@ -123,12 +123,12 @@ function OwnerApprovedRequests() {
             </thead>
             <tbody>
               {approvedRequests.map((request) => (
-                <tr key={request.id}>
+                <tr key={request._id}>
                   <td className="py-3">{request.requestName}</td>
                   <td className="py-3">{request.sentAt}</td>
                   <td className="py-3">
                     <Link
-                      to={`/ownerBase/ownerApprovedRequestsDetails/${request.id}`}
+                      to={`/ownerBase/ownerApprovedRequestsDetails/${request._id}`}
                       className={`${styles.primaryButton} btn`}
                     >
                       View Details
@@ -136,8 +136,8 @@ function OwnerApprovedRequests() {
                     <button
                       className={`${styles.dangerButton} btn ms-3`}
                       data-bs-toggle="modal"
-                      data-bs-target={`#revokeRequestModal-${request.id}`}
-                      onClick={() => setSelectedRequestId(request.id)} // Set selected request to be deleted
+                      data-bs-target={`#revokeRequestModal-${request._id}`}
+                      onClick={() => setSelectedRequestId(request._id)} // Set selected request to be deleted
                     >
                       Revoke
                     </button>
@@ -145,9 +145,9 @@ function OwnerApprovedRequests() {
                     {/* Revoke Modal */}
                     <div
                       className="modal fade"
-                      id={`revokeRequestModal-${request.id}`}
+                      id={`revokeRequestModal-${request._id}`}
                       tabIndex={-1}
-                      aria-labelledby={`revokeRequestLabel-${request.id}`}
+                      aria-labelledby={`revokeRequestLabel-${request._id}`}
                       aria-hidden="true"
                     >
                       <div className="modal-dialog">

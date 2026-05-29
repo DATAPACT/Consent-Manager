@@ -12,7 +12,6 @@ concurrency:
 jobs:
   sync:
     if: github.repository == 'DIPS-Tools/Consent-Manager'
-
     runs-on: ubuntu-latest
 
     steps:

@@ -69,7 +69,7 @@ function RequesterRequests() {
         const result = await deleteRequest(requestToDelete);
         if (result.success) {
           setDraftRequests((prev) =>
-            prev.filter((request) => request.id !== requestToDelete)
+            prev.filter((request) => request._id !== requestToDelete)
           );
           setRequestToDelete(null);
         } else {
@@ -144,7 +144,7 @@ function RequesterRequests() {
             ) : (
               <div className="mt-4">
                 {draftRequests.map((request) => (
-                  <div className="border mt-3" key={request.id}>
+                  <div className="border mt-3" key={request._id}>
                     <div className="d-flex p-3">
                       <div
                         className="me-auto p-2"
@@ -158,7 +158,7 @@ function RequesterRequests() {
                           <button
                             className="btn btn-sm text-dark"
                             type="button"
-                            id={`dropdownMenu-${request.id}`}
+                            id={`dropdownMenu-${request._id}`}
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
                           >
@@ -167,12 +167,12 @@ function RequesterRequests() {
 
                           <ul
                             className="dropdown-menu"
-                            aria-labelledby={`dropdownMenu-${request.id}`}
+                            aria-labelledby={`dropdownMenu-${request._id}`}
                           >
                             <li>
                               <Link
                                 className="dropdown-item"
-                                to={`/requesterBase/editDraftRequest/${request.id}`}
+                                to={`/requesterBase/editDraftRequest/${request._id}`}
                               >
                                 <i className="fa-solid fa-edit me-2"></i>
                                 Edit request
@@ -181,7 +181,7 @@ function RequesterRequests() {
                             <li>
                               <Link
                                 className="dropdown-item"
-                                to={`/requesterBase/sendDraftRequest/${request.id}`}
+                                to={`/requesterBase/sendDraftRequest/${request._id}`}
                               >
                                 <i className="fa-solid fa-file-import me-2"></i>
                                 Send request
@@ -190,7 +190,7 @@ function RequesterRequests() {
                             <li>
                               <button
                                 className="dropdown-item"
-                                onClick={() => setRequestToDelete(request.id)}
+                                onClick={() => setRequestToDelete(request._id)}
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteRequestModal"
                               >
@@ -228,18 +228,18 @@ function RequesterRequests() {
                 </thead>
                 <tbody>
                   {sentRequests.map((request) => (
-                    <tr key={request.id}>
+                    <tr key={request._id}>
                       <td className="py-3">{request.requestName}</td>
                       <td className="py-3">{request.sentAt}</td>
                       <td className="py-3">
                         <Link
-                          to={`/requesterBase/requesterSentRequestsDetails/${request.id}`}
+                          to={`/requesterBase/requesterSentRequestsDetails/${request._id}`}
                           className={`${styles.primaryButton} btn btn-sm`}
                         >
                           See details
                         </Link>
                         <Link
-                          to={`/requesterBase/sendDraftRequest/${request.id}`}
+                          to={`/requesterBase/sendDraftRequest/${request._id}`}
                           className={`${styles.secondaryButton} btn btn-sm ms-2`}
                         >
                           Send to more

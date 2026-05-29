@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-dotenv.config();
+const result = dotenv.config();
 
 const app = express();
 const PORT = process.env.STATIC_PORT || "5173";

@@ -36,7 +36,7 @@ interface RequestData {
     constraintRefinements: Refinement[];
   }[];
   selectedOntologies: {
-    id: string;
+    _id: string;
     name: string;
   }[];
   requester: {

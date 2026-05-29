@@ -29,7 +29,7 @@ const Ontologies: React.FC = () => {
         if (result.success) {
           // Filter out default ontology and any ontologies without names
           const userOntologies = result.ontologies
-            .filter((ontology: any) => ontology.id !== "default" && ontology.name);
+            .filter((ontology: any) => ontology._id !== "default" && ontology.name);
           
           setOntologies(userOntologies);
         } else {
@@ -78,7 +78,7 @@ const Ontologies: React.FC = () => {
         
         if (result.success) {
           setOntologies(
-            ontologies.filter((ontology) => ontology.id !== ontologyId)
+            ontologies.filter((ontology) => ontology._id !== ontologyId)
           );
           alert("Ontology deleted successfully!");
         } else {
@@ -144,7 +144,7 @@ const Ontologies: React.FC = () => {
             </thead>
             <tbody>
               {ontologies.map((ontology) => (
-                <tr key={ontology.id}>
+                <tr key={ontology._id}>
                   <td className="py-4">{ontology.name}</td>
                   <td className="py-4">
                     {ontology.uploadedAt ? new Date(ontology.uploadedAt).toLocaleString() : 'Unknown'}
@@ -155,9 +155,9 @@ const Ontologies: React.FC = () => {
                       data-bs-toggle="modal"
                       data-bs-target="#deleteOntologyModal"
                       onClick={async () => {
-                        setOntologyToDelete(ontology.id);
+                        setOntologyToDelete(ontology._id);
                         setOntologyNameToDelete(ontology.name);
-                        const isUsed = await checkIfOntologyIsUsed(ontology.id);
+                        const isUsed = await checkIfOntologyIsUsed(ontology._id);
                         setIsOntologyInUse(isUsed);
                       }}
                     >

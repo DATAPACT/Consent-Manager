@@ -13,11 +13,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config();
+const result = dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const app = express();
-const PORT = process.env.PORT || 8019;
+const PORT = process.env.PORT || "8019";
 
 // Configure payload limits from environment variables
 const JSON_LIMIT = process.env.JSON_LIMIT || "10mb";
@@ -121,7 +121,7 @@ app.use("/api/requests", contractRoutes);
 // app.use("/api/email", emailRouter);
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(parseInt(PORT), '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`Swagger docs: http://localhost:${PORT}/docs`);

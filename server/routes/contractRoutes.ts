@@ -1,8 +1,9 @@
 import express from "express";
-import { db } from "../config/firebase.js";
+import { db } from "../../src/services/database.service";
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { verify } from "../config/keycloak";
 import fetch from "node-fetch";
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
@@ -74,115 +75,75 @@ export async function authorizeRequest(
   }
 
   try {
-    // --- Find user by token ---
-    let ownersSnap = await db
-      .collection("owners")
-      .where("apiToken.access_token", "==", input_accesstoken)//look for user id
-      .get();
+    let verification = null;
+    let request_user = null;
+    let request_user_id: string = "";
+    let role = "unknown";
 
-    let requestersSnap = await db
-      .collection("requesters")
-      .where("apiToken.access_token", "==", input_accesstoken)//look for user id
-      .get();
-
-    let userDoc = null;
-    let role: "owner" | "requester" | null = null;
-    if (!ownersSnap.empty) {   
-      userDoc = ownersSnap.docs[0];
-      role = "owner";
-    } else if (!requestersSnap.empty) {
-      userDoc = requestersSnap.docs[0];
-      role = "requester";
-    }
-    else if (req.body["user"]) {
-      const request_user_id = req.body["user"]["uid"];
-      const ownersSnap = await db
-      .collection("owners").doc(request_user_id).get(); // NOTE: user uid is not the same as the user_id in the api token. request user id is the name of the doc for the user in firebase.
-    
-      const requestersSnap = await db
-      .collection("requesters").doc(request_user_id).get();
-
-      if (ownersSnap) {
-        userDoc = ownersSnap;
-        role = "owner"
-        }
-      else if (requestersSnap) {
-        userDoc = requestersSnap;
-        role = "requester";
-      } else {
-        return res
-          .status(401)
-          .json({ success: false, error: "Invalid user." });
-      }
-    }
-    else { // If not found by token, check for user_id.
-      return res
-        .status(401)
-        .json({ success: false, error: "Invalid API token" });
-    }
-
-    const userData = userDoc.data();
-    console.log("user data is: ", userData);
-    if (!userData) {
-      return res
-        .status(401)
-        .json({ success: false, error: "User not found." });
-    }
-
-    // --- Decode JWT to get email ---
-    let tokenPayload: any;
     try {
-      tokenPayload = jwt.decode(input_accesstoken);
-    } catch {
-      return res
-        .status(400)
-        .json({ success: false, error: "Invalid token format" });
+      verification = await verify(input_accesstoken);
+
+      if (verification){
+        console.log("Verified:",verification);
+        if (req.body) {
+          request_user = req.body["user"];
+          request_user_id = req.body["user"]["uid"];
+          if (verification.email != request_user.email) {
+            return res.status(403).json({ success: false, error: "Token email mismatch" });
+          }
+        }
+        else {
+          let userDoc = await db
+          .collection("users")
+          .findOne({username_email: {$eq: verification.email}})//look for user id
+          if (userDoc) {
+            request_user_id = userDoc._id.toString();
+          }
+          else {
+            return res
+            .status(401)
+            .json({ success: false, error: "User not found." });
+          }
+          
+        }
+        if (verification?.type === "consumer") {
+          role = "requester";
+        }
+        else if (verification?.type === "provider") {
+          role = "owner";
+        }
+        const requestData = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
+        if (!requestData) {
+          return res
+            .status(404)
+            .json({ success: false, error: "Request not found" });
+        }
+        console.log("Request data is:",requestData);
+        console.log("Request owners are:",requestData.owners);
+
+        const exists = requestData.owners.some((owner: { toString: () => string; }) => owner.toString() === request_user_id);
+        
+        if (!exists) {
+          console.log(`${request_user_id} missing in ${requestData.owners}`);
+          return res
+            .status(403)
+            .json({ success: false, error: "Not authorized for this request" });
+        }
+        //--- Attach user info to request ---
+        req.user = { uid: request_user_id, email: verification.email, role };
+        next();
+      }
+    }    
+    catch(error) {
+      console.error(error);
+      return res.status(500).json({ success: false, error: "Authorization failed" });
     }
-
-    if (!tokenPayload?.sub || tokenPayload.sub !== userData.email) {
-      return res
-        .status(403)
-        .json({ success: false, error: "Token email mismatch" });
-    }
-
-    // --- Check if request belongs to this user ---
-    const requestSnap = await db.collection("requests").doc(requestId).get();
-    if (!requestSnap.exists) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Request not found" });
-    }
-
-    // const requestData = requestSnap.data();
-    // const ownerDocs = db.collection("owners");
-    // const ownerEmails: string[] = [];
-    // await ownerDocs.get().then((querySnapshot) => {
-    //     querySnapshot.forEach((doc) => {
-    //       ownerEmails.push( 
-    //         //id: doc.id, 
-    //         doc.data().email )
-    //     })
-    // });
-    // This follows the assumption that emails are unique.
-    // const ownsRequest =
-    //   (role === "owner" && ownerEmails.includes(userData.email)) ||
-    //   (role === "requester" && requestData?.requesterEmail === userData.email);
-
-    // if (!ownsRequest) {
-    //   return res
-    //     .status(403)
-    //     .json({ success: false, error: "Not authorized for this request" });
-    // }
-
-    // --- Attach user info to request ---
-    req.user = { uid: userDoc.id, email: userData.email, role };
-
-    next();
-  } catch (err) {
-    console.error("Authorization error:", err);
-    res.status(500).json({ success: false, error: "Authorization failed" });
+  } catch(error) {
+    console.error(error);
+    return res.status(500).json({ success: false, error: "Authorization failed" });
   }
 }
+
 
 // POST /api/requests/:requestId/createContract
 router.post(
@@ -195,14 +156,13 @@ router.post(
 
       console.log("Fetching request to verify existence.");
       // --- Fetch the request to verify existence ---
-      const requestSnap = await db.collection("requests").doc(requestId).get();
-      if (!requestSnap.exists) {
+      const requestData = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
+      if (!requestData) {
         return res
           .status(404)
           .json({ success: false, error: "Request not found" });
       }
 
-      const requestData = requestSnap.data();
       console.log("Collecting natural language document.");
 
       // --- Collect natural language document from extraText and extraTerms ---
@@ -223,6 +183,12 @@ router.post(
 
       const requesterUid = requestData?.requester?.requesterId;
       const providerUid = req.user?.uid;
+      if (!requesterUid || !providerUid) {
+        return res.status(500).json({
+          success: false,
+          error: "Requester or provider id undefined.",
+        });
+      }
       console.log("Contract contacts lookup:", {
         requesterUid,
         providerUid,
@@ -232,67 +198,65 @@ router.post(
 
       const contacts: Record<string, any> = {};
 
-      if (requesterUid) {
-        const requesterDoc = await db
-          .collection("requesters")
-          .doc(requesterUid)
-          .get();
-        const requesterData = requesterDoc.exists ? requesterDoc.data() : null;
-        const consumerMongoId = requesterData?.mongoUserId;
-        const consumerToken = extractAccessToken(requesterData?.apiToken);
+      // if (requesterUid) {
+      //   const requesterData = await db
+      //     .collection("users")
+      //     .findOne({_id: {$eq: requesterUid}});
+      //   const consumerMongoId = requesterData?.mongoUserId;
+      //   const consumerToken = extractAccessToken(requesterData?.apiToken);
 
-        console.log("Consumer lookup:", {
-          consumerMongoId,
-          hasConsumerToken: !!consumerToken,
-        });
+      //   console.log("Consumer lookup:", {
+      //     consumerMongoId,
+      //     hasConsumerToken: !!consumerToken,
+      //   });
 
-        if (consumerMongoId && consumerToken) {
-          const consumerDetails = await fetchUserDetails(
-            negotiationApiUrl,
-            consumerToken,
-            consumerMongoId,
-            "consumer"
-          );
-          if (consumerDetails) {
-            contacts.consumer = consumerDetails;
-          } else {
-            contacts.consumer = { user_id: consumerMongoId };
-          }
-        } else if (consumerMongoId) {
-          contacts.consumer = { user_id: consumerMongoId };
-        }
-      }
+      //   if (consumerMongoId && consumerToken) {
+      //     const consumerDetails = await fetchUserDetails(
+      //       negotiationApiUrl,
+      //       consumerToken,
+      //       consumerMongoId,
+      //       "consumer"
+      //     );
+      //     if (consumerDetails) {
+      //       contacts.consumer = consumerDetails;
+      //     } else {
+      //       contacts.consumer = { user_id: consumerMongoId };
+      //     }
+      //   } else if (consumerMongoId) {
+      //     contacts.consumer = { user_id: consumerMongoId };
+      //   }
+      // }
 
-      if (providerUid) {
-        const providerDoc = await db
-          .collection("owners")
-          .doc(providerUid)
-          .get();
-        const providerData = providerDoc.exists ? providerDoc.data() : null;
-        const providerMongoId = providerData?.mongoUserId;
-        const providerToken = extractAccessToken(providerData?.apiToken);
+      // if (providerUid) {
+      //   const providerDoc = await db
+      //     .collection("owners")
+      //     .doc(providerUid)
+      //     .get();
+      //   const providerData = providerDoc.exists ? providerDoc.data() : null;
+      //   const providerMongoId = providerData?.mongoUserId;
+      //   const providerToken = extractAccessToken(providerData?.apiToken);
 
-        console.log("Provider lookup:", {
-          providerMongoId,
-          hasProviderToken: !!providerToken,
-        });
-        console.log("providerMongoId", providerMongoId)
-        if (providerMongoId && providerToken) {
-          const providerDetails = await fetchUserDetails(
-            negotiationApiUrl,
-            providerToken,
-            providerMongoId,
-            "provider"
-          );
-          if (providerDetails) {
-            contacts.provider = providerDetails;
-          } else {
-            contacts.provider = { user_id: providerMongoId };
-          }
-        } else if (providerMongoId) {
-          contacts.provider = { user_id: providerMongoId };
-        }
-      }
+      //   console.log("Provider lookup:", {
+      //     providerMongoId,
+      //     hasProviderToken: !!providerToken,
+      //   });
+      //   console.log("providerMongoId", providerMongoId)
+      //   if (providerMongoId && providerToken) {
+      //     const providerDetails = await fetchUserDetails(
+      //       negotiationApiUrl,
+      //       providerToken,
+      //       providerMongoId,
+      //       "provider"
+      //     );
+      //     if (providerDetails) {
+      //       contacts.provider = providerDetails;
+      //     } else {
+      //       contacts.provider = { user_id: providerMongoId };
+      //     }
+      //   } else if (providerMongoId) {
+      //     contacts.provider = { user_id: providerMongoId };
+      //   }
+      // }
 
       //add another items, which is not retrieved form Negotiation!
       contacts.provider = {

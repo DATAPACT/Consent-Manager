@@ -1,6 +1,6 @@
 import express from "express";
-import { collection, query, where, getDocs, Query } from "firebase/firestore";
-import { db } from "../config/firebase.js";
+import { db } from "../../src/services/database.service.ts";
+import { Collection, ObjectId } from "mongodb";
 import { permissionsToODRLPolicy } from "../../src/utils/policyParser.js";
 
 const router = express.Router();
@@ -25,7 +25,7 @@ interface RequestData {
     constraintRefinements: Refinement[];
   }[];
   selectedOntologies: {
-    id: string;
+    _id: string;
     name: string;
   }[];
   requester?: {
@@ -76,8 +76,6 @@ router.post("/", async (req, res) => {
       });
     }
 
-    console.log("Creating new request for payload: ", data);
-
     let odrlPolicy = null;
     if (data.policy) {
       odrlPolicy = data.policy;
@@ -88,8 +86,8 @@ router.post("/", async (req, res) => {
   
     const requestWithDefaults = {
       ...data,
-      selectedOntologies: data.selectedOntologies.map(({ id, name }) => ({
-        id,
+      selectedOntologies: data.selectedOntologies.map(({ _id, name }) => ({
+        _id,
         name,
       })),
       createdAt: `${days[now.getDay()]} ${now
@@ -108,10 +106,10 @@ router.post("/", async (req, res) => {
       ownersPending: [],
     };
 
-    const docRef = await db.collection("requests").add(requestWithDefaults);
+    const docRef = await db.collection("requests").insertOne(requestWithDefaults);
 
     res.status(201).json({
-      id: docRef.id,
+      id: docRef.insertedId,
       success: true,
       message: "Request created successfully",
     });
@@ -128,27 +126,22 @@ router.post("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("📥 GET /api/requests/:id called with id:", id);
-    const docRef = await db.collection("requests").doc(id).get();
+    console.log("GET /api/requests/:id called with id:", id);
+    const docRef = db.collection("requests");
+    const docSnap = await docRef.findOne({'_id':new ObjectId(id)});
 
-    if (!docRef.exists) {
-      console.error("❌ Request document NOT found for id:", id);
+    if (!docSnap) {
+      console.error("Request document NOT found for id:", id);
       return res.status(404).json({
         error: "Request not found",
         success: false,
       });
     }
 
-    const requestData = docRef.data();
-    console.log("📄 Request document found:", {
-      id: docRef.id,
-      requester: requestData?.requester,
-      requesterId: requestData?.requester?.requesterId,
-      requesterEmail: requestData?.requester?.requesterEmail,
-    });
+    const requestData = docSnap;
 
     res.json({
-      id: docRef.id,
+      id: docSnap._id,
       data: requestData,
       success: true,
     });
@@ -165,21 +158,18 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const {_id, ...updateData} = req.body;
 
     // Check if request exists
-    const docRef = db.collection("requests").doc(id);
-    const docSnap = await docRef.get();
+    const docRef = db.collection("requests");
+    const docSnap = await docRef.updateOne({'_id':new ObjectId(id)}, {$set: updateData});
 
-    if (!docSnap.exists) {
+    if (!docSnap) {
       return res.status(404).json({
         error: "Request not found",
         success: false,
       });
     }
-
-    // Update the request
-    await docRef.update(updateData);
 
     res.json({
       id,
@@ -200,23 +190,24 @@ router.get("/", async (req, res) => {
   try {
     const { uid, role, status } = req.query;
 
-    let requestsQuery: FirebaseFirestore.Query = db.collection("requests");
+    let requestsCollection: Collection = db.collection("requests");
+    let requestsQuery = {};
 
     if (uid && role === "requester") {
-      requestsQuery = requestsQuery.where("requester.requesterId", "==", uid);
+      //requestsQuery = requestsQuery.find("requester.requesterId", "==", uid);
+      requestsQuery = { 'requester.requesterId': {$eq: uid}}
     }
     if (uid && role === "owner") {
-      requestsQuery = requestsQuery.where("owners", "array-contains", uid);
+      //requestsQuery = requestsQuery.where("owners", "array-contains", uid);
+      requestsQuery = { 'owners': {$elemMatch: { $eq: uid }}}
     }
     if (status) {
-      requestsQuery = requestsQuery.where("status", "==", status);
+      //requestsQuery = requestsQuery.where("status", "==", status);
+      requestsQuery = { 'status': {$eq: status}}
     }
 
-    const querySnapshot = await requestsQuery.get();
-    const requests = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const querySnapshot = requestsCollection.find(requestsQuery);
+    const requests = await querySnapshot.toArray();
 
     res.json({ requests, success: true });
   } catch (error) {
@@ -231,10 +222,10 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     // Check if request exists
-    const docRef = db.collection("requests").doc(id);
-    const docSnap = await docRef.get();
+    const docRef = db.collection("requests");
+    const docSnap = docRef.find({'_id':new ObjectId(id)});
 
-    if (!docSnap.exists) {
+    if (!docSnap) {
       return res.status(404).json({
         error: "Request not found",
         success: false,
@@ -242,7 +233,7 @@ router.delete("/:id", async (req, res) => {
     }
 
     // Delete the request
-    await docRef.delete();
+    await docRef.deleteOne({'_id':new ObjectId(id)})
 
     res.json({
       success: true,
