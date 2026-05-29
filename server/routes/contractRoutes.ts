@@ -122,7 +122,7 @@ export async function authorizeRequest(
         console.log("Request owners are:",requestData.owners);
 
         const exists = requestData.owners.some((owner: { toString: () => string; }) => owner.toString() === request_user_id);
-        
+
         if (!exists) {
           console.log(`${request_user_id} missing in ${requestData.owners}`);
           return res
@@ -336,8 +336,8 @@ router.get(
   authorizeRequest,
   async (req: AuthRequest, res) => {
     const { requestId } = req.params; // matches middleware
-    const requestSnap = await db.collection("requests").doc(requestId).get();
-    const contractId = requestSnap.data()?.contractId || null;
+    const requestSnap = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
+    const contractId = requestSnap?.contractId || null;
 
     res.json({ success: true, contractId });
   }
@@ -353,37 +353,11 @@ router.get(
       console.log("got here");
 
       // --- Fetch the request to verify existence and ownership ---
-      const requestSnap = await db.collection("requests").doc(requestId).get();
-      if (!requestSnap.exists) {
+      const requestData = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
+      if (!requestData) {
         return res
           .status(404)
           .json({ success: false, error: "Request not found" });
-      }
-
-      // Optional: re-check ownership if middleware does not already enforce it
-      const requestData = requestSnap.data();
-      const userEmail = req.user?.email;
-      const ownerIds = [
-        ...(requestData?.ownersAccepted || []),
-        ...(requestData?.ownersPending || []),
-        ...(requestData?.ownersRejected || []),
-      ];
-      const requesterEmail =
-        requestData?.requesterEmail || requestData?.requester?.requesterEmail;
-      const requesterId =
-        requestData?.requesterId || requestData?.requester?.requesterId;
-      const ownsRequest =
-        (req.user?.role === "owner" &&
-          (ownerIds.includes(req.user?.uid) ||
-            requestData?.ownerEmails?.includes(userEmail))) ||
-        (req.user?.role === "requester" &&
-          (requesterId === req.user?.uid || requesterEmail === userEmail));
-
-      if (!ownsRequest) {
-        return res.status(403).json({
-          success: false,
-          error: "Not authorized to view this contract",
-        });
       }
 
       // --- Fetch the contract details from external API ---
@@ -428,37 +402,11 @@ router.get(
       const { requestId, contractId } = req.params;
 
       // --- Fetch the request to verify existence and ownership ---
-      const requestSnap = await db.collection("requests").doc(requestId).get();
-      if (!requestSnap.exists) {
+      const requestData = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
+      if (!requestData) {
         return res
           .status(404)
           .json({ success: false, error: "Request not found" });
-      }
-
-      // Optional: re-check ownership if middleware does not already enforce it
-      const requestData = requestSnap.data();
-      const userEmail = req.user?.email;
-      const ownerIds = [
-        ...(requestData?.ownersAccepted || []),
-        ...(requestData?.ownersPending || []),
-        ...(requestData?.ownersRejected || []),
-      ];
-      const requesterEmail =
-        requestData?.requesterEmail || requestData?.requester?.requesterEmail;
-      const requesterId =
-        requestData?.requesterId || requestData?.requester?.requesterId;
-      const ownsRequest =
-        (req.user?.role === "owner" &&
-          (ownerIds.includes(req.user?.uid) ||
-            requestData?.ownerEmails?.includes(userEmail))) ||
-        (req.user?.role === "requester" &&
-          (requesterId === req.user?.uid || requesterEmail === userEmail));
-
-      if (!ownsRequest) {
-        return res.status(403).json({
-          success: false,
-          error: "Not authorized to download this contract",
-        });
       }
 
       // --- Download the contract from external API ---
