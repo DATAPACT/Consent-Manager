@@ -51,9 +51,7 @@ export const login = async (email: string, password: string) => {
 
 export const verify = async (token: string) => {
     try{
-        const { payload, protectedHeader } = await jwtVerify(token, JWKS, {issuer: `${keycloak_base_url}/realms/${keycloak_realm}`});
-        console.log("Payload is:",payload);
-        console.log("Protected header is:",protectedHeader);
+        const { payload } = await jwtVerify(token, JWKS, {issuer: `${keycloak_base_url}/realms/${keycloak_realm}`});
         return {email: payload.email, type: payload.user_type};
     }
     catch(error) {

@@ -11,53 +11,6 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
-const extractAccessToken = (apiToken: any): string | undefined => {
-  if (!apiToken) return undefined;
-  if (typeof apiToken === "string") {
-    if (apiToken.startsWith("{")) {
-      try {
-        const parsed = JSON.parse(apiToken);
-        return parsed.access_token || parsed.token || apiToken;
-      } catch {
-        return apiToken;
-      }
-    }
-    return apiToken;
-  }
-  return apiToken.access_token || apiToken.token;
-};
-
-const fetchUserDetails = async (
-  baseUrl: string,
-  token: string,
-  userId: string,
-  label: "consumer" | "provider"
-) => {
-  try {
-    const url = `${baseUrl}/user/details/?user_id=${encodeURIComponent(
-      userId
-    )}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log(`User details fetch (${label}) status:`, response.status);
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.warn(`User details fetch (${label}) failed:`, errorText);
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.warn(`User details fetch (${label}) error:`, error);
-    return null;
-  }
-};
-
 // Middleware to check API token
 export async function authorizeRequest(
   req: AuthRequest,
@@ -118,8 +71,6 @@ export async function authorizeRequest(
             .status(404)
             .json({ success: false, error: "Request not found" });
         }
-        console.log("Request data is:",requestData);
-        console.log("Request owners are:",requestData.owners);
 
         const exists = requestData.owners.some((owner: { toString: () => string; }) => owner.toString() === request_user_id);
 
@@ -176,10 +127,6 @@ router.post(
 
       // const odrlPolicy = permissionsToODRLPolicy(requestId, req.user.uid, requestData?.requester.requesterId, policy);
       // console.log("This is the ODRL policy: ", JSON.stringify(odrlPolicy));
-      //get user details:
-      const negotiationApiUrl =
-        process.env.EXTERNAL_API_BASE_URL ||
-        "https://dips.soton.ac.uk/negotiation-api";
 
       const requesterUid = requestData?.requester?.requesterId;
       const providerUid = req.user?.uid;

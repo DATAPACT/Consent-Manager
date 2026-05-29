@@ -12,8 +12,6 @@ import {
   getRequests,
 } from "../../services/api";
 import { getRequestPermissions } from "../../utils/policyParser";
-import { db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
 import log from "loglevel";
 
 log.setLevel("debug");
@@ -286,17 +284,6 @@ function OwnerPendingRequestsDetails() {
     };
   }, []);
 
-  // getting the mongodb consumer id
-  async function getConsumerMongoId(
-    requesterId: string
-  ): Promise<string | null> {
-    const docRef = doc(db, "requesters", requesterId);
-    console.log("Path being read:", docRef.path);
-    const snapshot = await getDoc(docRef);
-    if (!snapshot.exists()) return null;
-    return snapshot.data().mongoUserId || null;
-  }
-
   function formatOperand(operand: any): string {
     if (!operand) return "";
 
@@ -413,7 +400,7 @@ function OwnerPendingRequestsDetails() {
           // Redirect to existing negotiation if in iframe mode (user has loged in through the API)
           if (
             user.loginSource === "External/API" &&
-            user.userData?.mongoUserId
+            user.userData?.uid
           ) {
             console.log(
               "🔗 Redirecting to existing negotiation (iframe mode)..."
@@ -432,7 +419,7 @@ function OwnerPendingRequestsDetails() {
               await redirectToNegotiationDisplay(
                 negotiationInfo.negotiationId,
                 negotiationToken,
-                user.userData.mongoUserId,
+                user.uid,
                 userType
               );
               return; // Exit early to avoid further processing
@@ -443,7 +430,7 @@ function OwnerPendingRequestsDetails() {
             }
           }
         } else {
-          const providerMongoId = user.userData?.mongoUserId;
+          const providerMongoId = user.uid;
 
           if (providerMongoId) {
             if (!user) {
@@ -451,19 +438,18 @@ function OwnerPendingRequestsDetails() {
               return;
             }
 
-            console.log("✅ Using UID from useAuth:", user.uid);
+            console.log("Using UID from useAuth:", user.uid);
 
-            const consumerId = await getConsumerMongoId(
-              requestDetails.requester.requesterId
-            );
-            console.log("🤝 Creating new accepted negotiation...", {
+            const consumerId = requestDetails.requester.requesterId;
+
+            console.log("Creating new accepted negotiation...", {
               consumerId,
               providerId: providerMongoId,
             });
 
             try {
-              console.log("🚀 === STARTING FRONTEND NEGOTIATION CREATION ===");
-              console.log("📋 Request details for negotiation:", {
+              console.log("=== STARTING FRONTEND NEGOTIATION CREATION ===");
+              console.log("Request details for negotiation:", {
                 requestId: requestId,
                 requestName: requestDetails.requestName,
                 consumerId,
@@ -476,7 +462,7 @@ function OwnerPendingRequestsDetails() {
               let negotiationToken: string | undefined =
                 user?.apiToken || undefined;
 
-              // 🔽 Handle case where apiToken might be a JSON string containing access_token
+              // Handle case where apiToken might be a JSON string containing access_token
               if (
                 typeof negotiationToken === "string" &&
                 negotiationToken.startsWith("{")
@@ -484,10 +470,10 @@ function OwnerPendingRequestsDetails() {
                 try {
                   const parsed = JSON.parse(negotiationToken);
                   negotiationToken = parsed.access_token || negotiationToken;
-                  console.log("✅ Extracted access_token from apiToken JSON");
+                  console.log("Extracted access_token from apiToken JSON");
                 } catch (e) {
                   console.warn(
-                    "⚠️ Could not parse apiToken JSON, using raw value"
+                    "Could not parse apiToken JSON, using raw value"
                   );
                 }
               } else if (
@@ -499,23 +485,16 @@ function OwnerPendingRequestsDetails() {
                   negotiationToken = (negotiationToken as any).access_token;
                 } else {
                   console.warn(
-                    "⚠️ negotiationToken is not a string and has no access_token:",
+                    "negotiationToken is not a string and has no access_token:",
                     negotiationToken
                   );
                   negotiationToken = undefined;
                 }
               }
 
-              console.log("🔑 Token retrieval:", {
-                hasApiToken: !!negotiationToken,
-                apiTokenLength: negotiationToken?.length || 0,
-                hasUserObject: !!user,
-                userUid: user?.uid,
-              });
-
               if (!negotiationToken) {
                 console.warn(
-                  "⚠️ No provider token in AuthContext, falling back to localStorage"
+                  "No provider token in AuthContext, falling back to localStorage"
                 );
 
                 const fallbackToken = localStorage.getItem("token");
@@ -525,11 +504,11 @@ function OwnerPendingRequestsDetails() {
                     const parsed = JSON.parse(fallbackToken);
                     negotiationToken = parsed.access_token || undefined;
                     console.log(
-                      "✅ Extracted access_token from localStorage JSON"
+                      "Extracted access_token from localStorage JSON"
                     );
                   } catch (e) {
                     console.warn(
-                      "⚠️ Could not parse fallback token JSON, using raw value"
+                      "Could not parse fallback token JSON, using raw value"
                     );
                     negotiationToken = fallbackToken;
                   }
@@ -537,7 +516,7 @@ function OwnerPendingRequestsDetails() {
                   negotiationToken = fallbackToken || undefined;
                 }
 
-                console.log("🔑 Fallback token check:", {
+                console.log("Fallback token check:", {
                   hasFallbackToken: !!negotiationToken,
                   fallbackTokenLength: negotiationToken?.length || 0,
                 });
@@ -547,9 +526,9 @@ function OwnerPendingRequestsDetails() {
                 }
               }
 
-              console.log("🔑 Auth token is: ", negotiationToken);
+              console.log("Auth token is: ", negotiationToken);
               console.log(
-                "📤 Making API call to createAcceptedNegotiationFromRequest..."
+                "Making API call to createAcceptedNegotiationFromRequest..."
               );
 
               if (!consumerId) {
@@ -564,8 +543,7 @@ function OwnerPendingRequestsDetails() {
                   negotiationToken
                 );
 
-              console.log("📤 creteaccept failed");
-              console.log("📥 Negotiation creation API response:", {
+              console.log("Negotiation creation API response:", {
                 success: negotiationResult.success,
                 hasNegotiation: !!negotiationResult.negotiation,
                 negotiationId:
@@ -577,7 +555,7 @@ function OwnerPendingRequestsDetails() {
 
               if (negotiationResult.success) {
                 console.log(
-                  "✅ Accepted negotiation created successfully:",
+                  "Accepted negotiation created successfully:",
                   negotiationResult.negotiation
                 );
 
@@ -600,7 +578,7 @@ function OwnerPendingRequestsDetails() {
                   const negotiationId =
                     negotiationResult.negotiation?.negotiation_id;
                   if (negotiationId && user.userData?.mongoUserId) {
-                    console.log("🚀 Redirecting with:", {
+                    console.log("Redirecting with:", {
                       negotiationId: negotiationId,
                       mongoUserId: user.userData?.mongoUserId,
                       userType: user.role,
@@ -613,7 +591,7 @@ function OwnerPendingRequestsDetails() {
                     // Notify parent window about negotiation if in iframe mode
                     if (isIframeMode) {
                       console.log(
-                        "📡 Notifying parent window about negotiation"
+                        "Notifying parent window about negotiation"
                       );
                       notifyParent({
                         action: "negotiation_opened",
@@ -637,35 +615,35 @@ function OwnerPendingRequestsDetails() {
                     return; // Exit early to avoid further processing
                   } else {
                     console.warn(
-                      "⚠️ Missing negotiation ID or MongoDB user ID for redirect"
+                      "Missing negotiation ID or MongoDB user ID for redirect"
                     );
                   }
                 }
               } else {
                 console.warn(
-                  "⚠️ Failed to create accepted negotiation:",
+                  "Failed to create accepted negotiation:",
                   negotiationResult.error
                 );
                 // Continue with approval process even if negotiation creation fails
               }
             } catch (negotiationError) {
               console.warn(
-                "❌ Error creating accepted negotiation:",
+                "Error creating accepted negotiation:",
                 negotiationError
               );
               // Continue with approval process even if negotiation creation fails
             }
           } else {
             console.warn(
-              "⚠️ Cannot create negotiation without provider mongoDB ID. Continuing with approval."
+              "Cannot create negotiation without provider mongoDB ID. Continuing with approval."
             );
           }
         }
       } else {
-        console.warn("⚠️ No requester info available for negotiation creation");
+        console.warn("No requester info available for negotiation creation");
       }
 
-      console.log("🔄 Closing modal and finalizing approval...");
+      console.log("Closing modal and finalizing approval...");
       closeModal("approveRequestModal");
 
       // Notify parent window if in iframe mode
@@ -680,15 +658,15 @@ function OwnerPendingRequestsDetails() {
 
       // Navigate to dashboard only if not in iframe mode
       if (!isIframeMode) {
-        console.log("🏠 Navigating to dashboard");
+        console.log("Navigating to dashboard");
         navigate("/ownerBase/ownerDashboard");
       }
     } catch (error) {
-      console.error("❌ Error in approval process:", error);
+      console.error("Error in approval process:", error);
       setError("Error approving request.");
     }
 
-    console.log("✅ Approval process completed, setting updating to false");
+    console.log("Approval process completed, setting updating to false");
     setUpdating(false);
   };
 

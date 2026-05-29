@@ -1,5 +1,4 @@
 import express from "express";
-import admin from "firebase-admin";
 import { db } from "../../src/services/database.service.ts";
 import "express-session";
 import keycloak, { login } from "../config/keycloak.ts";
@@ -686,13 +685,6 @@ router.delete("/user/:email", async (req, res) => {
     let userRecord = null;
     let userUid = null;
 
-    try {
-      userRecord = await admin.auth().getUserByEmail(email);
-      userUid = userRecord.uid;
-    } catch (authError) {
-      console.log("User not found in Firebase Auth:", authError);
-    }
-
     // Delete from external API first (if it exists there)
     let externalApiDeleteSuccess = false;
     try {
@@ -701,8 +693,7 @@ router.delete("/user/:email", async (req, res) => {
         "https://dips.soton.ac.uk/negotiation-api";
       const masterPasswordParam =
         masterPassword ||
-        process.env.EXTERNAL_API_MASTER_PASSWORD ||
-        "5hnd..jk4ne!kwjs?wnsmmf";
+        process.env.EXTERNAL_API_MASTER_PASSWORD;
       const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
 
       // First, get the user ID from external API by email (we may need to login first to get user ID)

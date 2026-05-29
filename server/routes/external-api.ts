@@ -1,13 +1,30 @@
 import express from "express";
-import { db } from "../config/firebase.js";
-import fs from "fs";
-import path from "path";
+import { db } from "../../src/services/database.service";
+import { Document, ObjectId, WithId } from "mongodb";
 
 const router = express.Router();
 
 // Get external API base URL from environment variable or use production default
 const EXTERNAL_API_BASE_URL =
   process.env.EXTERNAL_API_BASE_URL || "https://dips.soton.ac.uk/negotiation-api";
+
+const mongoDBObjectToRequest = (docRef: WithId<Document>) => {
+  const requestData : RequestData = {
+      requestName: docRef.requestName,
+      description: docRef.description || "",
+      extraTerms: docRef.extraTerms || "",
+      extraText: docRef.extraText,
+      additionalInfo: docRef.additionalInfo || "",
+      notes: docRef.notes || "",
+      text: docRef.text || "",
+      permissions: docRef.permissions,
+      selectedOntologies: docRef.selectedOntologies,
+      requester: docRef.requester,
+      policy: docRef.policy,
+      metadata: docRef.metadata || ""
+    }
+    return requestData;
+}
 
 // GET /api/external/users - Proxy to external API for user list
 router.get("/users", async (req, res) => {
@@ -122,66 +139,6 @@ interface RequestData {
   metadata?: any;
 }
 
-// Get MongoDB user ID from Firebase user data
-async function getMongoUserIdFromFirebase(
-  firebaseUid: string
-): Promise<string | null> {
-  console.log(`🔍 Looking up MongoDB user ID for Firebase UID: ${firebaseUid}`);
-
-  try {
-    // Check both owners and requesters collections
-    console.log("📋 Checking owners collection...");
-    const ownerDoc = await db.collection("owners").doc(firebaseUid).get();
-    if (ownerDoc.exists) {
-      const data = ownerDoc.data();
-      const mongoUserId = data?.mongoUserId || null;
-      console.log(`✅ Found in owners collection:`, {
-        firebaseUid,
-        mongoUserId,
-        hasMongoUserId: !!mongoUserId,
-        userData: {
-          name: data?.name,
-          email: data?.email,
-          role: data?.role,
-        },
-      });
-      return mongoUserId;
-    }
-
-    console.log("📋 Not found in owners, checking requesters collection...");
-    const requesterDoc = await db
-      .collection("requesters")
-      .doc(firebaseUid)
-      .get();
-    if (requesterDoc.exists) {
-      const data = requesterDoc.data();
-      const mongoUserId = data?.mongoUserId || null;
-      console.log(`✅ Found in requesters collection:`, {
-        firebaseUid,
-        mongoUserId,
-        hasMongoUserId: !!mongoUserId,
-        userData: {
-          name: data?.name,
-          email: data?.email,
-          role: data?.role,
-        },
-      });
-      return mongoUserId;
-    }
-
-    console.log(
-      `❌ Firebase UID ${firebaseUid} not found in either owners or requesters collections`
-    );
-    return null;
-  } catch (error) {
-    console.error(
-      `❌ Error fetching MongoDB user ID for ${firebaseUid}:`,
-      error
-    );
-    return null;
-  }
-}
-
 // Transform consent request to negotiation format
 function transformConsentToNegotiation(
   requestData: RequestData,
@@ -242,6 +199,13 @@ function transformConsentToNegotiation(
   });
 
   let odrlPolicy;
+    // Generate generic URI based on request name and timestamp
+  const sanitizedTitle = requestData.requestName
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Remove multiple consecutive hyphens
+    .trim();
 
   // Use existing ODRL policy if available, otherwise create new one
   if (
@@ -280,16 +244,8 @@ function transformConsentToNegotiation(
     };
   }
 
-  // Generate generic URI based on request name and timestamp
-  const sanitizedTitle = requestData.requestName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/-+/g, "-") // Remove multiple consecutive hyphens
-    .trim();
-
   // Extract data type from permissions or ODRL policy if available
-  let dataTypeHints = [];
+  let dataTypeHints: any[] = [];
   if (requestData.policy?.["odrl:permission"]) {
     // Extract action types from ODRL policy
     requestData.policy["odrl:permission"].forEach((perm: any) => {
@@ -340,7 +296,7 @@ function transformConsentToNegotiation(
   }
 
   // Generate tags from ontologies and data types
-  let tags = [];
+  let tags: any[] = [];
   if (requestData.selectedOntologies?.length > 0) {
     tags = requestData.selectedOntologies.map((o) => o.name);
   }
@@ -420,16 +376,16 @@ router.post("/negotiation/create-with-initial", async (req, res) => {
     }
 
     // Fetch the consent request from Firebase
-    const docRef = await db.collection("requests").doc(requestId).get();
+    const docRef = await db.collection("requests").findOne({_id: {$eq: requestId}});
 
-    if (!docRef.exists) {
+    if (!docRef) {
       return res.status(404).json({
         error: "Request not found",
         success: false,
       });
     }
 
-    const requestData = docRef.data() as RequestData;
+    const requestData = mongoDBObjectToRequest(docRef);
 
     // Transform consent request to negotiation format
     const negotiationRequest = transformConsentToNegotiation(
@@ -463,11 +419,11 @@ router.post("/negotiation/create-with-initial", async (req, res) => {
     const negotiationId = result.id || result.negotiation_id;
 
     // Update the request status to indicate it's been sent to negotiation
-    await db.collection("requests").doc(requestId).update({
+    await docRef.updateOne({'_id':new ObjectId(requestId)}, {$set: {
       negotiationId: negotiationId,
       negotiationStatus: "sent",
       sentToNegotiationAt: new Date().toISOString(),
-    });
+    }});
 
     res.json({
       success: true,
@@ -485,14 +441,14 @@ router.post("/negotiation/create-with-initial", async (req, res) => {
 
 // POST /api/external/negotiation/create-accepted - Create negotiation in accepted state
 router.post("/negotiation/create-accepted", async (req, res) => {
-  console.log("\n🚀 === STARTING ACCEPTED NEGOTIATION CREATION ===");
-  console.log("⏰ Timestamp:", new Date().toISOString());
+  console.log("=== STARTING ACCEPTED NEGOTIATION CREATION ===");
+  console.log("Timestamp:", new Date().toISOString());
 
   try {
     const { requestId, consumerId, providerId } = req.body;
     const token = req.headers.authorization?.replace("Bearer ", "");
 
-    console.log("📥 Received request parameters:", {
+    console.log("Received request parameters:", {
       requestId,
       consumerId,
       providerId,
@@ -501,7 +457,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
     });
 
     if (!token) {
-      console.log("❌ VALIDATION FAILED: No authorization token provided");
+      console.log("VALIDATION FAILED: No authorization token provided");
       return res.status(401).json({
         error: "Authorization token required",
         success: false,
@@ -509,7 +465,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
     }
 
     if (!requestId || !consumerId || !providerId) {
-      console.log("❌ VALIDATION FAILED: Missing required parameters", {
+      console.log("VALIDATION FAILED: Missing required parameters", {
         hasRequestId: !!requestId,
         hasConsumerId: !!consumerId,
         hasProviderId: !!providerId,
@@ -520,70 +476,24 @@ router.post("/negotiation/create-accepted", async (req, res) => {
       });
     }
 
-    console.log("✅ VALIDATION PASSED: All required parameters present");
+    console.log("VALIDATION PASSED: All required parameters present");
 
-    // Fetch the consent request from Firebase
-    console.log("🔍 STEP 1: Fetching consent request from Firebase...");
-    const docRef = await db.collection("requests").doc(requestId).get();
+    const docRef = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
 
-    if (!docRef.exists) {
-      console.log("❌ FIREBASE ERROR: Request document not found in Firebase");
+    if (!docRef) {
+      console.log("MONGODB ERROR: Request document not found in MongoDB");
       return res.status(404).json({
         error: "Request not found",
         success: false,
       });
     }
 
-    const requestData = docRef.data() as RequestData;
-    console.log("✅ FIREBASE SUCCESS: Request found:", {
-      requestName: requestData.requestName,
-      // status: requestData.status,
-      // existingNegotiationId: requestData.negotiationId || "NONE",
-      hasPolicy: !!requestData.policy,
-      hasPermissions: !!requestData.permissions?.length,
-      hasRequester: !!requestData.requester,
-    });
+    const requestData = mongoDBObjectToRequest(docRef);
 
-    // Get MongoDB user IDs from Firebase
-    console.log("🔍 STEP 2: Converting Firebase UIDs to MongoDB ObjectIds...");
-    const mongoConsumerId = consumerId;
-    const mongoProviderId = providerId;
-
-    console.log("🔄 User ID conversion results:", {
-      originalConsumerId: consumerId,
-      originalProviderId: providerId,
-      mongoConsumerId,
-      mongoProviderId,
-      consumerConversionSuccessful: !!mongoConsumerId,
-      providerConversionSuccessful: !!mongoProviderId,
-    });
-
-    if (!mongoConsumerId) {
-      console.log("❌ USER ID ERROR: MongoDB user ID not found for consumer");
-      return res.status(400).json({
-        error: `MongoDB user ID not found for consumer (Mongo UID: ${consumerId}). User may not be registered with the negotiation API.`,
-        success: false,
-      });
-    }
-
-    if (!mongoProviderId) {
-      console.log("❌ USER ID ERROR: MongoDB user ID not found for provider");
-      return res.status(400).json({
-        error: `MongoDB user ID not found for provider (Mongo UID: ${providerId}. User may not be registered with the negotiation API.`,
-        success: false,
-      });
-    }
-
-    console.log("✅ USER ID SUCCESS: Both MongoDB user IDs found");
-
-    // Transform consent request to negotiation format
-    console.log(
-      "🔍 STEP 3: Transforming consent request to negotiation format..."
-    );
     const negotiationRequest = transformConsentToNegotiation(
       requestData,
-      mongoConsumerId,
-      mongoProviderId
+      consumerId,
+      providerId
     );
 
     // Add accepted status to the negotiation request
@@ -605,23 +515,10 @@ router.post("/negotiation/create-accepted", async (req, res) => {
     });
 
     // Log the complete request body (but mask sensitive data)
-    console.log("📤 STEP 4: Preparing API request...");
-    console.log(
-      "🔑 Token being used:",
-      token
-        ? `${token.substring(0, 20)}...${token.slice(-10)}`
-        : "No token provided"
-    );
     const apiUrl = `${EXTERNAL_API_BASE_URL}/negotiation/create-with-initial`;
-    console.log("🌐 API endpoint:", apiUrl);
-    console.log(
-      "📋 Request payload size:",
-      JSON.stringify(finalNegotiationRequest).length,
-      "bytes"
-    );
 
     // Send to negotiation API with accepted status
-    console.log("📡 STEP 5: Sending request to external negotiation API...");
+    console.log("STEP 5: Sending request to external negotiation API...");
     const response = await fetch(apiUrl,
       {
         method: "POST",
@@ -646,7 +543,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
 
     // console.log(`💾 Payload saved to: ${payloadPath}`);
 
-    console.log("📡 EXTERNAL API RESPONSE:", {
+    console.log("EXTERNAL API RESPONSE:", {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
@@ -655,7 +552,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ EXTERNAL API ERROR:", {
+      console.error("EXTERNAL API ERROR:", {
         status: response.status,
         statusText: response.statusText,
         errorBody: errorText,
@@ -670,7 +567,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
     }
 
     const result = await response.json();
-    console.log("✅ EXTERNAL API SUCCESS:", {
+    console.log("EXTERNAL API SUCCESS:", {
       responseBody: result,
       negotiationId:
         result.id || result.negotiation_id || "NOT_FOUND_IN_RESPONSE",
@@ -683,7 +580,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
 
     if (!negotiationId) {
       console.log(
-        "⚠️  WARNING: No negotiation ID found in API response, but proceeding with update"
+        "WARNING: No negotiation ID found in API response, but proceeding with update"
       );
     } else {
     }
@@ -694,12 +591,10 @@ router.post("/negotiation/create-accepted", async (req, res) => {
       acceptedNegotiationAt: new Date().toISOString(),
     };
 
-    console.log("📝 Firebase update data:", updateData);
-
-    await db.collection("requests").doc(requestId).update(updateData);
+    await db.collection("requests").updateOne({_id: {$eq: requestId}},{$set: updateData});
 
     console.log(
-      "✅ FIREBASE UPDATE SUCCESS: Request document updated with negotiation info"
+      "Request document updated with negotiation info"
     );
 
     const finalResponse = {
@@ -708,20 +603,20 @@ router.post("/negotiation/create-accepted", async (req, res) => {
       message: "Accepted negotiation created successfully",
     };
 
-    console.log("🎉 === NEGOTIATION CREATION COMPLETED SUCCESSFULLY ===");
-    console.log("📤 Final response:", finalResponse);
-    console.log("⏰ End timestamp:", new Date().toISOString());
+    console.log("=== NEGOTIATION CREATION COMPLETED SUCCESSFULLY ===");
+    console.log("Final response:", finalResponse);
+    console.log("End timestamp:", new Date().toISOString());
 
     res.json(finalResponse);
   } catch (error: any) {
-    console.error("💥 === NEGOTIATION CREATION FAILED ===");
-    console.error("❌ Error details:", {
+    console.error("=== NEGOTIATION CREATION FAILED ===");
+    console.error("Error details:", {
       message: error.message,
       stack: error.stack,
       name: error.name,
       cause: error.cause,
     });
-    console.error("⏰ Error timestamp:", new Date().toISOString());
+    console.error("Error timestamp:", new Date().toISOString());
 
     res.status(500).json({
       error: error.message || "Failed to create accepted negotiation",
@@ -743,21 +638,20 @@ router.get("/negotiation/by-request/:requestId", async (req, res) => {
     }
 
     // Fetch the consent request from Firebase
-    const docRef = await db.collection("requests").doc(requestId).get();
+    const docRef = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
 
-    if (!docRef.exists) {
+    if (!docRef) {
       return res.status(404).json({
         error: "Request not found",
         success: false,
       });
     }
 
-    const requestData = docRef.data();
+    const requestData = docRef;
     const negotiationId = requestData?.negotiationId;
 
     // If negotiation exists, fetch provider details from negotiation API
     let providerMongoId = null;
-    let providerFirebaseId = null;
     let providerEmail = null;
 
     if (negotiationId) {
@@ -777,15 +671,11 @@ router.get("/negotiation/by-request/:requestId", async (req, res) => {
           // Get provider Firebase ID and email from requesters collection
           if (providerMongoId) {
             const requestersSnapshot = await db
-              .collection("requesters")
-              .where("mongoUserId", "==", providerMongoId)
-              .limit(1)
-              .get();
+              .collection("users")
+              .findOne({_id: {$eq: providerMongoId}});
 
-            if (!requestersSnapshot.empty) {
-              const providerData = requestersSnapshot.docs[0].data();
-              providerFirebaseId = requestersSnapshot.docs[0].id;
-              providerEmail = providerData.email;
+            if (requestersSnapshot) {
+              providerEmail = requestersSnapshot.email;
             }
           }
         }
@@ -802,7 +692,6 @@ router.get("/negotiation/by-request/:requestId", async (req, res) => {
       sentToNegotiationAt: requestData?.sentToNegotiationAt || null,
       acceptedNegotiationAt: requestData?.acceptedNegotiationAt || null,
       providerMongoId: providerMongoId,
-      providerFirebaseId: providerFirebaseId,
       providerEmail: providerEmail,
     });
   } catch (error: any) {

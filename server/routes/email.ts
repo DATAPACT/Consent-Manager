@@ -1,6 +1,5 @@
 import express from "express";
 import { Resend } from "resend";
-import admin, { db } from "../config/firebase.js";
 import "express-session";
 
 const router = express.Router();
@@ -49,7 +48,7 @@ router.get("/email/:uid", async (req, res) => {
         minimumVersion: '12'
       },
     };
-    admin.auth().generateSignInWithEmailLink(req.body.email, actionCodeSettings);
+   // admin.auth().generateSignInWithEmailLink(req.body.email, actionCodeSettings);
     const {data, error} = await resend.emails.send({
       from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
       to: req.body.email,
