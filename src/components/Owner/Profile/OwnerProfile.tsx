@@ -3,8 +3,6 @@ import { useAuth } from "../../../AuthContext"; // Use AuthContext
 import { useEffect, useState } from "react";
 import { updateUser } from "../../../services/api";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { auth } from "../../../firebase";
-import { isSignInWithEmailLink } from "firebase/auth";
 // css
 import styles from "../../../css/CreateRequest.module.css";
 
@@ -58,10 +56,8 @@ function OwnerProfile() {
   };
 
   useEffect(() => {
-    if (isSignInWithEmailLink(auth, window.location.href)) {
       let email = window.localStorage.getItem('emailForSignIn');
       console.log("Email is: ", email);
-    }
   }, []);
 
   
