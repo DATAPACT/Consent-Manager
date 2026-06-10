@@ -39,13 +39,10 @@ function OwnerPendingRequests() {
         });
 
         if (result.success) {
-          // ✅ Only show requests where:
-          // 1. status is "sent"
-          // 2. no negotiationId
-          // 3. user is in ownersPending
+          // 1. no negotiationId
+          // 2. user is in ownersPending
           const userPendingRequests = result.requests.filter(
             (request: any) =>
-              request.status === "sent" &&
               !request.negotiationId &&
               request.ownersPending?.includes(user.uid)
           );

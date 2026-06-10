@@ -28,6 +28,8 @@ paths:
     post:
       summary: User login
       description: Authenticate a user with email and password.
+      tags:
+        - Authentication
       requestBody:
         required: true
         content:
@@ -58,13 +60,31 @@ paths:
                   token:
                     type: string
                     description: JWT token for authentication
+        "400":
+          description: Email and password are required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/auth/register:
     post:
       summary: User registration
       description: Create a new user account with role and type.
+      tags:
+        - Authentication
       requestBody:
         required: true
         content:
@@ -114,7 +134,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
+                  uid:
                     type: string
                     description: Unique user ID
                   name:
@@ -123,17 +143,22 @@ paths:
                     type: string
                   role:
                     type: string
-                    description: Always "owner"
-                  type:
-                    type: string
                     enum: [provider, consumer]
+                  userData:
+                    type: object
         "400":
           description: Invalid input
-
-  /api/create-requests:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/auth/create:
     post:
-      summary: Create a new request
-      description: Allows a consumer to create a new data request.
+      summary: Create an anonymous owner by email address
+      description: Create an anonymous owner account.
+      tags:
+        - Authentication
       requestBody:
         required: true
         content:
@@ -141,29 +166,278 @@ paths:
             schema:
               type: object
               properties:
-                title:
+                email:
                   type: string
-                  description: Short title for the request
-                  example: "Access to transaction data"
-                description:
+                  description: Email address of the user
+                  example: acme@example.com
+                role:
                   type: string
-                  description: Detailed explanation of the request
-                  example: "We require access to transaction data for auditing."
-                ontologyId:
-                  type: string
-                  description: ID of the ontology category linked to this request
-                  example: "payment_data"
-                permissions:
-                  type: array
-                  description: List of permissions being requested
-                  items:
-                    type: string
-                  example: ["read", "analyze"]
+                  description: |
+                    System-level role.
+                    - **owner** for data owner registration.
+                  example: owner
               required:
-                - title
-                - description
-                - ontologyId
-                - permissions
+                - email
+                - role
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid:
+                    type: string
+                    description: Unique user ID
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                    enum: [provider, consumer]
+                  userData:
+                    type: object
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/auth/user/{uid}:
+    get:
+      summary: Get user data
+      description: Get user data by MongoDB ObjectId.
+      tags:
+        - Authentication
+      parameters:
+      - name: uid
+        in: path
+        required: true
+        description: The MongoDB ObjectId of the user.
+        schema:
+          type: string
+          example: "6866c6ddd5b8974f1090781d"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid:
+                    type: string
+                    description: Unique user ID
+                  role:
+                    type: string
+                    enum: [provider, consumer]
+                  userData:
+                    $ref: "#/components/schemas/UserData"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to get user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/auth/owners:
+    get:
+      summary: Get all owners
+      description: Get all owners' ids, email addresses and names.
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Owners retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  owners:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Unique user id
+                        email:
+                          type: string
+                          format: email
+                        name:
+                          type: string
+        "500":
+          description: Failed to get owners
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/auth/update:
+    post:
+      summary: Update user data
+      description: Update a user's data.
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                new_password:
+                  type: string
+                confirm_password:
+                  type: string
+                name:
+                  type: string
+                role:
+                  type: string
+                
+              
+      responses:
+        "200":
+          description: Owners retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  owners:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Unique user id
+                        email:
+                          type: string
+                          format: email
+                        name:
+                          type: string
+        "500":
+          description: Failed to get owners
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/auth/user/{email}:
+    delete:
+      summary: Delete a user
+      description: Delete a user with a particular email address.
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email address of the user.
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  details:
+                    type: object
+        "400":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/auth/token/{token}:
+    get:
+      summary: Authenticate with token
+      description: Authenticate with Keycloak API token
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: An API token.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  details:
+                    type: object
+        "400":
+          description: Token is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/requests:
+    post:
+      summary: Create a new request
+      description: Allows a consumer to create a new data request.
+      tags:
+        - Requests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestData"
       responses:
         "201":
           description: Request created successfully
@@ -171,24 +445,907 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - id
+                  - success
+                  - message
                 properties:
                   id:
                     type: string
-                    description: Unique request ID
-                  title:
+                    description: The MongoDB ObjectId of the newly created request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
                     type: string
-                  description:
-                    type: string
-                  ontologyId:
-                    type: string
-                  permissions:
-                    type: array
-                    items:
-                      type: string
-                  status:
-                    type: string
-                    description: Current status of the request (e.g. pending, approved, rejected)
+                    example: "Request created successfully"
         "400":
-          description: Invalid input
+          description: No requester specified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+        "500":
+          description: Error creating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/requests/{id}:
+    get:
+      summary: Get a specific request
+      operationId: getRequestById
+      tags:
+        - Requests
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+
+      responses:
+        "200":
+          description: Request retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - data
+                  - success
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  data:
+                    $ref: "#/components/schemas/RequestData"
+                  success:
+                    type: boolean
+                    example: true
+    delete:
+      summary: Update a request
+      tags:
+        - Requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      responses:
+        "200":
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Request deleted successfully"
+        "500":
+          description: Failed to delete request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: Update a request
+      tags:
+        - Requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestData"
+      responses:
+        "200":
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Request updated successfully"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/requests/{id}/accept:
+    post:
+      summary: Accept a specific request by ID
+      tags:
+        - Requests
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      
+      responses:
+        "200":
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
         "401":
-          description: Unauthorized (missing or invalid token)
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not authorised
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The user has already accepted or rejected this request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  
+  /api/requests/{id}/reject:
+    post:
+      summary: Reject a specific request by ID
+      tags:
+        - Requests
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      
+      responses:
+        "200":
+          description: Request rejected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+        "401":
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not authorised
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The user has already rejected this request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/requests/{id}/send:
+    post:
+      summary: Send a specific request to a list of email addresses
+      operationId: sendRequest
+      tags:
+        - Requests
+
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_emails
+              properties:
+                user_emails:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                  example:
+                    - alice@example.com
+                    - bob@example.com
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      
+      responses:
+        "200":
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+        "401":
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not authorised
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The user has already accepted or rejected this request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                
+  /api/requests/{requestId}/contract:
+    get:
+      tags:
+        - Requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      responses:
+        "200":
+          description: Request rejected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+                
+  /api/requests/{requestId}/createContract:
+    post:
+      summary: Create a contract
+      tags:
+        - Requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policy
+              properties:
+                policy:
+                  $ref: "#/components/schemas/ODRLPolicy"
+      responses:
+        "200":
+          description: Request rejected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+        "401":
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not authorised
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The user has already rejected this request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  
+  /api/requests/{requestId}/GetContract/{contractId}:
+    get:
+      tags:
+        - Requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+        - name: contractId
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the contract.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+      responses:
+        "200":
+          description: Request rejected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+        "404":
+          description: Request or contract not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to fetch contract details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Refinement:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+          example: "region"
+        value:
+          type: string
+          example: "EU"
+
+    Permission:
+      type: object
+      required:
+        - dataset
+        - action
+        - purpose
+        - datasetRefinements
+        - purposeRefinements
+        - actionRefinements
+        - constraintRefinements
+      properties:
+        dataset:
+          type: string
+          example: "patient-records"
+        action:
+          type: string
+          example: "read"
+        purpose:
+          type: string
+          example: "research"
+        datasetRefinements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Refinement"
+        purposeRefinements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Refinement"
+        actionRefinements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Refinement"
+        constraintRefinements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Refinement"
+
+    SelectedOntology:
+      type: object
+      required:
+        - _id
+        - name
+      properties:
+        _id:
+          type: string
+          example: "6845c1234b8974f109012345"
+        name:
+          type: string
+          example: "ODRL"
+
+    Requester:
+      type: object
+      required:
+        - requesterId
+        - requesterName
+        - requesterEmail
+      properties:
+        requesterId:
+          type: string
+          example: "user-123"
+        requesterName:
+          type: string
+          example: "John Doe"
+        requesterEmail:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+
+    RequestData:
+      type: object
+      required:
+        - requestName
+        - permissions
+        - selectedOntologies
+        - owners
+        - ownersPending
+        - ownersAccepted
+        - ownersRejected
+      properties:
+        requestName:
+          type: string
+          example: "Cancer Research Dataset Access"
+
+        description:
+          type: string
+          example: "Requesting access for a clinical study."
+
+        extraTerms:
+          type: string
+          example: "Data must not be redistributed."
+
+        extraText:
+          type: string
+          example: "Additional information for reviewers."
+
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"
+
+        selectedOntologies:
+          type: array
+          items:
+            $ref: "#/components/schemas/SelectedOntology"
+
+        requester:
+          $ref: "#/components/schemas/Requester"
+
+        policy:
+          type: object
+          additionalProperties: true
+          description: ODRL policy JSON.
+
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata such as audit request identifiers.
+
+        owners:
+          type: array
+          items:
+            type: string
+        
+        ownersPending:
+          type: array
+          items:
+            type: string
+
+        ownersAccepted:
+          type: array
+          items:
+            type: string
+
+        ownersRejected:
+          type: array
+          items:
+            type: string
+    ODRLPolicy:
+      type: object
+      required:
+        - "@context"
+        - "@type"
+      properties:
+        "@context":
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: object
+          example: "http://www.w3.org/ns/odrl.jsonld"
+
+        "@id":
+          type: string
+          format: uri
+          example: "https://example.org/policy/123"
+
+        "@type":
+          type: string
+          enum:
+            - Set
+            - Offer
+            - Agreement
+            - Privacy
+            - Request
+          example: "Agreement"
+
+        uid:
+          type: string
+          format: uri
+
+        profile:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+
+        permission:
+          type: array
+          items:
+            $ref: "#/components/schemas/ODRLRule"
+
+        prohibition:
+          type: array
+          items:
+            $ref: "#/components/schemas/ODRLRule"
+
+        obligation:
+          type: array
+          items:
+            $ref: "#/components/schemas/ODRLRule"
+
+      additionalProperties: true
+
+    ODRLRule:
+      type: object
+      required:
+        - action
+      properties:
+        target:
+          type: string
+
+        assigner:
+          oneOf:
+            - type: string
+            - type: object
+
+        assignee:
+          oneOf:
+            - type: string
+            - type: object
+
+        action:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: object
+
+        constraint:
+          type: array
+          items:
+            $ref: "#/components/schemas/ODRLConstraint"
+
+      additionalProperties: true
+
+    ODRLConstraint:
+      type: object
+      properties:
+        leftOperand:
+          type: string
+
+        operator:
+          type: string
+
+        rightOperand:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+            - type: object
+
+        rightOperandReference:
+          type: string
+
+    UserData:
+      type: object
+      required:
+        - _id
+        - name
+      properties:
+        _id:
+          type: string
+          description: The MongoDB ObjectId of the user.
+          example: "6866c6ddd5b8974f1090781d"
+        keycloak_sub:
+          type: string
+          description: The Keycloak subject of the user
+          example: "a2b59ea1-51a8-4d82-9ee2-30c21323f9e3"
+        first_name:
+          type: string
+          description: User's first name
+          example: Reginald
+        last_name:
+          type: string
+          description: User's last name
+          example: Smith
+        username:
+          type: string
+          description: Username
+          example: consent_manager_user
+        type:
+          type: string
+          enum: [provider, consumer]
+        username_email:
+          type: string
+          format: email
+          description: User's email address
+          example: consent_user@example.com
+        organization:
+          type: array
+          items:
+            type: string
+        incorporation:
+          type: string
+        address:
+          type: string
+        vat_no:
+          type: string
+        position_title:
+          type: string
+        phone:
+          type: string
+        
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - success
+      properties:
+        error:
+          type: string
+          description: Human-readable error message.
+          example: "Requester information is required"
+        success:
+          type: boolean
+          example: false

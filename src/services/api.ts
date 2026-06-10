@@ -195,6 +195,7 @@ export const registerTemporaryUser = async (userData: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify(newUser),
     });
@@ -264,6 +265,7 @@ export const createRequest = async (data: RequestData) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify(data),
     });
@@ -281,7 +283,12 @@ export const createRequest = async (data: RequestData) => {
 
 export const getRequest = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}`);
+    const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -300,6 +307,7 @@ export const updateRequest = async (id: string, data: any) => {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify(data),
     });
@@ -315,6 +323,29 @@ export const updateRequest = async (id: string, data: any) => {
   }
 };
 
+export const sendRequest = async (id: string, data: any) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${id}/send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status});
+      }`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending request:", error);
+    throw error;
+  }
+}
+
 export const getRequests = async (
   filters: {
     uid?: string;
@@ -329,7 +360,12 @@ export const getRequests = async (
     });
 
     const response = await fetch(
-      `${API_BASE_URL}/requests?${params.toString()}`
+      `${API_BASE_URL}/requests?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+      }
     );
 
     if (!response.ok) {
@@ -494,6 +530,9 @@ export const deleteRequest = async (id: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
       method: "DELETE",
+      headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
     });
 
     if (!response.ok) {

@@ -29,7 +29,6 @@ function OwnerDashboard() {
           // ✅ Pending requests → status is "sent", no negotiationId, user in ownersPending
           const pendingRequests = requests.filter(
             (request: any) =>
-              request.status === "sent" &&
               !request.negotiationId &&
               request.ownersPending?.includes(user.uid)
           );

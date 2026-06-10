@@ -1,6 +1,7 @@
 import { Keycloak } from "keycloak-backend";
 import * as dotenv from "dotenv";
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { db } from "../../src/services/database.service";
 
 dotenv.config({path: ".env"});
 
@@ -52,7 +53,14 @@ export const login = async (email: string, password: string) => {
 export const verify = async (token: string) => {
     try{
         const { payload } = await jwtVerify(token, JWKS, {issuer: `${keycloak_base_url}/realms/${keycloak_realm}`});
-        return {email: payload.email, type: payload.user_type};
+        const userDoc = await db.collection("users").findOne({username_email: {$eq: payload.email}});
+
+        if (!userDoc) {
+            console.log("User not found");
+        }
+        else{
+            return {email: payload.email, type: payload.user_type, uid: userDoc._id.toString()};
+        }
     }
     catch(error) {
         console.log("Verifying error:",error);

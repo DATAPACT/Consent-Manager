@@ -35,7 +35,6 @@ const RequesterRegister: React.FC = () => {
         name,
         role: "requester",
         type: "consumer",
-        masterPassword: "5hnd..jk4ne!kwjs?wnsmmf",
       });
 
       if (result.success) {

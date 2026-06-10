@@ -1,8 +1,9 @@
 import express from "express";
 import { db } from "../../src/services/database.service.ts";
 import "express-session";
-import keycloak, { login } from "../config/keycloak.ts";
+import keycloak, { login, verify } from "../config/keycloak.ts";
 import { ObjectId } from "mongodb";
+import { sendTestEmail } from "../config/nodemailer.ts";
 
 declare module "express-session" {
   interface SessionData {
@@ -83,7 +84,7 @@ router.post("/login", async (req, res) => {
 
     if (!apiToken) {
       return res.status(401).json({
-        error: "Invalid email or password",
+        error: "External API login failed",
         success: false,
       });
     }
@@ -118,17 +119,17 @@ router.post("/login", async (req, res) => {
     });
   } catch (error: any) {
     console.error("Login error:", error);
-    res.status(401).json({
+    res.status(403).json({
       error: error.message || "Authentication failed",
       success: false,
     });
   }
 });
 
-router.post("/create", async (req, res) => {
+router.post("/create", async (req, res) => { //TODO: add authentication
   try {
     console.log("========================================");
-    console.log("📝 REGISTRATION REQUEST FOR NEW USER");
+    console.log("REGISTRATION REQUEST FOR NEW USER");
     console.log("Request body:", JSON.stringify(req.body, null, 2));
     console.log("========================================");
 
@@ -136,15 +137,25 @@ router.post("/create", async (req, res) => {
       email,
       role,
       type,
-      masterPassword,
       ...additionalData
     } = req.body;
 
-    console.log("📋 Parsed registration data:", {
-      email,
-      role,
-      additionalFields: Object.keys(additionalData),
-    });
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
+    }
 
     if (!email || !role) {
       console.error("Missing required fields:", {
@@ -165,6 +176,24 @@ router.post("/create", async (req, res) => {
       })
     }
 
+    const email_details = {
+      from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
+      to: email,
+      subject: 'Consent Request',
+      html: '<p>Please click the link to consent:</p><p><a href="LINK">Consent</a></p><p>Or click the following link to reject:</p><p><a href="LINK">Reject</a></p>',
+    }
+    const email_result = await sendTestEmail(email_details);
+
+    if (email_result.success) {
+      console.log("Email sent successfully. Preview URL:", email_result.url);
+    }
+    else {
+      return res.status(405).json({
+        error: 'Unable to send email',
+        success: false,
+      }) 
+    }
+
     // Save user data to appropriate Firestore collection
     const userData = {
       name: "default",
@@ -174,17 +203,8 @@ router.post("/create", async (req, res) => {
       ...additionalData,
     };
 
-    // var actionCodeSettings = {
-    //         url: `http://localhost:5173/consent-manager/emailLogin?emailForSignIn=${email}`,
-    //         handleCodeInApp: true,
-    //       };
-
-    // const emailLink = await admin.auth().generateSignInWithEmailLink(email, actionCodeSettings);
-    // console.log("Email link: ", emailLink);
-
-    // External API registration
     let apiRegistrationSuccess = false;
-    let mongoUserId = null;
+    let uid = null;
     let userRecord = null;
     try {
       const externalApiUrl =
@@ -199,6 +219,23 @@ router.post("/create", async (req, res) => {
       console.log("Email:", email);
       console.log("Type:", role === "requester" ? "consumer" : "provider");
 
+      const fallback = "unknown";
+
+      const registrationPayload = {
+        username_email: email,
+        username: email.includes("@") ? email.split("@")[0] : email,
+        password: "Random_Password_For_Testing_13!",
+        name: fallback,
+        type: "provider",
+      
+        incorporation: additionalData?.incorporation?.trim() || fallback,
+        address: additionalData?.address?.trim() || fallback,
+        position_title: additionalData?.positionTitle?.trim() || fallback,
+        vat_no: additionalData?.VAT_No?.trim() || fallback,
+        phone: additionalData?.phone?.trim() || fallback,
+        organization: additionalData?.organization || [fallback],
+      };
+
       const apiResponse = await fetch(
         `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
         {
@@ -206,12 +243,7 @@ router.post("/create", async (req, res) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            username_email: email,
-            password: "Random_Password_For_Testing_13!",
-            name: "",
-            type: "provider",
-          }),
+          body: JSON.stringify(registrationPayload),
         }
       );
 
@@ -221,15 +253,15 @@ router.post("/create", async (req, res) => {
       if (apiResponse.ok) {
         const successData = await apiResponse.json();
         userRecord = successData;
-        console.log("Negotiation API registration successful:", successData);
+        console.log("User Management Service API registration successful:", successData);
 
         // Extract MongoDB user ID from the response
         if (
           successData &&
           (successData.user_id || successData.id || successData._id)
         ) {
-          mongoUserId = successData.user_id || successData.id || successData._id;
-          console.log("MongoDB user ID received:", mongoUserId);
+          uid = successData.user_id || successData.id || successData._id;
+          console.log("MongoDB user ID received:", uid);
         } else {
           console.warn("No user ID found in API response:", successData);
         }
@@ -256,12 +288,11 @@ router.post("/create", async (req, res) => {
     res.status(201).json({
       success: true,
       user: {
-        uid: userRecord.uid,
+        uid,
         email: userRecord.email,
         role: "owner",
         userData,
         apiRegistrationSuccess,
-        mongoUserId,
       },
     });
   } catch (error: any) {
@@ -288,7 +319,6 @@ router.post("/update", async (req, res) => {
       name,
       role,
       type,
-      masterPassword,
       uid,
       ...additionalData
     } = req.body;
@@ -442,7 +472,6 @@ router.post("/register", async (req, res) => {
       name,
       role,
       type,
-      masterPassword,
       ...additionalData
     } = req.body;
 
@@ -477,7 +506,6 @@ router.post("/register", async (req, res) => {
 
     // External API registration
     let apiRegistrationSuccess = false;
-    let mongoUserId = null;
     let userRecord = null;
     let userData = null;
     try {
@@ -530,13 +558,6 @@ router.post("/register", async (req, res) => {
         userRecord = successData;
         console.log("API registration successful:", successData);
 
-        // Extract MongoDB user ID from the response
-        if (successData && (successData.user_id || successData.id || successData._id)) {
-          mongoUserId = successData.user_id || successData.id || successData._id;
-          console.log("MongoDB user ID received:", mongoUserId);
-        } else {
-          console.warn("No user ID found in API response:", successData);
-        }
       } else {
         const errorData = await apiResponse.json();
         console.error("External API registration failed:", {
@@ -563,7 +584,6 @@ router.post("/register", async (req, res) => {
         role,
         userData,
         apiRegistrationSuccess,
-        mongoUserId,
       },
     });
   } catch (error: any) {
@@ -671,6 +691,23 @@ router.delete("/user/:email", async (req, res) => {
   try {
     const { email } = req.params;
     const { masterPassword } = req.body;
+
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
+    }
 
     if (!email) {
       return res.status(400).json({

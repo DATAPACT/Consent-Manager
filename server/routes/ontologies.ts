@@ -110,6 +110,7 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
 
     await db.collection('ontologies').insertOne(ontologyData);
 
+    //@ts-ignore
     await db.collection('users').updateOne({_id: new ObjectId(requesterUid)}, {$push: {ontologyIds: ontologyId}});
 
     res.status(201).json({

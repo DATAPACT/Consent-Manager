@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getRequest, updateRequest, getAllOwners, registerTemporaryUser } from "../../services/api";
+import { getRequest, getAllOwners, registerTemporaryUser, sendRequest } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
 function SendDraftRequest() {
@@ -242,16 +242,16 @@ const validateEmail = (email: string) => {
 
     try {
       const newOwnerIds = selectedOwners.filter((o) => o.id != "").map((o) => o.id);
-      const unregisterdOwners = selectedOwners.filter((o) => o.id === "");
+      const unregisteredOwners = selectedOwners.filter((o) => o.id === "");
 
       console.log("=== BEFORE SENDING ===");
       console.log("Current owners state:", owners);
       console.log("Current ownersPending state:", ownersPending);
       console.log("New owner IDs to add:", newOwnerIds);
-      console.log("Unregistered users:", unregisterdOwners);
+      console.log("Unregistered users:", unregisteredOwners);
 
       //TODO: Register new users for each unregistered user.
-      for (let owner of unregisterdOwners) {
+      for (let owner of unregisteredOwners) {
         let tempResponse = await registerTemporaryUser(
           {
             email: owner.email,
@@ -295,7 +295,7 @@ const validateEmail = (email: string) => {
       console.log("consumer dashboard", updatePayload);
       console.log("======================");
 
-      const result = await updateRequest(requestId, updatePayload);
+      const result = await sendRequest(requestId, updatePayload);
 
       console.log("=== UPDATE RESULT ===");
       console.log(result);
