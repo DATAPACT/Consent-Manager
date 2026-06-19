@@ -1,6 +1,6 @@
 // API service to interact with the Express backend
 
-// import { string } from "rdflib/lib/utils-js";
+import { RequestForm } from "../helperFunctions/PermissionsUtils";
 
 // const API_BASE_URL =
   // import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
@@ -14,43 +14,6 @@ interface ContractRequest {
   id: string; // required for contract creation
   user?: any,
   policy?: any; // ODRL policy JSON
-}
-
-interface Refinement {
-  id: number;
-  attribute?: string;
-  instance?: string;
-  value?: string;
-  label?: string;
-}
-
-interface RequestData {
-  requestName: string;
-  description?: string;
-  extraTerms?: string;
-  permissions: {
-    dataset: string;
-    datasetRefinements: Refinement[];
-    purposeRefinements: Refinement[];
-    actionRefinements: Refinement[];
-    constraintRefinements: Refinement[];
-  }[];
-  selectedOntologies: {
-    _id: string;
-    name: string;
-  }[];
-  requester: {
-    requesterId: string;
-    requesterName: string;
-    requesterEmail: string;
-  };
-  policy?: any; // ODRL policy JSON
-  metadata?: any; // Additional metadata like audit request ID
-}
-
-interface EmailRequest {
-  id: string,
-  userIds: string[]
 }
 
 // function randomPassword(lower: number, upper: number, special: number, numeric: number) {
@@ -117,11 +80,16 @@ export const emailLogin = async (email: string) => {
       body: JSON.stringify({ email, password: "Random_Password_For_Testing_13!" }),
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error logging in:", error);
     throw error;
@@ -200,11 +168,16 @@ export const registerTemporaryUser = async (userData: {
       body: JSON.stringify(newUser),
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error registering:", error);
     throw error;
@@ -259,7 +232,7 @@ export const getAllOwners = async () => {
 };
 
 // Requests API
-export const createRequest = async (data: RequestData) => {
+export const createRequest = async (data: RequestForm) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests`, {
       method: "POST",
@@ -270,11 +243,16 @@ export const createRequest = async (data: RequestData) => {
       body: JSON.stringify(data),
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error creating request:", error);
     throw error;
@@ -290,11 +268,16 @@ export const getRequest = async (id: string) => {
       },
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error fetching request:", error);
     throw error;
@@ -535,11 +518,16 @@ export const deleteRequest = async (id: string) => {
         },
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error deleting request:", error);
     throw error;
@@ -566,11 +554,16 @@ export const createNegotiationFromRequest = async (
       }
     );
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.log("request id: ", requestId);
     console.log("consumer id: ", consumerId);
@@ -602,11 +595,16 @@ export const createAcceptedNegotiationFromRequest = async (
       }
     );
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error creating accepted negotiation:", error);
     throw error;
@@ -623,11 +621,16 @@ export const getExternalUsers = async (token: string) => {
       },
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error fetching external users:", error);
     throw error;
@@ -651,11 +654,16 @@ export const getExternalUserDetails = async (
       },
     });
 
+    const api_response = await response.json();
+
     if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return api_response;
   } catch (error) {
     console.error("Error fetching external user details:", error);
     throw error;
@@ -774,35 +782,6 @@ export async function createContractAPI(request: ContractRequest) {
     return data;
   } catch (error) {
     console.error("❌ Error creating contract:", error);
-    throw error;
-  }
-}
-
-export async function sendEmailsToUnregisteredUsers(request: EmailRequest) {
-  try {
-    console.log("📝 Request object received:", request);
-    const token = localStorage.getItem("token");
-    const response = await fetch(
-      `${API_BASE_URL}/email/${request.id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-token": token || "",
-        },
-        body: JSON.stringify({ 
-          id: request.id,
-          userIds: request.userIds }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error sending request emails:", error);
     throw error;
   }
 }

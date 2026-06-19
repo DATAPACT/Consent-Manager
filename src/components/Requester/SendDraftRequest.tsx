@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getRequest, getAllOwners, registerTemporaryUser, sendRequest } from "../../services/api";
+import { getRequest, getAllOwners, sendRequest } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
 function SendDraftRequest() {
@@ -242,7 +242,7 @@ const validateEmail = (email: string) => {
 
     try {
       const newOwnerIds = selectedOwners.filter((o) => o.id != "").map((o) => o.id);
-      const unregisteredOwners = selectedOwners.filter((o) => o.id === "");
+      const unregisteredOwners = selectedOwners.filter((o) => o.id === "").map((o) => o.email);
 
       console.log("=== BEFORE SENDING ===");
       console.log("Current owners state:", owners);
@@ -251,22 +251,22 @@ const validateEmail = (email: string) => {
       console.log("Unregistered users:", unregisteredOwners);
 
       //TODO: Register new users for each unregistered user.
-      for (let owner of unregisteredOwners) {
-        let tempResponse = await registerTemporaryUser(
-          {
-            email: owner.email,
-            name: "default",
-            role: "owner",
-            emailVerified: false
-          }
-        );
-        if (tempResponse.success) {
-          newOwnerIds.push(tempResponse.user.uid);
-        }
-        else {
-          console.error("Unable to register email: ", owner.email);
-        }
-      }
+      // for (let owner of unregisteredOwners) {
+      //   let tempResponse = await registerTemporaryUser(
+      //     {
+      //       email: owner.email,
+      //       name: "default",
+      //       role: "owner",
+      //       emailVerified: false
+      //     }
+      //   );
+      //   if (tempResponse.success && tempResponse.user.uid) {
+      //     newOwnerIds.push(tempResponse.user.uid);
+      //   }
+      //   else {
+      //     console.error("Unable to register email: ", owner.email);
+      //   }
+      // }
       // Combine existing owners with new owners (avoid duplicates)
       const allOwnerIds = [...new Set([...owners, ...newOwnerIds])];
       const allPendingIds = [...new Set([...ownersPending, ...newOwnerIds])];
@@ -278,6 +278,7 @@ const validateEmail = (email: string) => {
       const updatePayload = {
         owners: allOwnerIds,
         ownersPending: allPendingIds,
+        unregisteredOwners,
         status: "sent",
         sentAt: `${days[now.getDay()]} ${now
           .getDate()

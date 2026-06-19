@@ -36,13 +36,14 @@ export async function authorizeRequest(
     try {
       verification = await verify(input_accesstoken);
 
-      if (verification){
+      if (verification?.success){
         console.log("Verified:",verification);
         if (req.body) {
           request_user = req.body["user"];
           request_user_id = req.body["user"]["uid"];
           if (verification.email != request_user.email) {
-            return res.status(403).json({ success: false, error: "Token email mismatch" });
+            console.log("User data:", request_user);
+            return res.status(403).json({ success: false, error: `Token email mismatch: ${verification.email} vs. ${request_user.email}` });
           }
         }
         else {
@@ -81,7 +82,7 @@ export async function authorizeRequest(
             .json({ success: false, error: "Not authorized for this request" });
         }
         //--- Attach user info to request ---
-        req.user = { uid: request_user_id, email: verification.email, role };
+        req.user = { uid: request_user_id, email: verification.email, role, token: input_accesstoken };
         next();
       }
     }    
@@ -145,66 +146,6 @@ router.post(
 
       const contacts: Record<string, any> = {};
 
-      // if (requesterUid) {
-      //   const requesterData = await db
-      //     .collection("users")
-      //     .findOne({_id: {$eq: requesterUid}});
-      //   const consumerMongoId = requesterData?.mongoUserId;
-      //   const consumerToken = extractAccessToken(requesterData?.apiToken);
-
-      //   console.log("Consumer lookup:", {
-      //     consumerMongoId,
-      //     hasConsumerToken: !!consumerToken,
-      //   });
-
-      //   if (consumerMongoId && consumerToken) {
-      //     const consumerDetails = await fetchUserDetails(
-      //       negotiationApiUrl,
-      //       consumerToken,
-      //       consumerMongoId,
-      //       "consumer"
-      //     );
-      //     if (consumerDetails) {
-      //       contacts.consumer = consumerDetails;
-      //     } else {
-      //       contacts.consumer = { user_id: consumerMongoId };
-      //     }
-      //   } else if (consumerMongoId) {
-      //     contacts.consumer = { user_id: consumerMongoId };
-      //   }
-      // }
-
-      // if (providerUid) {
-      //   const providerDoc = await db
-      //     .collection("owners")
-      //     .doc(providerUid)
-      //     .get();
-      //   const providerData = providerDoc.exists ? providerDoc.data() : null;
-      //   const providerMongoId = providerData?.mongoUserId;
-      //   const providerToken = extractAccessToken(providerData?.apiToken);
-
-      //   console.log("Provider lookup:", {
-      //     providerMongoId,
-      //     hasProviderToken: !!providerToken,
-      //   });
-      //   console.log("providerMongoId", providerMongoId)
-      //   if (providerMongoId && providerToken) {
-      //     const providerDetails = await fetchUserDetails(
-      //       negotiationApiUrl,
-      //       providerToken,
-      //       providerMongoId,
-      //       "provider"
-      //     );
-      //     if (providerDetails) {
-      //       contacts.provider = providerDetails;
-      //     } else {
-      //       contacts.provider = { user_id: providerMongoId };
-      //     }
-      //   } else if (providerMongoId) {
-      //     contacts.provider = { user_id: providerMongoId };
-      //   }
-      // }
-
       //add another items, which is not retrieved form Negotiation!
       contacts.provider = {
         ...contacts.provider,
@@ -252,7 +193,9 @@ router.post(
       console.log("the external api is: ", externalApiUrl);
       const response = await fetch(`${externalApiUrl}/contract/create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" ,
+          "Authorization": `Bearer ${req.user.token}` ,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -261,7 +204,7 @@ router.post(
       if (!response.ok) {
         return res.status(response.status).json({
           success: false,
-          error: data.message || "Failed to create contract at: " + externalApiUrl,
+          error: data.message || "Failed to create contract at: " + externalApiUrl + " " + response.statusText,
         });
       }
 
@@ -297,7 +240,6 @@ router.get(
   async (req: AuthRequest, res: Response) => {
     try {
       const { requestId, contractId } = req.params;
-      console.log("got here");
 
       // --- Fetch the request to verify existence and ownership ---
       const requestData = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
@@ -317,12 +259,14 @@ router.get(
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${req.headers["x-api-token"]}`
           },
         }
       );
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.log("Contract service URL is:",contractServiceUrl);
         return res.status(response.status).json({
           success: false,
           error: `External API error: ${errorText}`,
@@ -366,6 +310,7 @@ router.get(
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${req.headers["x-api-token"]}`
         },
       });
 

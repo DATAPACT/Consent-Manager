@@ -1,23 +1,5 @@
 import { createRequest } from "../services/api";
-import { Refinement } from "./PermissionsUtils";
-
-interface RequestData {
-  requestName: string;
-  description?: string;
-  extraTerms?: string;
-  extraText?: string;
-  permissions: {
-    dataset: string;
-    datasetRefinements: Refinement[];
-    purposeRefinements: Refinement[];
-    actionRefinements: Refinement[];
-    constraintRefinements: Refinement[];
-  }[];
-  selectedOntologies: {
-    _id: string;
-    name: string;
-  }[];
-}
+import { RequestForm } from "./PermissionsUtils";
 
 interface UserContext {
   uid: string;
@@ -28,7 +10,7 @@ interface UserContext {
   };
 }
 
-export const addRequest = async (data: RequestData, user: UserContext) => {
+export const addRequest = async (data: RequestForm, user: UserContext) => {
   try {
     if (!user) {
       throw new Error("User not authenticated");

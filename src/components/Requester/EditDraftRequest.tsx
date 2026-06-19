@@ -394,12 +394,12 @@ function EditDraftRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={ref.attribute || ""}
+                          value={ref.leftOperand || ""}
                           onChange={(e) =>
                             updateDatasetRefinement(
                               permission.id,
                               ref.id,
-                              "attribute",
+                              "leftOperand",
                               e.target.value
                             )
                           }
@@ -417,12 +417,12 @@ function EditDraftRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={ref.instance || ""}
+                          value={ref.operator || ""}
                           onChange={(e) =>
                             updateDatasetRefinement(
                               permission.id,
                               ref.id,
-                              "instance",
+                              "operator",
                               e.target.value
                             )
                           }
@@ -441,12 +441,12 @@ function EditDraftRequest() {
                         <input
                           type="text"
                           className={`${styles.formInput} form-control`}
-                          value={ref.value || ""}
+                          value={ref.rightOperand || ""}
                           onChange={(e) =>
                             updateDatasetRefinement(
                               permission.id,
                               ref.id,
-                              "value",
+                              "rightOperand",
                               e.target.value
                             )
                           }
@@ -501,12 +501,12 @@ function EditDraftRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={ref.attribute || ""}
+                              value={ref.leftOperand || ""}
                               onChange={(e) =>
                                 updateActionRefinement(
                                   permission.id,
                                   ref.id,
-                                  "attribute",
+                                  "leftOperand",
                                   e.target.value
                                 )
                               }
@@ -524,12 +524,12 @@ function EditDraftRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={ref.instance || ""}
+                              value={ref.operator || ""}
                               onChange={(e) =>
                                 updateActionRefinement(
                                   permission.id,
                                   ref.id,
-                                  "instance",
+                                  "operator",
                                   e.target.value
                                 )
                               }
@@ -548,12 +548,12 @@ function EditDraftRequest() {
                             <input
                               className={`${styles.formInput} form-control`}
                               type="text"
-                              value={ref.value || ""}
+                              value={ref.rightOperand || ""}
                               onChange={(e) =>
                                 updateActionRefinement(
                                   permission.id,
                                   ref.id,
-                                  "value",
+                                  "rightOperand",
                                   e.target.value
                                 )
                               }
@@ -607,12 +607,12 @@ function EditDraftRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={ref.attribute || ""}
+                              value={ref.leftOperand || ""}
                               onChange={(e) =>
                                 updatePurposeRefinement(
                                   permission.id,
                                   ref.id,
-                                  "attribute",
+                                  "leftOperand",
                                   e.target.value
                                 )
                               }
@@ -630,12 +630,12 @@ function EditDraftRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={ref.instance || ""}
+                              value={ref.operator || ""}
                               onChange={(e) =>
                                 updatePurposeRefinement(
                                   permission.id,
                                   ref.id,
-                                  "instance",
+                                  "operator",
                                   e.target.value
                                 )
                               }
@@ -654,12 +654,12 @@ function EditDraftRequest() {
                             <input
                               className={`${styles.formInput} form-control`}
                               type="text"
-                              value={ref.value || ""}
+                              value={ref.rightOperand || ""}
                               onChange={(e) =>
                                 updatePurposeRefinement(
                                   permission.id,
                                   ref.id,
-                                  "value",
+                                  "rightOperand",
                                   e.target.value
                                 )
                               }
@@ -696,12 +696,12 @@ function EditDraftRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={ref.attribute || ""}
+                          value={ref.leftOperand || ""}
                           onChange={(e) =>
                             updateConstraintsRefinement(
                               permission.id,
                               ref.id,
-                              "attribute",
+                              "leftOperand",
                               e.target.value
                             )
                           }
@@ -719,12 +719,12 @@ function EditDraftRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={ref.instance || ""}
+                          value={ref.operator || ""}
                           onChange={(e) =>
                             updateConstraintsRefinement(
                               permission.id,
                               ref.id,
-                              "instance",
+                              "operator",
                               e.target.value
                             )
                           }
@@ -743,12 +743,12 @@ function EditDraftRequest() {
                         <input
                           className={`${styles.formInput} form-control`}
                           type="text"
-                          value={ref.value || ""}
+                          value={ref.rightOperand || ""}
                           onChange={(e) =>
                             updateConstraintsRefinement(
                               permission.id,
                               ref.id,
-                              "value",
+                              "rightOperand",
                               e.target.value
                             )
                           }

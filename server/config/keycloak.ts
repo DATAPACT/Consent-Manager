@@ -2,6 +2,7 @@ import { Keycloak } from "keycloak-backend";
 import * as dotenv from "dotenv";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { db } from "../../src/services/database.service";
+import { JWTExpired } from "jose/errors";
 
 dotenv.config({path: ".env"});
 
@@ -59,11 +60,18 @@ export const verify = async (token: string) => {
             console.log("User not found");
         }
         else{
-            return {email: payload.email, type: payload.user_type, uid: userDoc._id.toString()};
+            return {email: payload.email, type: payload.user_type, uid: userDoc._id.toString(), success: true};
         }
     }
     catch(error) {
         console.log("Verifying error:",error);
+        if (error instanceof JWTExpired) {
+            return {success: false, reason: "Token expired"}
+        }
+        else{
+            return {success: false, reason: error}
+        }
+        
     }
 }
 

@@ -11,65 +11,19 @@ import {
   createContractAPI,
   getRequests,
 } from "../../services/api";
-import { getRequestPermissions } from "../../utils/policyParser";
 import log from "loglevel";
 
 log.setLevel("debug");
+import { Request } from "../Interfaces/Requests";
 
 // css
 import styles from "../../css/Ontology.module.css";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
+import renderPermissions from "../../utils/renderPermissions";
 
-interface Refinement {
-  attribute: string;
-  instance: string;
-  value: string;
-}
-
-interface Permission {
-  dataset: string;
-  datasetRefinements: Refinement[];
-  action: string;
-  actionRefinements: Refinement[];
-  purpose: string;
-  purposeRefinements: Refinement[];
-  constraintRefinements: Refinement[];
-  constraints?: Array<{
-    leftOperand: string;
-    operator: string;
-    rightOperand: any;
-    description: string;
-  }>;
-  assignees?: Array<{
-    source: string;
-    refinements?: Array<{
-      leftOperand: string;
-      operator: string;
-      rightOperand: any;
-      description: string;
-    }>;
-  }>;
-}
-
-interface Request {
-  _id: string;
-  requestName: string;
-  requester: {
-    requesterId: string;
-    requesterName: string;
-    requesterEmail: string;
-  };
-  permissions: Permission[];
-  policy?: any; // ODRL policy
-  status: string;
-  ownersAccepted: string[];
-  ownersRejected: string[];
-  ownersPending: string[];
-}
-
-function OwnerPendingRequestsDetails() {
+function OwnerPendingRequestDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const navigate = useNavigate(); // Initialize useNavigate
   const { isIframeMode, notifyParent } = useIframe();
@@ -283,36 +237,6 @@ function OwnerPendingRequestsDetails() {
       }
     };
   }, []);
-
-  function formatOperand(operand: any): string {
-    if (!operand) return "";
-
-    if (typeof operand === "string") return operand;
-
-    // JSON-LD object with @id
-    if (operand["@id"]) {
-      return operand["@id"].replace(/^.*:/, ""); // strip prefix like cactus:
-    }
-
-    // JSON-LD object with @value
-    if (operand["@value"]) {
-      return operand["@value"];
-    }
-
-    // JSON-LD object with @list
-    if (operand["@list"]) {
-      return operand["@list"]
-        .map((item: any) => formatOperand(item))
-        .join(", ");
-    }
-
-    // Plain array of objects
-    if (Array.isArray(operand)) {
-      return operand.map((item) => formatOperand(item)).join(", ");
-    }
-
-    return String(operand);
-  }
 
   // Function to redirect to negotiation display
   const viewNegotiation = async () => {
@@ -865,11 +789,6 @@ function OwnerPendingRequestsDetails() {
         <h3 className={isIframeMode ? "mt-2" : "mt-4"}>
           {requestDetails.requestName}
         </h3>
-        {/* <h1>
-          Provider Mongo ID: {user?.userData?.mongoUserId ?? "Not available"},
-          {user?.uid}
-        </h1> */}
-
         <h5 className="mt-4 mb-3">Requester details</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
@@ -880,127 +799,11 @@ function OwnerPendingRequestsDetails() {
           {requestDetails.requester.requesterEmail}
         </p>
 
-        {(() => {
-          // Parse permissions from ODRL policy or fallback to legacy permissions
-          const parsedPermissions = getRequestPermissions(requestDetails);
+        <text>
+          {requestDetails.extraText ? requestDetails.extraText : ""}
+        </text>
 
-          return parsedPermissions.map((permission, ruleIndex) => (
-            <div key={ruleIndex} className="mb-4 mt-4">
-              <h5>Permission {ruleIndex + 1}</h5>
-              <h5 className="mt-4">What's being requested</h5>
-              <p>
-                <strong>Dataset:</strong> The requester wants access to data
-                from <strong>{permission.dataset}</strong>.
-              </p>
-              <p>
-                <strong>Action:</strong> The requester wants to{" "}
-                <strong>{permission.action}</strong> to this dataset.
-              </p>
-
-              <p>
-                <strong>Purpose:</strong> This request is for{" "}
-                <strong>{formatOperand(permission.purpose)}</strong> reasons.
-              </p>
-
-              {/* Show generic ODRL constraints */}
-              {permission.constraints && permission.constraints.length > 0 && (
-                <div className="mt-3">
-                  <h6>Policy Constraints:</h6>
-                  <ul className="list-unstyled ms-3">
-                    {permission.constraints.map((constraint, i) => (
-                      <li key={i} className="mb-1">
-                        <small className="text-muted">
-                          • {formatOperand(constraint.leftOperand)}{" "}
-                          {formatOperand(constraint.operator)}{" "}
-                          {formatOperand(constraint.rightOperand)}
-                        </small>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Show generic ODRL assignees */}
-              {permission.assignees && permission.assignees.length > 0 && (
-                <div className="mt-3">
-                  <h6>Assigned To:</h6>
-                  {permission.assignees.map((assignee, i) => (
-                    <div key={i} className="ms-3">
-                      <p className="mb-1">
-                        <strong>{assignee.source}</strong>
-                      </p>
-                      {assignee.refinements &&
-                        assignee.refinements.map((ref, j) => (
-                          <p key={j} className="mb-1 ms-2">
-                            <small className="text-muted">
-                              └ {ref.description}
-                            </small>
-                          </p>
-                        ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {permission.datasetRefinements?.length > 0 && (
-                <div>
-                  <h5>Dataset conditions:</h5>
-                  <ul className="list-unstyled">
-                    {permission.datasetRefinements.map((ref, i) => (
-                      <li key={i}>
-                        Data about <strong>{ref.attribute}</strong> items
-                        greater than <strong>{ref.value}</strong>.
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {permission.actionRefinements?.length > 0 && (
-                <div>
-                  <h5>Action conditions:</h5>
-                  <ul className="list-unstyled">
-                    {permission.actionRefinements.map((ref, i) => (
-                      <li key={i}>
-                        Write access to <strong>{ref.attribute}</strong> items
-                        greater than <strong> {ref.value}</strong>.
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {permission.purposeRefinements?.length > 0 && (
-                <div>
-                  <h5>Purpose conditions:</h5>
-                  <ul className="list-unstyled">
-                    {permission.purposeRefinements.map((ref, i) => (
-                      <li key={i}>
-                        Data will be used for <strong>{ref.attribute}</strong>{" "}
-                        items greater than <strong>{ref.value}</strong>.
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {permission.constraintRefinements?.length > 0 && (
-                <div>
-                  <h5>Constraints:</h5>
-                  <ul className="list-unstyled">
-                    {permission.constraintRefinements.map((ref, i) => (
-                      <li key={i}>
-                        Data should meet the constraint:{" "}
-                        <strong>{ref.attribute}</strong> {ref.instance}{" "}
-                        <strong>{ref.value}</strong>.
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ));
-        })()}
+        {renderPermissions(requestDetails)}
 
         <div className="alert alert-warning" role="alert">
           If you are unsure whether to accept, reject or negotiate the request,
@@ -1221,4 +1024,4 @@ function OwnerPendingRequestsDetails() {
   );
 }
 
-export default OwnerPendingRequestsDetails;
+export default OwnerPendingRequestDetails;

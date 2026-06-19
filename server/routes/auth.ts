@@ -4,6 +4,7 @@ import "express-session";
 import keycloak, { login, verify } from "../config/keycloak.ts";
 import { ObjectId } from "mongodb";
 import { sendTestEmail } from "../config/nodemailer.ts";
+import { decodeJwt, jwtVerify } from "jose";
 
 declare module "express-session" {
   interface SessionData {
@@ -13,6 +14,7 @@ declare module "express-session" {
 }
 
 const router = express.Router();
+const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
 
 // POST /api/auth/login - User login with keycloak
 router.post("/login", async (req, res) => {
@@ -776,6 +778,193 @@ router.delete("/user/:email", async (req, res) => {
     });
   }
 });
+
+
+//The link in the emails we send to new users created by a requester points to this API call.
+//It will create a new user, login the user and redirect to the page where the user can accept or reject the request.
+//The provided token should contain all the relevant information such as the requestId, the user's email address.
+router.get("/verify/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { payload } = await jwtVerify(token, secret);
+    if (!payload) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
+    }
+    const decoded_token = decodeJwt(token);
+    console.log("Decoded token payload is:");
+    console.log(decoded_token);
+
+    if (!decoded_token.email) {
+      return res.status(401).json({
+        error: "Email address missing",
+        success: false,
+      });
+    }
+
+    if (!decoded_token.requestId) {
+      return res.status(401).json({
+        error: "Request id missing",
+        success: false,
+      });
+    }
+    
+    const requestId = decoded_token.requestId;
+    const verification = await db.collection("tokens").findOne({token: {$eq: decoded_token.token}});
+
+    if (!verification) {
+      return res.status(401).json({
+        error: "Token verification failed",
+        success: false,
+      });
+    }
+
+    if (verification.used) {
+      return res.status(401).json({
+        error: "Token already used",
+        success: false,
+      });
+    }
+
+    if (Date.now() > verification.expiresAt) {
+      return res.status(401).json({
+        error: "Token is expired",
+        success: false,
+      });
+    }
+
+    console.log("Creating new user");
+    try {
+      const email = decoded_token.email.toString();
+
+      let uid = null;
+      let userRecord = null;
+      try {
+        const externalApiUrl =
+          process.env.USER_MANAGEMENT_SERVICE_API_URL ||
+          "https://dips.soton.ac.uk/negotiation-api";
+        const masterPasswordParam = process.env.MASTER_PASSWORD!;
+
+        const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
+
+        const fallback = "unknown";
+        const randomPassword = "Random_Password_For_Testing_13!";
+
+        const registrationPayload = {
+          username_email: email,
+          username: email.includes("@") ? email.split("@")[0] : email,
+          password: randomPassword, // Ideally this should be null so we can create users who can only login through an email link.
+          name: `${fallback} ${fallback}`, // The user management service takes this value and splits it into first name and last name. We should model it otherwise.
+          type: "provider",
+        
+          incorporation: decoded_token.incorporation || fallback,
+          address: decoded_token.address || fallback,
+          position_title: decoded_token?.positionTitle || fallback,
+          vat_no: decoded_token?.VAT_No || fallback,
+          phone: decoded_token?.phone || fallback,
+          organization: decoded_token?.organization || [fallback],
+        };
+
+        const apiResponse = await fetch(
+          `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(registrationPayload),
+          }
+        );
+
+        console.log("API response status:", apiResponse.status);
+
+        if (apiResponse.ok) {
+          const successData = await apiResponse.json();
+          userRecord = successData;
+          console.log("User Management Service API registration successful:", successData);
+
+          // Extract MongoDB user ID from the response
+          if (
+            successData &&
+            (successData.user_id || successData.id || successData._id)
+          ) {
+            uid = successData.user_id || successData.id || successData._id;
+            console.log("MongoDB user ID received:", uid);
+          } else {
+            console.warn("No user ID found in API response:", successData);
+          }
+
+          await db.collection("tokens").updateOne({token: {$eq: decoded_token.token}}, {$set: {used: true}}); //Mark the token as used.
+          await db.collection("requests").updateOne({'_id': new ObjectId(requestId.toString())}, {$addToSet: {owners: uid, ownersPending: uid}}); //Update the request to add the new user as an owner and pending owner.
+        
+          const keycloak_login_response = await login(email, randomPassword);
+
+          if (!keycloak_login_response) {
+            return res.status(401).json({
+              error: "Keycloak login failed",
+              success: false,
+            });
+          }
+
+          const access_token = keycloak_login_response.access_token;
+          console.log(
+            "External API login successful:",
+            access_token.substring(0, 50)
+          );
+
+          const redirect_url = process.env.FRONTEND_URL || "https://dips.soton.ac.uk/consent-manager"
+
+
+          const userData = {uid: userRecord._id, role: "owner", email: userRecord.username_email, ...userRecord};
+          const encodedUser = encodeURIComponent(JSON.stringify(userData));
+          const encodedToken = encodeURIComponent(access_token);
+
+          req.session.userUid = uid;
+          res.redirect(
+            `${redirect_url}/ownerBase/ownerPendingRequestsDetails/${requestId}` +
+            `?auth_user=${encodedUser}` +
+            `&auth_token=${encodedToken}`
+          );
+          //TODO: Possibly send email to user that contains their random password, or action links.
+        } else {
+          const errorData = await apiResponse.json();
+          console.error("External API registration failed:", {
+            status: apiResponse.status,
+            statusText: apiResponse.statusText,
+            error: errorData,
+            email: email,
+            role: "owner",
+            type: "provider",
+          });
+        }
+
+      } catch (apiError: any) {
+        console.error("External API registration exception:", {
+          error: apiError.message,
+          stack: apiError.stack,
+          email: email,
+        });
+      }
+
+      
+    }
+    catch(error: any) {
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Registration failed",
+      })
+    }
+  }
+  catch(error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Token verification failed",
+    })
+  }
+}
+);
 
 // GET /api/auth/token/:token - Authenticate with external API token and redirect
 // TODO: Test this

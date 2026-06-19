@@ -1,57 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getRequestPermissions } from "../../src/utils/policyParser";
-
-interface PolicyPermission {
-  dataset: string;
-  action: string;
-  purpose: string;
-  datasetRefinements: any[];
-  actionRefinements: any[];
-  purposeRefinements: any[];
-  constraintRefinements: any[];
-  constraints?: Array<{
-    leftOperand: string;
-    operator: string;
-    rightOperand: any;
-    description: string;
-  }>;
-  assignees?: Array<{
-    source: string;
-    refinements?: Array<{
-      leftOperand: string;
-      operator: string;
-      rightOperand: any;
-      description: string;
-    }>;
-  }>;
-}
-
-interface RequestData {
-  _id: ObjectId;
-  requestName: string;
-  description?: string;
-  extraTerms?: string;
-  extraText?: string;
-  permissions: PolicyPermission[];
-  selectedOntologies: {
-    _id: string;
-    name: string;
-  }[];
-  requester?: {
-    requesterId: string;
-    requesterName: string;
-    requesterEmail: string;
-  };
-  policy?: any; // ODRL policy JSON
-  metadata?: any; // Additional metadata like audit request ID
-  createdAt?: string;
-  sentAt?: string;
-  status?: string;
-  owners: string[];
-  ownersPending: string[];
-  ownersAccepted: string[];
-  ownersRejected: string[];
-}
+import { RequestData } from "../../src/components/Interfaces/Requests";
 
 function formatOperand(operand: any): string {
     if (!operand) return "";
@@ -124,8 +73,8 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
           <ul class="list-unstyled">
             ${permission.datasetRefinements.map((ref, i) => (
               `<li key=${i}>
-                Data about <strong>${ref.attribute}</strong> items
-                greater than <strong>${ref.value}</strong>.
+                Data about <strong>${ref.leftOperand}</strong> items
+                greater than <strong>${ref.rightOperand}</strong>.
               </li>`
             ))}
           </ul>
@@ -138,8 +87,8 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
           <ul class="list-unstyled">
             ${permission.actionRefinements.map((ref, i) => (
               `<li key=${i}>
-                Write access to <strong>${ref.attribute}</strong> items
-                greater than <strong> ${ref.value}</strong>.
+                Write access to <strong>${ref.leftOperand}</strong> items
+                greater than <strong> ${ref.rightOperand}</strong>.
               </li>`
             ))}
           </ul>
@@ -152,8 +101,8 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
           <ul class="list-unstyled">
             ${permission.purposeRefinements.map((ref, i) => (
               `<li key=${i}>
-                Data will be used for <strong>${ref.attribute}</strong>{" "}
-                items greater than <strong>${ref.value}</strong>.
+                Data will be used for <strong>${ref.leftOperand}</strong>{" "}
+                items greater than <strong>${ref.rightOperand}</strong>.
               </li>`
             ))}
           </ul>
@@ -167,8 +116,8 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
             ${permission.constraintRefinements.map((ref, i) => (
               `<li key=${i}>
                 Data should meet the constraint:{" "}
-                <strong>${ref.attribute}</strong> ${ref.instance}{" "}
-                <strong>${ref.value}</strong>.
+                <strong>${ref.leftOperand}</strong> ${ref.operator}{" "}
+                <strong>${ref.rightOperand}</strong>.
               </li>`
             ))}
           </ul>
@@ -176,6 +125,89 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
       ) : ""}
     </div>`
   ));
+}
+
+export function VerificationEmail(requestDetails: RequestData, token: string) {
+    const baseUrl = "http://localhost:8019/api";
+    const acceptUrl = `${baseUrl}/auth/verify/${token}`;
+    return (
+    `
+    <html>
+    <head>
+    <style>
+      .primaryButton {
+      background-color: #000000;
+      color: white;
+      font-weight: 400;
+      border-radius: 0;
+      border-bottom-width: 2px;
+      border-bottom-color: #262626;
+    }
+
+    .primaryButton:hover {
+      background-color: #0681a3;
+      color: white;
+      font-weight: 400;
+    }
+
+    .dangerButton {
+      background-color: #dc3545;
+      color: white;
+      border-radius: 0;
+      font-weight: 400;
+      border-bottom-width: 2px;
+      border-bottom-color: #262626;
+    }
+
+    .list-unstyled {
+      list-style: none;
+      padding-left: 0;
+      margin-left: 0;
+    }
+    </style>
+    </head>
+    <body>
+    <div class="dashboard">
+        <h3>Requester details</h5>
+        <p>
+          <i>Name:</i>
+          ${requestDetails.requester?.requesterName}
+        </p>
+        <p>
+          <i>Email address:</i>
+          ${requestDetails.requester?.requesterEmail}
+        </p>
+
+        ${requestDetails.emailText}
+
+        ${requestDetails.extraText}
+
+        ${requestDetails.extraTerms}
+
+        <text>Requester ${requestDetails.requester?.requesterName} has sent you a consent request.
+
+        <div>
+          By clicking on 'Accept', you agree for your email address to be registered in our system. This will allow us to keep track of consent requests you have accepted, rejected or revoked.
+          If you are unsure whether to accept, please contact the data requester at ${requestDetails.requester?.requesterEmail}
+        </div>
+
+        <div style="margin-top:24px;">
+          <a
+            href="${acceptUrl}"
+            class="primaryButton"
+            style="
+              display:inline-block;
+              padding:12px 20px;
+              text-decoration:none;
+              margin-right:12px;
+            "
+          >
+            Accept
+          </a>
+        </div>
+      </div>
+    </body>
+  </html>`);
 }
 
 export function RequestEmail(requestDetails: RequestData, userId: string, token: string) {
@@ -229,6 +261,8 @@ export function RequestEmail(requestDetails: RequestData, userId: string, token:
           <i>Email address:</i>
           ${requestDetails.requester?.requesterEmail}
         </p>
+
+        ${requestDetails.emailText}
 
         ${requestDetails.extraText}
 

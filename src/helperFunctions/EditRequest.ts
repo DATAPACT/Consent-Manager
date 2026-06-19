@@ -1,14 +1,9 @@
 import { getRequest, updateRequest as updateRequestAPI } from "../services/api";
-
-interface RequestData {
-  name: string;
-  ontologies: any[];
-  permissions: any[];
-}
+import { Request } from "../components/Interfaces/Requests";
 
 export async function getRequestById(
   id: string
-): Promise<RequestData & { id: string }> {
+): Promise<Request & { id: string }> {
   try {
     const result = await getRequest(id);
     if (result.success) {
@@ -22,7 +17,7 @@ export async function getRequestById(
   }
 }
 
-export async function updateRequest(id: string, payload: RequestData) {
+export async function updateRequest(id: string, payload: Request) {
   try {
     const result = await updateRequestAPI(id, payload);
     if (result.success) {

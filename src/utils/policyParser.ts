@@ -1,107 +1,9 @@
 // Generic ODRL policy parser for consent management
 import { getOperandDropdownValue } from "../helperFunctions/RequestDropdowns";
+import { ODRLPermission, ODRLPolicy } from "../components/Interfaces/ODRL";
+import { Permission } from "../components/Interfaces/Requests";
 
-interface PolicyPermission {
-  dataset: string;
-  action: string;
-  purpose: string;
-  datasetRefinements: any[];
-  actionRefinements: any[];
-  purposeRefinements: any[];
-  constraintRefinements: any[];
-  constraints?: Array<{
-    leftOperand: string;
-    operator: string;
-    rightOperand: any;
-    description: string;
-  }>;
-  assignees?: Array<{
-    source: string;
-    refinements?: Array<{
-      leftOperand: string;
-      operator: string;
-      rightOperand: any;
-      description: string;
-    }>;
-  }>;
-}
-
-interface ODRLPermission {
-  "odrl:action": {
-    "rdf:value": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    }[];
-  };
-  "odrl:target": {
-    "odrl:source": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    }[];
-  };
-  "odrl:assignee"?: {
-    "odrl:source": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    };
-  };
-  "odrl:assigner"?: {
-    "odrl:source": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    };
-  };
-  "odrl:constraint"?: Array<{
-    "odrl:leftOperand": {
-      "@id": string;
-    };
-    "odrl:operator": {
-      "@id": string;
-    };
-    "odrl:rightOperand": any;
-  }>;
-}
-
-interface ODRLPolicy {
-  "@context": any;
-  "@id": string;
-  "@type": string;
-  "odrl:permission": ODRLPermission[];
-}
-
-export function permissionsToODRLPolicy(requestId: string, ownerId: string, requesterId: string, request: PolicyPermission[]) {
+export function permissionsToODRLPolicy(requestId: string, ownerId: string, requesterId: string, request: Permission[]) {
   let odrlPolicy : ODRLPolicy = {
     "@context": {
       "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -122,9 +24,9 @@ export function permissionsToODRLPolicy(requestId: string, ownerId: string, requ
                       "odrl:refinement": permission.actionRefinements.map(
                         (refinement) =>
                         { const constraint = {
-                          "odrl:leftOperand": {"@id": refinement.attribute},
-                          "odrl:operator": {"@id": refinement.instance},
-                          "odrl:rightOperand": refinement.value
+                          "odrl:leftOperand": {"@id": refinement.leftOperand},
+                          "odrl:operator": {"@id": refinement.operator},
+                          "odrl:rightOperand": refinement.rightOperand
                         }
                         return constraint
                         }
@@ -133,9 +35,9 @@ export function permissionsToODRLPolicy(requestId: string, ownerId: string, requ
                       "odrl:refinement": permission.datasetRefinements.map(
                         (refinement) =>
                         { const constraint = {
-                          "odrl:leftOperand": {"@id": refinement.attribute},
-                          "odrl:operator": {"@id": refinement.instance},
-                          "odrl:rightOperand": refinement.value
+                          "odrl:leftOperand": {"@id": refinement.leftOperand},
+                          "odrl:operator": {"@id": refinement.operator},
+                          "odrl:rightOperand": refinement.rightOperand
                         }
                         return constraint
                         }
@@ -144,9 +46,9 @@ export function permissionsToODRLPolicy(requestId: string, ownerId: string, requ
       "odrl:assigner": {"odrl:source": {"@id": ownerId}},
       "odrl:constraint": constraints.map(constraint => {
         return {
-        "odrl:leftOperand": {"@id": constraint.attribute},
-        "odrl:operator": {"@id": constraint.instance},
-        "odrl:rightOperand": constraint.value
+        "odrl:leftOperand": {"@id": constraint.leftOperand},
+        "odrl:operator": {"@id": constraint.operator},
+        "odrl:rightOperand": constraint.rightOperand
       }})
     }
     temp_permission["odrl:constraint"].push({
@@ -305,7 +207,7 @@ export function parseAssignees(
 /**
  * Convert ODRL policy to permission format for display (generic approach)
  */
-export function parseODRLPolicy(policy: ODRLPolicy | null): PolicyPermission[] {
+export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
   if (!policy || !policy["odrl:permission"]) {
     return [];
   }
@@ -410,7 +312,7 @@ export function hasODRLPolicy(request: any): boolean {
 /**
  * Get permissions from either ODRL policy or legacy permissions array
  */
-export function getRequestPermissions(request: any): PolicyPermission[] {
+export function getRequestPermissions(request: any): Permission[] {
   // If request has ODRL policy, parse it
   if (hasODRLPolicy(request)) {
     return parseODRLPolicy(request.policy);

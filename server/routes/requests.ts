@@ -3,64 +3,14 @@ import { db } from "../../src/services/database.service.ts";
 import { Collection, ObjectId } from "mongodb";
 import { permissionsToODRLPolicy } from "../../src/utils/policyParser.js";
 import { verify } from "../config/keycloak.ts";
-import { RequestEmail } from "../../emails/templates/requestDetails.tsx";
+import { RequestEmail, VerificationEmail } from "../../emails/templates/requestDetails.tsx";
 import { sendTestEmail } from "../config/nodemailer.ts";
 import { jwtVerify, SignJWT } from "jose";
+import { RequestData } from "../../src/components/Interfaces/Requests.ts";
+import crypto from "crypto";
 
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
-
-interface PolicyPermission {
-  dataset: string;
-  action: string;
-  purpose: string;
-  datasetRefinements: any[];
-  actionRefinements: any[];
-  purposeRefinements: any[];
-  constraintRefinements: any[];
-  constraints?: Array<{
-    leftOperand: string;
-    operator: string;
-    rightOperand: any;
-    description: string;
-  }>;
-  assignees?: Array<{
-    source: string;
-    refinements?: Array<{
-      leftOperand: string;
-      operator: string;
-      rightOperand: any;
-      description: string;
-    }>;
-  }>;
-}
-
-interface RequestData {
-  _id: ObjectId;
-  requestName: string;
-  description?: string;
-  extraTerms?: string;
-  extraText?: string;
-  permissions: PolicyPermission[];
-  selectedOntologies: {
-    _id: string;
-    name: string;
-  }[];
-  requester?: {
-    requesterId: string;
-    requesterName: string;
-    requesterEmail: string;
-  };
-  policy?: any; // ODRL policy JSON
-  metadata?: any; // Additional metadata like audit request ID
-  createdAt?: string;
-  sentAt?: string;
-  status?: string;
-  owners: string[];
-  ownersPending: string[];
-  ownersAccepted: string[];
-  ownersRejected: string[];
-}
 
 // POST /api/requests - Create a new request
 router.post("/", async (req, res) => {
@@ -102,11 +52,19 @@ router.post("/", async (req, res) => {
     const token = req.headers.authorization.substring(7);
     const verification = await verify(token);
 
-    if (!verification) {
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
-      });
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
     }
 
     // If requester info is not provided in the request body,
@@ -465,18 +423,25 @@ router.post("/:id/accept", async (req, res) => {
   try {
     const { id } = req.params;
     let token = null;
-    let verification = null;
     let user_email = null;
 
     if (req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.substring(7);
       const verification = await verify(token);
 
-      if (!verification) {
-        return res.status(401).json({
-          error: "Invalid token",
-          success: false,
-        });
+      if (!verification?.success) {
+        if (verification?.reason === "Token expired") {
+          return res.status(401).json({
+            error: "TOKEN_EXPIRED",
+            success: false,
+          })
+        }
+        else{
+          return res.status(401).json({
+            error: "Invalid token",
+            success: false,
+          });
+        }
       }
 
       user_email = verification.email;
@@ -486,13 +451,6 @@ router.post("/:id/accept", async (req, res) => {
       return res.status(401).json({
         success: false,
         error: "Missing bearer token",
-      });
-    }
-
-    if (!verification) {
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
       });
     }
 
@@ -584,11 +542,19 @@ router.post("/:id/reject", async (req, res) => {
 
     const verification = await verify(token);
 
-    if (!verification) {
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
-      });
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
     }
 
     const userDoc = await db.collection("users").findOne({'username_email': {$eq: verification.email}});
@@ -705,12 +671,19 @@ router.post("/:id/send", async (req, res) => {
     const verification = await verify(token);
     console.log("verification is:",verification);
 
-    if (!verification) {
-      console.error("Invalid token.")
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
-      });
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
     }
 
     if (verification.type !== "consumer") {
@@ -791,6 +764,44 @@ router.post("/:id/send", async (req, res) => {
       }
     }
 
+    for (const owner of req.body.unregisteredOwners) {
+      const userDoc = await db.collection("users").findOne({'username_email': {$eq: owner}});
+      if (userDoc) {
+        console.log(`Email address already registered to user ${userDoc._id}`);
+        continue;
+      }
+      else {
+        const random_token = crypto.randomBytes(32).toString("hex");
+        const token_payload = {
+          email: owner,
+          requestId: id,
+          action: "confirm",
+          token: random_token,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          used: false
+        }
+        const email_token = await new SignJWT(token_payload)
+          .setProtectedHeader({alg: "HS256"})
+          .sign(secret);
+
+        const insert_token = await db.collection("tokens").insertOne(token_payload);
+        
+        if (insert_token) {
+          const email_content = VerificationEmail(requestDoc, email_token);
+
+          const email_details = {
+              from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
+              to: owner,
+              subject: 'Consent Request',
+              html: email_content,
+            }
+          const email_result = await sendTestEmail(email_details);
+          console.log("Email result:", email_result.url);
+        }
+      }
+    }
+
     const update = await db.collection("requests").updateOne({'_id': new ObjectId(id)}, {$set: {owners, ownersPending, ownersAccepted, ownersRejected}});
 
     if (update){
@@ -821,7 +832,7 @@ router.get("/", async (req, res) => {
   try {
     const { uid, role, status } = req.query;
 
-    console.log("Request is:",`${uid}, ${role}, ${status}`);
+    console.log("Request is:",`${uid}, ${role}`);
 
     let requestsCollection: Collection = db.collection("requests");
     let requestsQuery = {};
@@ -838,12 +849,19 @@ router.get("/", async (req, res) => {
 
     const verification = await verify(token);
 
-    if (!verification) {
-      console.error("Invalid token.")
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
-      });
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
     }
 
     if (verification.uid !== uid) {
@@ -904,12 +922,19 @@ router.delete("/:id", async (req, res) => {
 
     const verification = await verify(token);
 
-    if (!verification) {
-      console.error("Invalid token.")
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
-      });
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
     }
 
     // Check if request exists

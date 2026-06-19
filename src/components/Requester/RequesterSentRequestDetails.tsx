@@ -3,133 +3,12 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequest, getAllOwners } from "../../services/api";
 import { useIframe } from "../../IframeContext";
-import { getRequestPermissions } from "../../utils/policyParser";
+import { Request } from "../Interfaces/Requests";
+import { ODRLPolicy } from "../Interfaces/ODRL";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
-
-interface Refinement {
-  attribute: string;
-  instance: string;
-  value: string;
-}
-
-interface Permission {
-  dataset: string;
-  datasetRefinements: Refinement[];
-  action: string;
-  actionRefinements: Refinement[];
-  purpose: string;
-  purposeRefinements: Refinement[];
-  constraintRefinements: Refinement[];
-  constraints?: Array<{
-    leftOperand: string;
-    operator: string;
-    rightOperand: any;
-    description: string;
-  }>;
-  assignees?: Array<{
-    source: string;
-    refinements?: Array<{
-      leftOperand: string;
-      operator: string;
-      rightOperand: any;
-      description: string;
-    }>;
-  }>;
-}
-
-interface ODRLPermission {
-  "odrl:action": {
-    "rdf:value": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    }[];
-  };
-  "odrl:target": {
-    "odrl:source": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    }[];
-  };
-  "odrl:assignee"?: {
-    "odrl:source": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    };
-  };
-  "odrl:assigner"?: {
-    "odrl:source": {
-      "@id": string;
-    };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string[];
-    };
-  };
-  "odrl:constraint"?: Array<{
-    "odrl:leftOperand": {
-      "@id": string;
-    };
-    "odrl:operator": {
-      "@id": string;
-    };
-    "odrl:rightOperand": any;
-  }>;
-}
-
-interface ODRLPolicy {
-  "@context": any;
-  "@id": string;
-  "@type": string;
-  "odrl:permission": ODRLPermission[];
-}
-
-interface Request {
-  id: string;
-  requestName: string;
-  requester: {
-    requesterName: string;
-    requesterEmail: string;
-  };
-  permissions: Permission[];
-  policy?: ODRLPolicy; // ODRL policy
-  status: string;
-  owners: string[];
-  ownersPending: string[];
-  ownersAccepted: string[];
-  ownersRejected: string[];
-  contractId?: any;
-}
+import renderPermissions from "../../utils/renderPermissions";
 
 function RequesterSentRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -354,79 +233,12 @@ function RequesterSentRequestsDetails() {
             role="tabpanel"
             aria-labelledby="home-tab"
           >
-            {(() => {
-              // Parse permissions from ODRL policy or fallback to legacy permissions
-              const parsedPermissions = getRequestPermissions(requestDetails);
 
-              return parsedPermissions.map((permission, ruleIndex) => (
-                <div key={ruleIndex} className="mb-4">
-                  <h4>Permission {ruleIndex + 1}</h4>
+            <text>
+              {requestDetails.extraText ? requestDetails.extraText : ""}
+            </text>
 
-                  <h5>Dataset:</h5>
-                  <p>{permission.dataset}</p>
-
-                  {permission.datasetRefinements?.length > 0 && (
-                    <div>
-                      <h5>Dataset permissions:</h5>
-                      <ul className="list-unstyled">
-                        {permission.datasetRefinements.map((ref, i) => (
-                          <li key={i}>
-                            Read access to <strong>{ref.attribute}</strong>{" "}
-                            items greater than <strong>{ref.value}</strong>.
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <h5>Action:</h5>
-                  <p>{permission.action}</p>
-
-                  {permission.actionRefinements?.length > 0 && (
-                    <div>
-                      <h5>Action permissions:</h5>
-                      <ul className="list-unstyled">
-                        {permission.actionRefinements.map((ref, i) => (
-                          <li key={i}>
-                            Write access to <strong>{ref.attribute}</strong>{" "}
-                            items greater than <strong>{ref.value}</strong>.
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {permission.purposeRefinements?.length > 0 && (
-                    <div>
-                      <h5>Purpose permissions:</h5>
-                      <ul className="list-unstyled">
-                        {permission.purposeRefinements.map((ref, i) => (
-                          <li key={i}>
-                            Data are used for <strong>{ref.attribute}</strong>{" "}
-                            items greater than <strong>{ref.value}</strong>.
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {permission.constraintRefinements?.length > 0 && (
-                    <div>
-                      <h5>Constraints:</h5>
-                      <ul className="list-unstyled">
-                        {permission.constraintRefinements.map((ref, i) => (
-                          <li key={i}>
-                            Data meet the constraint:{" "}
-                            <strong>{ref.attribute}</strong> {ref.instance}{" "}
-                            <strong>{ref.value}</strong>.
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ));
-            })()}
+            {renderPermissions(requestDetails)}
           </div>
           {/* status tab */}
           <div

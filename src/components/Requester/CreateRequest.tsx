@@ -400,12 +400,12 @@ function CreateRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={item.attribute || ""}
+                          value={item.leftOperand || ""}
                           onChange={(e) =>
                             updateDatasetRefinement(
                               permission.id,
                               item.id,
-                              "attribute",
+                              "leftOperand",
                               e.target.value
                             )
                           }
@@ -424,12 +424,12 @@ function CreateRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={item.instance || ""}
+                          value={item.operator || ""}
                           onChange={(e) =>
                             updateDatasetRefinement(
                               permission.id,
                               item.id,
-                              "instance",
+                              "operator",
                               e.target.value
                             )
                           }
@@ -450,12 +450,12 @@ function CreateRequest() {
                         <input
                           type="text"
                           className={`${styles.formInput} form-control`}
-                          value={item.value || ""}
+                          value={item.rightOperand || ""}
                           onChange={(e) =>
                             updateDatasetRefinement(
                               permission.id,
                               item.id,
-                              "value",
+                              "rightOperand",
                               e.target.value
                             )
                           }
@@ -518,12 +518,12 @@ function CreateRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={item.attribute || ""}
+                              value={item.leftOperand || ""}
                               onChange={(e) =>
                                 updateActionRefinement(
                                   permission.id,
                                   item.id,
-                                  "attribute",
+                                  "leftOperand",
                                   e.target.value
                                 )
                               }
@@ -542,12 +542,12 @@ function CreateRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={item.instance || ""}
+                              value={item.operator || ""}
                               onChange={(e) =>
                                 updateActionRefinement(
                                   permission.id,
                                   item.id,
-                                  "instance",
+                                  "operator",
                                   e.target.value
                                 )
                               }
@@ -565,12 +565,12 @@ function CreateRequest() {
                               Value
                             </label>
                             <input
-                              value={item.value || ""}
+                              value={item.rightOperand || ""}
                               onChange={(e) =>
                                 updateActionRefinement(
                                   permission.id,
                                   item.id,
-                                  "value",
+                                  "rightOperand",
                                   e.target.value
                                 )
                               }
@@ -635,12 +635,12 @@ function CreateRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={item.attribute || ""}
+                              value={item.leftOperand || ""}
                               onChange={(e) =>
                                 updatePurposeRefinement(
                                   permission.id,
                                   item.id,
-                                  "attribute",
+                                  "leftOperand",
                                   e.target.value
                                 )
                               }
@@ -659,12 +659,12 @@ function CreateRequest() {
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
-                              value={item.instance || ""}
+                              value={item.operator || ""}
                               onChange={(e) =>
                                 updatePurposeRefinement(
                                   permission.id,
                                   item.id,
-                                  "instance",
+                                  "operator",
                                   e.target.value
                                 )
                               }
@@ -684,12 +684,12 @@ function CreateRequest() {
                             <input
                               type="text"
                               className={`${styles.formInput} form-control`}
-                              value={item.value || ""}
+                              value={item.rightOperand || ""}
                               onChange={(e) =>
                                 updatePurposeRefinement(
                                   permission.id,
                                   item.id,
-                                  "value",
+                                  "rightOperand",
                                   e.target.value
                                 )
                               }
@@ -728,12 +728,12 @@ function CreateRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={item.attribute || ""}
+                          value={item.leftOperand || ""}
                           onChange={(e) =>
                             updateConstraintsRefinement(
                               permission.id,
                               item.id,
-                              "attribute",
+                              "leftOperand",
                               e.target.value
                             )
                           }
@@ -752,12 +752,12 @@ function CreateRequest() {
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
-                          value={item.instance || ""}
+                          value={item.operator || ""}
                           onChange={(e) =>
                             updateConstraintsRefinement(
                               permission.id,
                               item.id,
-                              "instance",
+                              "operator",
                               e.target.value
                             )
                           }
@@ -777,12 +777,12 @@ function CreateRequest() {
                         <input
                           type="text"
                           className={`${styles.formInput} form-control`}
-                          value={item.value || ""}
+                          value={item.rightOperand || ""}
                           onChange={(e) =>
                             updateConstraintsRefinement(
                               permission.id,
                               item.id,
-                              "value",
+                              "rightOperand",
                               e.target.value
                             )
                           }

@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { Ontology } from "../components/Interfaces/Ontology";
 
 // Interfaces
 export interface Refinement {
   id: number;
-  attribute?: string;
-  instance?: string;
-  value?: string;
+  leftOperand?: string;
+  operator?: string;
+  rightOperand?: string;
   label?: string;
 }
 // NOTE JS: Perhaps we should change the fields in Refinement to align with ODRL constraints.
@@ -19,6 +20,18 @@ export interface Permission {
   purposeRefinements: Refinement[];
   actionRefinements: Refinement[];
   constraintRefinements: Refinement[];
+}
+
+export interface RequestForm {
+  permissions: Permission[];
+  selectedOntologies?: Ontology[];
+  requestName: string;
+  extraText: string;
+  requester?: {
+        requesterId: string;
+        requesterName: string;
+        requesterEmail: string;
+  };
 }
 
 // Custom Hook to manage permissions

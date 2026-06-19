@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext"; // Import AuthContext
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
@@ -17,14 +17,20 @@ const Login: React.FC = () => {
 
   const { user, role, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const redirect = params.get("redirect");
 
   useEffect(() => {
-    log.info("test");
-
     if (user && role) {
-      if (role === "owner") {
+      if (redirect) {
+        navigate(redirect);
+      }
+      else if (role === "owner") {
         navigate("/ownerBase/ownerDashboard");
-      } else if (role === "requester") {
+      } 
+      else if (role === "requester") {
         navigate("/requesterBase/requesterDashboard");
       }
     }
