@@ -186,43 +186,41 @@ router.put("/:id", async (req, res) => {
 });
 
 //GET /api/requests/:id/accept/:uid Accept a request through an email link.
-router.get("/:id/accept/:uid" , async (req, res) => {
+router.get("/:id/accept/:token" , async (req, res) => {
   try {
-    const { id, uid } = req.params;
-    let token = null;
+    const { id, token } = req.params;
     let verification = null;
+    let userId = null;
 
-    if (req.query && req.query.token) {
-      token = req.query.token.toString();
-      try {
-        const { payload } = await jwtVerify(token, secret);
-        if (!payload) {
-          return res.status(401).json({
-            error: "Invalid token",
-            success: false,
-          });
-        }
-        if (payload.userId !== uid) {
-          return res.status(403).json({
-            error: "Token user id mismatch.",
-            success: false,
-          });
-        }
-        if (payload.requestId !== id) {
-          return res.status(403).json({
-            error: "Token request id mismatch.",
-            success: false,
-          });
-        }
-        verification = {_id: payload.userId, requestId: payload.requestId };
-      }
-      catch (error) {
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (!payload) {
         return res.status(401).json({
           error: "Invalid token",
           success: false,
         });
-      }  
+      }
+      if (payload.requestId !== id) {
+        return res.status(403).json({
+          error: "Token request id mismatch.",
+          success: false,
+        });
+      }
+      if (!payload.userId) {
+        return res.status(403).json({
+          error: "User id missing from token.",
+          success: false,
+        });
+      }
+      verification = {_id: payload.userId, requestId: payload.requestId };
+      userId = payload.userId.toString();
     }
+    catch (error) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
+    }  
 
     if (!verification) {
       return res.status(401).json({
@@ -231,7 +229,6 @@ router.get("/:id/accept/:uid" , async (req, res) => {
       });
     }
 
-    const userId = verification._id;
 
     // Check if request exists
     const docRef = db.collection("requests");
@@ -297,47 +294,40 @@ router.get("/:id/accept/:uid" , async (req, res) => {
 });
 
 //GET /api/requests/:id/reject/:uid Reject a request through an email link.
-router.get("/:id/accept/:uid" , async (req, res) => {
+router.get("/:id/reject/:token" , async (req, res) => {
   try {
-    const { id, uid } = req.params;
-    let token = null;
+    const { id, token } = req.params;
     let verification = null;
+    let userId = null;
 
-    if (req.query && req.query.token) {
-      token = req.query.token.toString();
-      try {
-        const { payload } = await jwtVerify(token, secret);
-        if (!payload) {
-          return res.status(401).json({
-            error: "Invalid token",
-            success: false,
-          });
-        }
-        console.log("Token payload is:");
-        console.log(payload.userId);
-        console.log(payload.requestId);
-        console.log(payload.action);
-        if (payload.userId !== uid) {
-          return res.status(403).json({
-            error: `Token user id mismatch. Token has ${payload.userId}, expected ${uid}`,
-            success: false,
-          });
-        }
-        if (payload.requestId !== id) {
-          return res.status(403).json({
-            error: `Token request id mismatch. Token ${payload.requestId}, expected ${id}`,
-            success: false,
-          });
-        }
-        
-        verification = {_id: payload.userId, requestId: payload.requestId };
-      }
-      catch (error) {
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (!payload) {
         return res.status(401).json({
           error: "Invalid token",
           success: false,
         });
-      }  
+      }
+      if (payload.requestId !== id) {
+        return res.status(403).json({
+          error: "Token request id mismatch.",
+          success: false,
+        });
+      }
+      if (!payload.userId) {
+        return res.status(403).json({
+          error: "User id missing from token.",
+          success: false,
+        });
+      }
+      verification = {_id: payload.userId, requestId: payload.requestId };
+      userId = payload.userId.toString();
+    }
+    catch (error) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
     }
 
     if (!verification) {
@@ -346,8 +336,6 @@ router.get("/:id/accept/:uid" , async (req, res) => {
         success: false,
       });
     }
-
-    const userId = verification._id;
 
     // Check if request exists
     const docRef = db.collection("requests");
