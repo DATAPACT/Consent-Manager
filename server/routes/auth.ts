@@ -829,6 +829,7 @@ router.get("/verify/:token", async (req, res) => {
     }
 
     if (Date.now() > verification.expiresAt) {
+      //TODO: Renew token?
       return res.status(401).json({
         error: "Token is expired",
         success: false,
@@ -886,10 +887,7 @@ router.get("/verify/:token", async (req, res) => {
           console.log("User Management Service API registration successful:", successData);
 
           // Extract MongoDB user ID from the response
-          if (
-            successData &&
-            (successData.user_id || successData.id || successData._id)
-          ) {
+          if (successData && (successData.user_id || successData.id || successData._id)) {
             uid = successData.user_id || successData.id || successData._id;
             console.log("MongoDB user ID received:", uid);
           } else {

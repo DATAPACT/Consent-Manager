@@ -426,6 +426,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/auth/verify/{token}:
+    get:
+      summary: Create an account for an unregistered user
+      description: By clicking an email link, the user accepts the creation of an account, then logged in and redirected to a pending request.
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: An API token.
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirects the user to the pending request details page.
+          headers:
+            Location:
+              description: URL of the pending request details page.
+              schema:
+                type: string
+                format: uri
+              example: https://consent-manager/ownerBase/ownerPendingRequestsDetails/6866c6ddd5b8974f1090781d?auth_user=user@example.com&auth_token=abc123
+        "400":
+          description: Token is required.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Malformed token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Registration or token verification failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/requests:
     post:
       summary: Create a new request
@@ -607,6 +651,84 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/requests/{id}/accept/{token}:
+    get:
+      summary: Accept a specific request through an email link.
+      tags:
+        - Requests
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+        - name: token
+          in: path
+          required: true
+          description: An email token.
+          schema:
+            type: string
+      
+      responses:
+        "200":
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+        "401":
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not authorised
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The user has already accepted or rejected this request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/requests/{id}/accept:
     post:
       summary: Accept a specific request by ID
@@ -624,6 +746,84 @@ paths:
           schema:
             type: string
             example: "6866c6ddd5b8974f1090781d"
+      
+      responses:
+        "200":
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - success
+                  - message
+                properties:
+                  id:
+                    type: string
+                    description: The MongoDB ObjectId of the request.
+                    example: "6866c6ddd5b8974f1090781d"
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Request updated successfully"
+        "401":
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not authorised
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The user has already accepted or rejected this request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error updating request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/requests/{id}/reject/{token}:
+    get:
+      summary: Reject a specific request through an email link.
+      tags:
+        - Requests
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the request.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+        - name: token
+          in: path
+          required: true
+          description: An email token.
+          schema:
+            type: string
       
       responses:
         "200":
@@ -767,9 +967,20 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - user_emails
+              anyOf:
+                - required:
+                    - user_emails
+                - required:
+                    - ownersPending
               properties:
+                ownersPending:
+                  type: array
+                  items:
+                    type: string
+                    format: ObjectId
+                  example:
+                    - "6866c6ddd5b8974f1090781d"
+
                 user_emails:
                   type: array
                   items:
@@ -1282,6 +1493,8 @@ components:
             - type: number
             - type: boolean
             - type: array
+              items:
+                type: object
             - type: object
 
         rightOperandReference:
