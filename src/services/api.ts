@@ -7,6 +7,10 @@ import { RequestForm } from "../helperFunctions/PermissionsUtils";
 const API_BASE_URL =
    import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 
+console.log("typeof window:", typeof window);
+console.log("import.meta.env:", import.meta.env);
+console.log("process.env.VITE_API_BASE_URL:", process.env.VITE_API_BASE_URL);
+
 //const API_BASE_URL =
   //import.meta.env.VITE_API_BASE_URL || "http://10.22.38.111:8019/api";
 
