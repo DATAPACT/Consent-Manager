@@ -6,7 +6,7 @@ export default defineConfig(({mode}) => {
 
   return {
   plugins: [react()],
-   base: '/consent-manager/',
+   base: env.VITE_BASE_PATH || '/consent-manager/',
    build: { sourcemap: true },
    server: {
     host: true, // Expose to local network (e.g. tablet)

@@ -48,7 +48,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
       <IframeProvider>
-        <Router basename="/consent-manager/">
+        <Router basename={import.meta.env.BASE_URL}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/getStarted" element={<GetStarted />} />
