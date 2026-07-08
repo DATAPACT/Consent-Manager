@@ -1,5 +1,5 @@
 import express from "express";
-import { db } from "../../src/services/database.service.ts";
+import { db } from "../config/database.service.ts";
 import { Collection, ObjectId } from "mongodb";
 import { permissionsToODRLPolicy } from "../../src/utils/policyParser.js";
 import { verify } from "../config/keycloak.ts";

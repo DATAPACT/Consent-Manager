@@ -1,5 +1,5 @@
 import express from "express";
-import { db } from "../../src/services/database.service.ts";
+import { db } from "../config/database.service.ts";
 import "express-session";
 import keycloak, { login, verify } from "../config/keycloak.ts";
 import { ObjectId } from "mongodb";

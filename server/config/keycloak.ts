@@ -1,7 +1,7 @@
 import { Keycloak } from "keycloak-backend";
 import * as dotenv from "dotenv";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { db } from "../../src/services/database.service";
+import { db } from "./database.service";
 import { JWTExpired } from "jose/errors";
 
 dotenv.config({path: ".env"});
