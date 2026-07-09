@@ -30,6 +30,7 @@ export const login = async (email: string, password: string) => {
         password: password,
         scope: "openid email profile",
     });
+    console.log("Attempting to fetch: ",`${keycloak_base_url}/realms/${keycloak_realm}/protocol/openid-connect/token`);
     const response = await fetch(`${keycloak_base_url}/realms/${keycloak_realm}/protocol/openid-connect/token`, {
       method: "POST",
       headers: {
