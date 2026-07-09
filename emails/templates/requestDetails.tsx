@@ -1,5 +1,4 @@
-import { ObjectId } from "mongodb";
-import { getRequestPermissions } from "../../src/utils/policyParser";
+import { getRequestPermissions } from "../../server/utils/policyParser";
 import { RequestData } from "../../src/components/Interfaces/Requests";
 
 function formatOperand(operand: any): string {
