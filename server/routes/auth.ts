@@ -63,7 +63,7 @@ router.post("/login", async (req, res) => {
               `${userManagementServiceURL}/user/details/?${detailsForm}`,
               {
                 method: "GET",
-                // headers: { Authorization: `Bearer ${apiToken}` },
+                headers: { Authorization: `Bearer ${apiToken}` },
               }
             );
 
