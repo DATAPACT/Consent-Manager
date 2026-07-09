@@ -67,11 +67,17 @@ router.post("/login", async (req, res) => {
               }
             );
 
+            const userDoc = await db.collection("users").findOne({username_email: {$eq: email}});
+
             console.log("User details response:",userDetailsResponse);
 
             if (userDetailsResponse.ok) {
               userData = await userDetailsResponse.json();
               userUid = userData._id;
+            }
+            else if (userDoc) {
+              userData = userDoc;
+              userUid = userDoc._id;
             }
             else {
               console.warn("Error fetching user details:", userDetailsResponse.statusText);
