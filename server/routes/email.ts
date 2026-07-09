@@ -1,7 +1,7 @@
 import express from "express";
 import { Resend } from "resend";
 import "express-session";
-import { db } from "../../src/services/database.service";
+import { db } from "../config/database.service.ts";
 import { sendTestEmail } from "../config/nodemailer";
 import { ObjectId } from "mongodb";
 

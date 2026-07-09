@@ -1,5 +1,5 @@
 import express from "express";
-import { db } from "../../src/services/database.service";
+import { db } from "../config/database.service.ts";
 import { Request, Response, NextFunction } from "express";
 import { verify } from "../config/keycloak";
 import fetch from "node-fetch";

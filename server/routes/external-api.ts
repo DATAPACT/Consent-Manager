@@ -1,5 +1,5 @@
 import express from "express";
-import { db } from "../../src/services/database.service";
+import { db } from "../config/database.service.ts";
 import { Document, ObjectId, WithId } from "mongodb";
 
 const router = express.Router();

@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { db } from "../../src/services/database.service.js"
+import { db } from "../config/database.service.ts";
 import * as rdf from "rdflib";
 import { ObjectId } from 'mongodb';
 
