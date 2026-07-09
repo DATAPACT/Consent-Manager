@@ -1,7 +1,7 @@
 import express from "express";
 import { db } from "../config/database.service.ts";
 import { Collection, ObjectId } from "mongodb";
-import { permissionsToODRLPolicy } from "../../src/utils/policyParser.js";
+import { permissionsToODRLPolicy } from "../utils/policyParser.ts";
 import { verify } from "../config/keycloak.ts";
 import { RequestEmail, VerificationEmail } from "../../emails/templates/requestDetails.tsx";
 import { sendTestEmail } from "../config/nodemailer.ts";

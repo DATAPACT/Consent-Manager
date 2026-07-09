@@ -1,6 +1,6 @@
 // API service to interact with the Express backend
 
-import { RequestForm } from "../helperFunctions/PermissionsUtils";
+import type { RequestForm } from "../helperFunctions/PermissionsUtils";
 
 // const API_BASE_URL =
   // import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
