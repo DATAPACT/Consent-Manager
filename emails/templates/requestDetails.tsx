@@ -178,11 +178,11 @@ export function VerificationEmail(requestDetails: RequestData, token: string) {
           ${requestDetails.requester?.requesterEmail}
         </p>
 
-        ${requestDetails.emailText}
+        ${requestDetails.emailText? requestDetails.emailText : ""}
 
-        ${requestDetails.extraText}
+        ${requestDetails.extraText? requestDetails.extraText : ""}
 
-        ${requestDetails.extraTerms}
+        ${requestDetails.extraTerms? requestDetails.extraTerms : ""}
 
         <text>Requester ${requestDetails.requester?.requesterName} has sent you a consent request.
 
@@ -261,11 +261,11 @@ export function RequestEmail(requestDetails: RequestData, userId: string, token:
           ${requestDetails.requester?.requesterEmail}
         </p>
 
-        ${requestDetails.emailText}
+        ${requestDetails.emailText? requestDetails.emailText : ""}
 
-        ${requestDetails.extraText}
+        ${requestDetails.extraText? requestDetails.extraText : ""}
 
-        ${requestDetails.extraTerms}
+        ${requestDetails.extraTerms? requestDetails.extraTerms : ""}
 
         ${parsePermissionsToHTML(requestDetails)}
 

@@ -41,7 +41,7 @@ function EditDraftRequest() {
   
   const [, setError] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState({ requestName: "" });
+  const [formData, setFormData] = useState({ requestName: "", extraText: "", emailText: "" });
   
   const [actionOptions, setActionOptions] = useState<Option[]>([]);
   const [purposeOptions, setPurposeOptions] = useState<Option[]>([]);
@@ -52,7 +52,7 @@ function EditDraftRequest() {
   const [generalRefinementsOptions, setGeneralRefinementsOptions] = useState<Option[]>([]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -65,9 +65,13 @@ function EditDraftRequest() {
         const result = await getRequest(requestId!);
         if (result.success) {
           const data = result.data;
-          setFormData({ requestName: data.requestName || "" });
+          setFormData({ 
+            requestName: data.requestName || "",
+            extraText: data.extraText || "",
+            emailText: data.emailText || "",
+           });
           const ontologyDocs = ontologies.filter((ontology: any)=>{
-            data.setOntologies.some((setOntology: any) => setOntology.id === ontology.id );
+            data.setOntologies.some((setOntology: any) => setOntology._id === ontology._id );
           });
           setSelectedOntologies(ontologyDocs || []);
           setPermissions(data.permissions || []);
@@ -258,6 +262,34 @@ function EditDraftRequest() {
                 className={`${styles.formInput} form-control`}
                 onChange={handleChange}
                 required
+              />
+            </div>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
+                Additional Terms (Optional)
+              </label>
+              <textarea
+                name="extraText"
+                value={formData.extraText}
+                className={`${styles.formInput} form-control`}
+                id="extraText"
+                onChange={handleChange}
+                rows={4}
+                placeholder="Enter any additional terms or requirements for this consent request..."
+              />
+            </div>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
+                Email Text (Optional)
+              </label>
+              <textarea
+                name="emailText"
+                value={formData.emailText}
+                className={`${styles.formInput} form-control`}
+                id="emailText"
+                onChange={handleChange}
+                rows={4}
+                placeholder="Enter the text to display when sending emails to data owners for this request..."
               />
             </div>
             <div className="mb-3">

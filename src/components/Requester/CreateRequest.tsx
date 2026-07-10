@@ -37,6 +37,7 @@ function CreateRequest() {
   const [formData, setFormData] = useState({
     requestName: "",
     extraText: "",
+    emailText: "",
   });
 
   const [actionOptions, setActionOptions] = useState<Option[]>([]);
@@ -247,6 +248,20 @@ function CreateRequest() {
                 onChange={handleChange}
                 rows={4}
                 placeholder="Enter any additional terms or requirements for this consent request..."
+              />
+            </div>
+            <div className="mb-3">
+              <label className={`${styles.formLabel} form-label`}>
+                Email Text (Optional)
+              </label>
+              <textarea
+                name="emailText"
+                value={formData.emailText}
+                className={`${styles.formInput} form-control`}
+                id="emailText"
+                onChange={handleChange}
+                rows={4}
+                placeholder="Enter the text to display when sending emails to data owners for this request..."
               />
             </div>
             <div className="mb-3">
