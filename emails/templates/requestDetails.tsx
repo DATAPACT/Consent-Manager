@@ -1,5 +1,7 @@
 import { getRequestPermissions } from "../../server/utils/policyParser";
-import { RequestData } from "../../src/components/Interfaces/Requests";
+import type { RequestData } from "../../src/components/Interfaces/Requests";
+
+const baseUrl = process.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 
 function formatOperand(operand: any): string {
     if (!operand) return "";
@@ -126,8 +128,7 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
   ));
 }
 
-export function VerificationEmail(requestDetails: RequestData, token: string) {
-    const baseUrl = "http://localhost:8019/api";
+export function VerificationEmail(requestDetails: RequestData, token: string) { 
     const acceptUrl = `${baseUrl}/auth/verify/${token}`;
     return (
     `
@@ -210,7 +211,6 @@ export function VerificationEmail(requestDetails: RequestData, token: string) {
 }
 
 export function RequestEmail(requestDetails: RequestData, userId: string, token: string) {
-    const baseUrl = "http://localhost:8019/api";
     const acceptUrl = `${baseUrl}/requests/${requestDetails._id}/accept/${userId}${token ? `/?token=${token}` : ""}`;
     const rejectUrl = `${baseUrl}/requests/${requestDetails._id}/reject/${userId}${token ? `/?token=${token}` : ""}`;
     return (
