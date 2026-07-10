@@ -56,6 +56,7 @@ export const verify = async (token: string) => {
     try{
         const { payload } = await jwtVerify(token, JWKS, {issuer: `${keycloak_base_url}/realms/${keycloak_realm}`});
         const userDoc = await db.collection("users").findOne({username_email: {$eq: payload.email}});
+        console.log("JWT Verification Payload is: ", payload);
 
         if (!userDoc) {
             console.log("User not found");
