@@ -629,6 +629,7 @@ router.post("/:id/send", async (req, res) => {
   try {
     const { id } = req.params;
     let userDocs = null;
+    let test_email_urls = [];
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
       console.error("Missing bearer token.")
@@ -747,6 +748,7 @@ router.post("/:id/send", async (req, res) => {
           }
         const email_result = await sendTestEmail(email_details);
         console.log("Email result:", email_result.url);
+        test_email_urls.push(email_result.url);
         owners.push(userId);
         ownersPending.push(userId);
       }
@@ -786,17 +788,19 @@ router.post("/:id/send", async (req, res) => {
             }
           const email_result = await sendTestEmail(email_details);
           console.log("Email result:", email_result.url);
+          test_email_urls.push(email_result.url);
         }
       }
     }
 
-    const update = await db.collection("requests").updateOne({'_id': new ObjectId(id)}, {$set: {owners, ownersPending, ownersAccepted, ownersRejected}});
+    const update = await db.collection("requests").updateOne({'_id': new ObjectId(id)}, {$set: {status: "sent", owners, ownersPending, ownersAccepted, ownersRejected}});
 
     if (update){
       return res.json({
         id,
         success: true,
         message: "Request sent successfully",
+        test_email_urls
       });
     }
     else {

@@ -63,13 +63,14 @@ router.post("/login", async (req, res) => {
               `${userManagementServiceURL}/user/details/?${detailsForm}`,
               {
                 method: "GET",
-                headers: { Authorization: `Bearer ${apiToken}` },
+                headers: { Authorization: `Bearer ${access_token.token}` },
               }
             );
 
             const userDoc = await db.collection("users").findOne({username_email: {$eq: email}});
 
             console.log("User details response:",userDetailsResponse);
+            console.log("User doc: ", userDoc);
 
             if (userDetailsResponse.ok) {
               userData = await userDetailsResponse.json();
