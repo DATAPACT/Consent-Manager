@@ -1,6 +1,6 @@
 import express from "express";
 import { db } from "../config/database.service.ts";
-import { Collection, ObjectId } from "mongodb";
+import { Collection, Document, ObjectId, WithId } from "mongodb";
 import { permissionsToODRLPolicy } from "../utils/policyParser.ts";
 import { verify } from "../config/keycloak.ts";
 import { RequestEmail, VerificationEmail } from "../../emails/templates/requestDetails.tsx";
@@ -630,8 +630,9 @@ router.post("/:id/reject", async (req, res) => {
 router.post("/:id/send", async (req, res) => {
   try {
     const { id } = req.params;
-    let userDocs = null;
+    let userDocs: WithId<Document>[] | null = null;
     let test_email_urls = [];
+    let unregisteredOwners: String[] = []
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
       console.error("Missing bearer token.")
@@ -648,6 +649,7 @@ router.post("/:id/send", async (req, res) => {
     else if (req.body.user_emails) {
       const user_emails = req.body.user_emails;
       userDocs = await db.collection("users").find({'username_email': {$in: user_emails}}).toArray();
+      unregisteredOwners = userDocs && userDocs.length > 0 ? user_emails.filter((o: String) => !userDocs?.some((doc) => doc.username_email === o)) : user_emails;
     }
     else {
       console.error("Request body has no owners pending or user emails.")
@@ -756,7 +758,7 @@ router.post("/:id/send", async (req, res) => {
       }
     }
 
-    for (const owner of req.body.unregisteredOwners) {
+    for (const owner of unregisteredOwners) {
       const userDoc = await db.collection("users").findOne({'username_email': {$eq: owner}});
       if (userDoc) {
         console.log(`Email address already registered to user ${userDoc._id}`);

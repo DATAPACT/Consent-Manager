@@ -278,7 +278,7 @@ const validateEmail = (email: string) => {
       const updatePayload = {
         owners: allOwnerIds,
         ownersPending: allPendingIds,
-        unregisteredOwners,
+        user_emails: unregisteredOwners,
         status: "sent",
         sentAt: `${days[now.getDay()]} ${now
           .getDate()
