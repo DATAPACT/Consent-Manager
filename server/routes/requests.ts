@@ -67,6 +67,8 @@ router.post("/", async (req, res) => {
       }
     }
 
+    console.log("Request payload is: ", data);
+
     // If requester info is not provided in the request body,
     // you'll need to implement authentication middleware
     if (!data.requester) {
