@@ -88,10 +88,10 @@ router.post("/", async (req, res) => {
   
     const requestWithDefaults = {
       ...data,
-      selectedOntologies: data.selectedOntologies.map(({ _id, name }) => ({
+      selectedOntologies: data.selectedOntologies? data.selectedOntologies.map(({ _id, name }) => ({
         _id,
         name,
-      })),
+      })) : [],
       createdAt: `${days[now.getDay()]} ${now
         .getDate()
         .toString()
