@@ -64,7 +64,7 @@ The project should now be running locally.
 8. Find your request under Drafts and click on "Send", or under Sent and click on "Send to more".
 9. Type email addresses under "Add New Recipients" and click on the plus sign next to it to add more users to send the request. Finally click on "Send Request".
 
-### As a Data Owmer
+### As a Data Owner
 
 0. Register as a data owner.
 1. Sign in with your credentials.
