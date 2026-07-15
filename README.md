@@ -150,3 +150,50 @@ const response = await fetch(`${API_BASE_URL}/requests/{id}`, {
       ),
     });
 ```
+
+You can check the status of the request by making a GET request to {API_BASE_URL}/requests/{id}.
+
+```
+{
+  "id":"123456789",
+  "data":{
+    "_id":"123456789",
+    "requestName":"samplePolicy",
+    "requester":{
+      "requesterId":"987654321",
+      "requesterName":"data consumer",
+      "requesterEmail":"requester1@example.com"},
+    "policy":{...},
+    "selectedOntologies":[...],
+    "createdAt":"Wednesday 15 July 2026 09:18",
+    "sentAt":"",
+    "status":"rejected",
+    "owners":[...],
+    "ownersAccepted":[...],
+    "ownersRejected":[...],
+    "ownersPending":[...],
+    "contractId":"135792468"
+  },
+  "success":true
+}
+```
+
+### Demo
+
+src/test.py is a Python script that provides a CLI that encapsulates steps 1-3 for a data requester. 
+
+#### Usage
+```
+python test.py --email email --password password --odrl samplePolicy.json --user-email user_email1 --user-email user_email2 ...
+```
+Or if you know the ID for the request you want to send:
+```
+python test.py --email email --password password --requestId request_id --user-email user_email1 --user_email2 ...
+```
+
+- email: The email address of the requester.
+- password: The requester's password.
+- odrl: The path to a JSON file for an ODRL policy.
+- requestId: The MongoDB Object ID of a request object. 
+- user_email: The email address of a data owner. Allows multiple instances.
+
