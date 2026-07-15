@@ -37,7 +37,7 @@
 
 5. **Open the project in your browser:**
 
-- Once the server starts, a localhost URL (usually http://localhost:3000) will be shown in the terminal.
+- Once the server starts, a localhost URL (usually http://localhost:5173) will be shown in the terminal.
 - Press Ctrl + Click on the URL or copy and paste it into your browser.
 
 The project should now be running locally.

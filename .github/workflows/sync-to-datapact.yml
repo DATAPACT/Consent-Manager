@@ -3,7 +3,7 @@ name: Sync to DATAPACT repository
 on:
   push:
     branches:
-      - dips-branch-mongodb
+      - dips-branch
 
 concurrency:
   group: sync-main-to-datapact

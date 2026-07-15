@@ -6,7 +6,9 @@ const router = express.Router();
 
 // Get external API base URL from environment variable or use production default
 const EXTERNAL_API_BASE_URL =
-  process.env.EXTERNAL_API_BASE_URL || "https://dips.soton.ac.uk/negotiation-api";
+  process.env.EXTERNAL_API_BASE_URL || "https://dips.soton.ac.uk/user-management";
+const NEGOTIATION_API_BASE_URL = 
+  process.env.NEGOTIATION_API_BASE_URL || "https://dips.soton.ac.uk/negotiation-api"
 
 const mongoDBObjectToRequest = (docRef: WithId<Document>) => {
   const requestData : RequestData = {
@@ -396,7 +398,7 @@ router.post("/negotiation/create-with-initial", async (req, res) => {
 
     // Send to negotiation API
     const response = await fetch(
-      "https://dips.soton.ac.uk/negotiation-api/negotiation/create-with-initial",
+      `${NEGOTIATION_API_BASE_URL}/negotiation/create-with-initial`,
       {
         method: "POST",
         headers: {
@@ -515,7 +517,7 @@ router.post("/negotiation/create-accepted", async (req, res) => {
     });
 
     // Log the complete request body (but mask sensitive data)
-    const apiUrl = `${EXTERNAL_API_BASE_URL}/negotiation/create-with-initial`;
+    const apiUrl = `${NEGOTIATION_API_BASE_URL}/negotiation/create-with-initial`;
 
     // Send to negotiation API with accepted status
     console.log("STEP 5: Sending request to external negotiation API...");
@@ -658,7 +660,7 @@ router.get("/negotiation/by-request/:requestId", async (req, res) => {
       try {
         const token = req.headers.authorization?.replace("Bearer ", "");
         const negotiationResponse = await fetch(
-          `${EXTERNAL_API_BASE_URL}/negotiation/${negotiationId}`,
+          `${NEGOTIATION_API_BASE_URL}/negotiation/${negotiationId}`,
           {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           }
