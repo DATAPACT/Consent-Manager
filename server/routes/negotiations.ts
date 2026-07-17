@@ -482,11 +482,17 @@ router.post("/create-accepted", async (req, res) => {
       acceptedNegotiationAt: new Date().toISOString(),
     };
 
-    await db.collection("requests").updateOne({_id: {$eq: requestId}},{$set: updateData});
+    const update = await db.collection("requests").updateOne({_id: {$eq: requestId}},{$set: updateData});
 
-    console.log(
-      "Request document updated with negotiation info"
-    );
+    if (update) {
+      console.log(
+        "Request document updated with negotiation info"
+      );
+    }
+    else {
+      console.log("Failed to update request.")
+    }
+    
 
     const finalResponse = {
       success: true,
