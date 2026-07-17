@@ -202,7 +202,7 @@ function transformConsentToNegotiation(
     natural_language_document: naturalLanguageDoc,
     resource_description_object: {
       // title: requestData.requestName,
-      // price: 0,
+      price: 0,
       // price_unit: "EUR/Month",
       // uri: `http://upcast-project.eu/dataset/${sanitizedTitle}`,
       // policy_url: "",
