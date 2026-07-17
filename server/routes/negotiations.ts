@@ -1,58 +1,29 @@
 import express from "express";
 import { db } from "../config/database.service.ts";
 import { Document, ObjectId, WithId } from "mongodb";
+import { RequestData } from "../../src/components/Interfaces/Requests.ts";
 
 const router = express.Router();
-// Interfaces for request transformation
-interface Refinement {
-  name: string;
-  value: string;
-}
-
-interface RequestData {
-  requestName: string;
-  description?: string;
-  extraTerms?: string;
-  extraText?: string;
-  additionalInfo?: string;
-  notes?: string;
-  text?: string;
-  permissions: {
-    dataset: string;
-    datasetRefinements: Refinement[];
-    purposeRefinements: Refinement[];
-    actionRefinements: Refinement[];
-    constraintRefinements: Refinement[];
-  }[];
-  selectedOntologies: {
-    id: string;
-    name: string;
-  }[];
-  requester?: {
-    requesterId: string;
-    requesterName: string;
-    requesterEmail: string;
-  };
-  policy?: any;
-  metadata?: any;
-}
 
 const NEGOTIATION_API_BASE_URL = process.env.NEGOTIATION_API_BASE_URL || "https://dips.soton.ac.uk/negotiation-api"
   
 const mongoDBObjectToRequest = (docRef: WithId<Document>) => {
     const requestData : RequestData = {
-        requestName: docRef.requestName,
-        description: docRef.description || "",
-        extraTerms: docRef.extraTerms || "",
-        extraText: docRef.extraText,
-        additionalInfo: docRef.additionalInfo || "",
-        notes: docRef.notes || "",
-        text: docRef.text || "",
-        permissions: docRef.permissions,
-        selectedOntologies: docRef.selectedOntologies,
-        requester: docRef.requester,
-        policy: docRef.policy,
-        metadata: docRef.metadata || ""
+      _id: docRef._id,
+      requestName: docRef.requestName,
+      description: docRef.description || "",
+      extraTerms: docRef.extraTerms || "",
+      extraText: docRef.extraText || "",
+      emailText: docRef.emailText || "",
+      permissions: docRef.permissions,
+      selectedOntologies: docRef.selectedOntologies,
+      requester: docRef.requester,
+      policy: docRef.policy,
+      metadata: docRef.metadata || "",
+      owners: docRef.owners || [],
+      ownersPending: docRef.ownersPending || [],
+      ownersAccepted: docRef.ownersAccepted || [],
+      ownersRejected: docRef.ownersRejected || []
     }
     return requestData;
 }
@@ -69,9 +40,6 @@ function transformConsentToNegotiation(
   const additionalTextFields = [
     requestData.extraTerms,
     requestData.extraText,
-    requestData.additionalInfo,
-    requestData.notes,
-    requestData.text,
   ].filter(Boolean);
 
   const naturalLanguageDoc = additionalTextFields.join("\n\n");
@@ -97,15 +65,15 @@ function transformConsentToNegotiation(
   const odrlPermissions = permissions.map((perm) => {
     const permission: any = {
       action:
-        perm.actionRefinements?.[0]?.value || "http://www.w3.org/ns/odrl/2/use",
+        perm.actionRefinements?.[0]?.rightOperand || "http://www.w3.org/ns/odrl/2/use",
       target: perm.dataset,
     };
 
     if (perm.constraintRefinements?.length > 0) {
       permission.constraint = perm.constraintRefinements.map((ref) => ({
-        leftOperand: ref.name,
+        leftOperand: ref.leftOperand,
         operator: "http://www.w3.org/ns/odrl/2/eq",
-        rightOperand: ref.value,
+        rightOperand: ref.rightOperand,
       }));
     }
 
@@ -229,25 +197,26 @@ function transformConsentToNegotiation(
     type: "request",
     consumer_id: consumerId,
     provider_id: providerId,
+    request_id: requestData._id,
     data_processing_workflow_object: {},
     natural_language_document: naturalLanguageDoc,
     resource_description_object: {
-      title: requestData.requestName,
-      price: 0,
-      price_unit: "EUR/Month",
-      uri: `http://upcast-project.eu/dataset/${sanitizedTitle}`,
-      policy_url: "",
-      environmental_cost_of_generation: {},
-      environmental_cost_of_serving: {},
-      description: requestData.description || "",
-      type_of_data: dataTypeHints.length > 0 ? dataTypeHints.join(", ") : "",
-      data_format: "", // Could be extracted from metadata if available
-      data_size: "", // Could be extracted from metadata if available
-      geographic_scope: geographicScope,
-      tags: tags.length > 0 ? tags.join(", ") : "consent-request",
-      publisher: requestData.requester?.requesterName || null,
-      theme: null, // Could be inferred from purpose refinements
-      distribution: null, // Could be extracted from action refinements
+      // title: requestData.requestName,
+      // price: 0,
+      // price_unit: "EUR/Month",
+      // uri: `http://upcast-project.eu/dataset/${sanitizedTitle}`,
+      // policy_url: "",
+      // environmental_cost_of_generation: {},
+      // environmental_cost_of_serving: {},
+      // description: requestData.description || "",
+      // type_of_data: dataTypeHints.length > 0 ? dataTypeHints.join(", ") : "",
+      // data_format: "", // Could be extracted from metadata if available
+      // data_size: "", // Could be extracted from metadata if available
+      // geographic_scope: geographicScope,
+      // tags: tags.length > 0 ? tags.join(", ") : "consent-request",
+      // publisher: requestData.requester?.requesterName || null,
+      // theme: null, // Could be inferred from purpose refinements
+      // distribution: null, // Could be extracted from action refinements
     },
     odrl_policy: {
       odrl: odrlPolicy,
@@ -293,7 +262,7 @@ router.post("/negotiations/create-with-initial", async (req, res) => {
       });
     }
 
-    // Fetch the consent request from Firebase
+    // Fetch the consent request from MongoDB
     const docRef = await db.collection("requests").findOne({_id: {$eq: requestId}});
 
     if (!docRef) {
@@ -337,11 +306,15 @@ router.post("/negotiations/create-with-initial", async (req, res) => {
     const negotiationId = result.id || result.negotiation_id;
 
     // Update the request status to indicate it's been sent to negotiation
-    await docRef.updateOne({'_id':new ObjectId(requestId)}, {$set: {
+    const update = await docRef.updateOne({'_id':new ObjectId(requestId)}, {$set: {
       negotiationId: negotiationId,
       negotiationStatus: "sent",
       sentToNegotiationAt: new Date().toISOString(),
     }});
+
+    if (!update) {
+      console.log("Failed to update request: ", requestData._id);
+    }
 
     res.json({
       success: true,
