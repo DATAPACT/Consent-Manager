@@ -243,7 +243,7 @@ function transformConsentToNegotiation(
 }
 
 // POST /api/negotiations/create-with-initial - Create negotiation from consent request
-router.post("/negotiations/create-with-initial", async (req, res) => {
+router.post("/create-with-initial", async (req, res) => {
   try {
     const { requestId, consumerId, providerId } = req.body;
     const token = req.headers.authorization?.replace("Bearer ", "");
@@ -331,7 +331,7 @@ router.post("/negotiations/create-with-initial", async (req, res) => {
 });
 
 // POST /api/negotiations/create-accepted - Create negotiation in accepted state
-router.post("/negotiations/create-accepted", async (req, res) => {
+router.post("/create-accepted", async (req, res) => {
   console.log("=== STARTING ACCEPTED NEGOTIATION CREATION ===");
   console.log("Timestamp:", new Date().toISOString());
 
@@ -517,7 +517,7 @@ router.post("/negotiations/create-accepted", async (req, res) => {
 });
 
 // GET /api/negotiations/by-request/:requestId - Get negotiation ID and provider info by consent request ID
-router.get("/negotiations/by-request/:requestId", async (req, res) => {
+router.get("/by-request/:requestId", async (req, res) => {
   try {
     const { requestId } = req.params;
 
@@ -594,7 +594,7 @@ router.get("/negotiations/by-request/:requestId", async (req, res) => {
   }
 });
 
-router.get("/negotiations/get-requests/:ownerId", async (req, res) => {
+router.get("/get-requests/:ownerId", async (req, res) => {
   try {
     const { ownerId } = req.params;
     let token = null;
