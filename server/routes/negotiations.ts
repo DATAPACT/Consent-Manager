@@ -482,7 +482,7 @@ router.post("/create-accepted", async (req, res) => {
       acceptedNegotiationAt: new Date().toISOString(),
     };
 
-    const update = await db.collection("requests").updateOne({_id: {$eq: requestId}},{$set: updateData});
+    const update = await db.collection("requests").updateOne({_id: {$eq: new ObjectId(requestId)}},{$set: updateData});
 
     if (update) {
       console.log(
