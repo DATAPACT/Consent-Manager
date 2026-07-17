@@ -242,7 +242,7 @@ function transformConsentToNegotiation(
   };
 }
 
-// POST /api/external/negotiations/create-with-initial - Create negotiation from consent request
+// POST /api/negotiations/create-with-initial - Create negotiation from consent request
 router.post("/negotiations/create-with-initial", async (req, res) => {
   try {
     const { requestId, consumerId, providerId } = req.body;
@@ -330,7 +330,7 @@ router.post("/negotiations/create-with-initial", async (req, res) => {
   }
 });
 
-// POST /api/external/negotiations/create-accepted - Create negotiation in accepted state
+// POST /api/negotiations/create-accepted - Create negotiation in accepted state
 router.post("/negotiations/create-accepted", async (req, res) => {
   console.log("=== STARTING ACCEPTED NEGOTIATION CREATION ===");
   console.log("Timestamp:", new Date().toISOString());
@@ -516,7 +516,7 @@ router.post("/negotiations/create-accepted", async (req, res) => {
   }
 });
 
-// GET /api/external/negotiations/by-request/:requestId - Get negotiation ID and provider info by consent request ID
+// GET /api/negotiations/by-request/:requestId - Get negotiation ID and provider info by consent request ID
 router.get("/negotiations/by-request/:requestId", async (req, res) => {
   try {
     const { requestId } = req.params;
