@@ -547,7 +547,7 @@ export const createNegotiationFromRequest = async (
 ) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/external/negotiation/create-with-initial`,
+      `${API_BASE_URL}/negotiations/create-with-initial`,
       {
         method: "POST",
         headers: {
@@ -588,7 +588,7 @@ export const createAcceptedNegotiationFromRequest = async (
 ) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/external/negotiation/create-accepted`,
+      `${API_BASE_URL}/negotiations/create-accepted`,
       {
         method: "POST",
         headers: {
@@ -678,7 +678,7 @@ export const getExternalUserDetails = async (
 export const getNegotiationByRequestId = async (requestId: string) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/external/negotiation/by-request/${requestId}`,
+      `${API_BASE_URL}/negotiations/by-request/${requestId}`,
       {
         method: "GET",
       }
