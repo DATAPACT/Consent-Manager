@@ -10,6 +10,7 @@ const router = express.Router();
 const getFileSizeLimit = () => {
   const limit = process.env.FILE_UPLOAD_LIMIT || '10mb';
   // Convert string like "100mb" to bytes
+  console.log("File limit is: ",limit);
   const match = limit.match(/^(\d+)(mb|gb|kb)?$/i);
   if (!match) return 10 * 1024 * 1024; // Default 10MB
   
