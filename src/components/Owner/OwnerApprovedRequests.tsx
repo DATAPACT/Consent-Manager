@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
-import { getRequests, deleteRequest } from "../../services/api";
+import { getRequests, revokeRequest } from "../../services/api";
 
 // css
 import styles from "../../css/Ontology.module.css";
@@ -70,7 +70,7 @@ function OwnerApprovedRequests() {
     if (!selectedRequestId) return;
 
     try {
-      const result = await deleteRequest(selectedRequestId);
+      const result = await revokeRequest(selectedRequestId);
 
       if (result.success) {
         setApprovedRequests(

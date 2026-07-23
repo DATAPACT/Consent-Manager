@@ -538,6 +538,31 @@ export const deleteRequest = async (id: string) => {
   }
 };
 
+export const revokeRequest = async (id: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${id}/reject`, {
+      method: "POST",
+      headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+    });
+
+    const api_response = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
+        throw new Error("TOKEN_EXPIRED");
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return api_response;
+  } catch (error) {
+    console.error("Error deleting request:", error);
+    throw error;
+  }
+};
+
 // External API integration for negotiation
 export const createNegotiationFromRequest = async (
   requestId: string,
