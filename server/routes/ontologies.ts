@@ -182,10 +182,7 @@ router.get('/', async (req, res) => {
       // Add default ontology if it exists
       const allAvailableOntologies = [...userOntologies];
       if (defaultOntologyDoc) {
-        allAvailableOntologies.push({
-          id: defaultOntologyDoc.id,
-          ...defaultOntologyDoc.data()
-        });
+        allAvailableOntologies.push(defaultOntologyDoc);
       }
 
       allAvailableOntologies.forEach(async value => {
