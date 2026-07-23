@@ -242,7 +242,7 @@ function OwnerOtherRequestsDetails() {
       console.log("🔑 Using provider token for negotiation view");
 
       // Get MongoDB user ID (we know the user has one since they can approve)
-      const mongoUserId = user.userData?.mongoUserId;
+      const mongoUserId = user.userData?.uid;
 
       if (!mongoUserId) {
         setError("MongoDB user ID not found. Please contact support.");
