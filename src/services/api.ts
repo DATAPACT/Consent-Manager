@@ -736,7 +736,7 @@ export const redirectToNegotiationDisplay = async (
 
   // Build URL with authentication parameters
   const negotiationBaseUrl =
-    import.meta.env.NEGOTIATION_FRONTEND_URL ||
+    import.meta.env.VITE_NEGOTIATION_FRONTEND_URL ||
     "https://dips.soton.ac.uk/negotiation/organization/negotiation";
   const negotiationUrl =
     `${negotiationBaseUrl}?` +
