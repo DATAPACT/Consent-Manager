@@ -7,7 +7,7 @@ import { getRequests } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
 
 interface Request {
-  id: string;
+  _id: string;
   requestName: string;
   status: string;
   sentAt: string;
@@ -94,7 +94,7 @@ function OwnerOtherRequests() {
           </thead>
           <tbody>
             {requests.map((request) => (
-              <tr key={request.id}>
+              <tr key={request._id}>
                 <td className="py-3">
                   {request.negotiationId ? (
                     <span className="badge bg-warning text-dark mb-2">
@@ -109,7 +109,7 @@ function OwnerOtherRequests() {
                 <td className="py-3">{request.sentAt}</td>
                 <td className="py-3">
                   <Link
-                    to={`/ownerBase/ownerOtherRequestsDetails/${request.id}`}
+                    to={`/ownerBase/ownerOtherRequestsDetails/${request._id}`}
                     className={`${styles.primaryButton} btn`}
                   >
                     View Details
