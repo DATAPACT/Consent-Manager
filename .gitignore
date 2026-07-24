@@ -37,3 +37,4 @@ Dockerfile
 docker-compose.yml
 .env.secret
 
+/ontologies

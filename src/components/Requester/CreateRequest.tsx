@@ -17,6 +17,7 @@ import {
 
 // permissions utils
 import { usePermissions } from "../../helperFunctions/PermissionsUtils";
+import { renderPermissionsPreview } from "../../utils/renderPermissions";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
@@ -845,6 +846,11 @@ function CreateRequest() {
         {/* Step 3 */}
         {step === 2 && (
           <>
+            {renderPermissionsPreview({
+              ...formData,
+              selectedOntologies,
+              permissions,
+            })}
             <p className="text-muted mt-4">
               Before you create your request please make sure that all your
               permissions and refinements are correct. Wrong values can lead to
