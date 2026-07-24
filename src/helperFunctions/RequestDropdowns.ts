@@ -145,7 +145,7 @@ export const getFeatureDropdownValue = async (
     SELECT ?value 
     WHERE {
     ?variable <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/dpv/owl#Purpose> . 
-    ?variable <http://www.w3.org/2000/01/rdf-schema#label> ?value . }`;
+    ?variable <http://www.w3.org/2004/02/skos/core#prefLabel> ?value . }`;
     const query = rdflib.SPARQLToQuery(sparql_purpose_query, false, store);
     //@ts-ignore
     let ans = store.querySync(query);
