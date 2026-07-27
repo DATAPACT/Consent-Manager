@@ -1,0 +1,113 @@
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+
+i18n
+    .use(LanguageDetector)
+    .use(initReactI18next)
+    .init({
+        lng: localStorage.getItem("language") || "en",
+        fallbackLng: "en",
+
+        resources: {
+            en: {
+                translation: {
+                    appName: "DIPS Consent Manager",
+                    profile: "My Profile",
+                    language: "Language",
+                    logout: "Sign out",
+                    home_header_1: "Manage User Consent with Confidence",
+                    home_text_1: "The DIPS Consent Manager helps you collect, store, and control user privacy preferences across all your websites and apps—while staying compliant with global data laws.",
+                    home_header_2: "Fast Integration",
+                    home_text_2: "Drop-in scripts and APIs make setup quick and painless.",
+                    home_header_3: "Centralised Dashboard",
+                    home_text_3: "View and manage consent for all users in one secure platform.",
+                    home_header_4: "Customisable UI",
+                    home_text_4: "Match consent banners and forms to your brand's look and feel.",
+                    home_header_5: "Built for Compliance",
+                    home_text_5: "Stay compliant with GDPR, CCPA, and other global data privacy laws. DIPS provides consent logs, version history, and audit trails out of the box.",
+                    home_header_6: "See It in Action",
+                    home_header_7: "Ready to Get Started?",
+                    home_text_7: "Try the beta version now and experience how simple user consent management can be.",
+                    get_started: "Get Started",
+                    action: "Action",
+                    purpose: "Purpose",
+                    note: "Note",
+                    sending: "Sending",
+                    sending_a_request: "Sending a request",
+                    sending_a_request_alert: "If you search for someone and they don't appear, it means you've already sent this request to them.",
+                    sending_a_request_msg: "The recipient's email is required. If they don't have an account in the system, they will be notified by email. However, they must create an account to view your request and take action.",
+                    send_request: "Send Request",
+                    send_request_desc: "Submit requests to data owners for review and action.",
+                    already_sent: "Already sent to",
+                    name: "Name",
+                    email: "Email",
+                    status: "Status",
+                    accepted: "Accepted",
+                    rejected: "Rejected",
+                    pending: "Pending",
+                    add_new_recipients: "Add New Recipients",
+                    unknown: "Unknown",
+                    new_recipients_to_add: "New Recipients to Add",
+                    remove: "Remove",
+                    what_happens_next: "What happens next?",
+                    what_happens_next_desc: "Once the request is sent, the recipient will be notified. Please note that it may take some time for them to get back to you with a decision.",
+                }
+            },
+
+            es: {
+                translation: {
+                    appName: "DIPS Consent Manager",
+                    profile: "Mi Perfil",
+                    language: "Idioma",
+                    logout: "Cerrar sesión",
+                    home_header_1: "Manage User Consent with Confidence",
+                    home_text_1: "The DIPS Consent Manager helps you collect, store, and control user privacy preferences across all your websites and apps—while staying compliant with global data laws.",
+                    home_header_2: "Fast Integration",
+                    home_text_2: "Drop-in scripts and APIs make setup quick and painless.",
+                    home_header_3: "Centralised Dashboard",
+                    home_text_3: "View and manage consent for all users in one secure platform.",
+                    home_header_4: "Customisable UI",
+                    home_text_4: "Match consent banners and forms to your brand's look and feel.",
+                    home_header_5: "Built for Compliance",
+                    home_text_5: "Stay compliant with GDPR, CCPA, and other global data privacy laws. DIPS provides consent logs, version history, and audit trails out of the box.",
+                    home_header_6: "See It in Action",
+                    home_header_7: "¿Listo para empezar?",
+                    home_text_7: "Try the beta version now and experience how simple user consent management can be.",
+                    get_started: "Comenzar",
+                    action: "Acción",
+                    purpose: "Propósito",
+                    note: "Atención",
+                    sending: "Enviando",
+                    sending_a_request: "Enviando una solicitud",
+                    sending_a_request_alert: "Si un(a) desinatario(a) no aparece, significa que no tiene una cuenta o ya ha recibido una solicitud.",
+                    sending_a_request_msg: "El correo electrónico del destinatario(a) es necesario. Si el(la) destinatario(a) no tiene una cuenta, será notificado(a) por email. El(la) destinatario(a) necesita crear una cuenta para ver la solicitud y tomar acciones.",
+                    send_request: "Enviar solicitud",
+                    already_sent: "Enviado a",
+                    name: "Nombre",
+                    email: "Email",
+                    status: "Estado",
+                    accepted: "Aceptado",
+                    rejected: "Rechazado",
+                    pending: "Pendiente",
+                    add_new_recipients: "Agregar Destinatarios",
+                    unknown: "Desconocido",
+                    new_recipients_to_add: "Nuevos Destinatarios",
+                    remove: "Quitar",
+                    what_happens_next: "Siguientes pasos",
+                    what_happens_next_desc: "Una vez enviada la solicitud, el(la) destinatario(a) será notificado(a). Tenga en cuenta que puede tardar un tiempo en recibir una respuesta.",
+                }
+            },
+
+            el: {
+                translation: {
+                    appName: "DIPS Consent Manager",
+                    profile: ""
+                }
+            },
+            
+        }
+
+    })
+
+    export default i18n;

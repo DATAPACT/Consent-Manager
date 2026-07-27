@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import styles from "../../css/Home.module.css";
 
 import demo from "../../images/demo.png";
+import { t } from "i18next";
 
 function Home() {
   return (
@@ -18,15 +19,13 @@ function Home() {
       <section
         className={`${styles.dashboard} text-center container w-50 py-5 mt-5`}
       >
-        <h1 className="fw-bold">Manage User Consent with Confidence</h1>
+        <h1 className="fw-bold">{t("home_header_1")}</h1>
         <p className="mt-3">
-          The DIPS Consent Manager helps you collect, store, and control user
-          privacy preferences across all your websites and apps—while staying
-          compliant with global data laws.
+          {t("home_text_1")}
         </p>
         <div className="mt-4">
           <Link className={`${styles.primaryButton} btn`} to="/getStarted">
-            Get started
+            {t("get_started")}
           </Link>
         </div>
       </section>
@@ -39,9 +38,9 @@ function Home() {
           <div className="col-md-4">
             <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
-                <h5 className="card-title fw-bold">Fast Integration</h5>
+                <h5 className="card-title fw-bold">{t("home_header_2")}</h5>
                 <p className="card-text">
-                  Drop-in scripts and APIs make setup quick and painless.
+                  {t("home_text_2")}
                 </p>
               </div>
             </div>
@@ -50,9 +49,9 @@ function Home() {
           <div className="col-md-4">
             <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
-                <h5 className="card-title fw-bold">Centralised Dashboard</h5>
+                <h5 className="card-title fw-bold">{t("home_header_3")}</h5>
                 <p className="card-text">
-                  View and manage all user consents in one secure platform.
+                  {t("home_text_3")}
                 </p>
               </div>
             </div>
@@ -61,9 +60,9 @@ function Home() {
           <div className="col-md-4">
             <div className="card h-100 shadow border-0 p-2">
               <div className="card-body">
-                <h5 className="card-title fw-bold">Customizable UI</h5>
+                <h5 className="card-title fw-bold">{t("home_header_4")}</h5>
                 <p className="card-text">
-                  Match consent banners and forms to your brand's look and feel.
+                  {t("home_text_4")}
                 </p>
               </div>
             </div>
@@ -74,11 +73,9 @@ function Home() {
       {/* Compliance Section */}
       <section className="bg-light py-5 mt-3">
         <div className={`${styles.dashboardInner} container w-50 text-center`}>
-          <h2 className="fw-bold mb-3">Built for Compliance</h2>
+          <h2 className="fw-bold mb-3">{t("home_header_5")}</h2>
           <p>
-            Stay compliant with GDPR, CCPA, and other global data privacy laws.
-            DIPS provides consent logs, version history, and audit trails out
-            of the box.
+            {t("home_text_5")}
           </p>
         </div>
       </section>
@@ -87,7 +84,7 @@ function Home() {
       <section
         className={`${styles.dashboardInner} container w-50 text-center py-5`}
       >
-        <h2 className="fw-bold mb-4">See It in Action</h2>
+        <h2 className="fw-bold mb-4">{t("home_header_6")}</h2>
         <div className="shadow rounded p-4 bg-white">
           <img
             src={demo}
@@ -99,13 +96,12 @@ function Home() {
 
       {/* Call-to-Action Section */}
       <section className="container text-center py-5">
-        <h2 className="fw-bold mb-3">Ready to Get Started?</h2>
+        <h2 className="fw-bold mb-3">{t("home_header_7")}</h2>
         <p className="mb-4">
-          Try the beta version now and experience how simple user consent
-          management can be.
+          {t("home_text_7")}
         </p>
         <Link className={`${styles.primaryButton} btn`} to="/getStarted">
-          Get Started
+          {t("get_started")}
         </Link>
       </section>
     </>

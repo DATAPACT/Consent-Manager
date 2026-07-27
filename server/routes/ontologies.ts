@@ -248,6 +248,7 @@ router.delete('/:id', async (req, res) => {
       return;
     }
 
+    //@ts-ignore
     const requesterRef = await db.collection('users').findOneAndUpdate({_id: new ObjectId(requesterUid)}, {$pull: {ontologyIds: new ObjectId(id)}});
 
     res.json({

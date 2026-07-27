@@ -4,6 +4,10 @@ import styles from "../../css/Navbar.module.css";
 // libraries
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext"; // Use AuthContext
+import { useTranslation } from "react-i18next";
+import { changeLanguage } from "../../utils/language";
+
+const { t, i18n } = useTranslation();
 
 // components
 // import logo from "../../assets/logo.png";
@@ -33,7 +37,7 @@ const OwnerNavbar: React.FC = () => {
               height="24"
               className="d-inline-block align-text-top me-2"
             /> */}
-            DIPS Consent Manager
+            {t("appName")}
           </Link>
           <button
             className="navbar-toggler"
@@ -68,15 +72,28 @@ const OwnerNavbar: React.FC = () => {
                       className="dropdown-item"
                       to={`/ownerBase/ownerProfile/${user?.uid}`}
                     >
-                      My Profile
+                      {t("profile")}
                     </Link>
                   </li>
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
                   <li>
+                    <select
+                      value={i18n.language}
+                      onChange={(e) => changeLanguage(e.target.value)}
+                  >
+                      <option value="en">English</option>
+                      <option value="es">Español</option>
+                      <option value="el">ελληνικά</option>
+                  </select>
+                  </li>
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+                  <li>
                     <button className="dropdown-item" onClick={handleLogout}>
-                      Sign out
+                     {t("logout")}
                     </button>
                   </li>
                 </ul>

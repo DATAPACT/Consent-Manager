@@ -41,6 +41,7 @@ import UserDetails from "./API/UserDetails";
 // Context
 import { AuthProvider } from "./AuthContext";
 import { IframeProvider } from "./IframeContext";
+import "./i18n";
 
 import AllUsers from "./API/AllUsers";
 
