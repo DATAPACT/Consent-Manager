@@ -227,7 +227,7 @@ function CreateRequest() {
           <>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Request name
+                {t("request_name")}
               </label>
               <input
                 name="requestName"
@@ -241,7 +241,7 @@ function CreateRequest() {
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Additional Terms (Optional)
+                {t("additional_terms")} ({t("optional")})
               </label>
               <textarea
                 name="extraText"
@@ -250,12 +250,12 @@ function CreateRequest() {
                 id="extraText"
                 onChange={handleChange}
                 rows={4}
-                placeholder="Enter any additional terms or requirements for this consent request..."
+                placeholder={t("additional_terms_placeholder")}
               />
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Email Text (Optional)
+                {t("email_text")} ({t("optional")})
               </label>
               <textarea
                 name="emailText"
@@ -264,12 +264,12 @@ function CreateRequest() {
                 id="emailText"
                 onChange={handleChange}
                 rows={4}
-                placeholder="Enter the text to display when sending emails to data owners for this request..."
+                placeholder={t("email_text_placeholder")}
               />
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Ontologies
+                {t("ontologies")}
               </label>
 
               <select
@@ -280,11 +280,11 @@ function CreateRequest() {
                 disabled={ontologies.length === 0}
               >
                 {ontologies.length === 0 ? (
-                  <option disabled>Loading custom ontologies...</option>
+                  <option disabled>{t("loading_ontologies")}</option>
                 ) : (
                   <>
                     <option className="mb-2" disabled selected>
-                      Double-click to select
+                      {t("double_click_to_select")}
                     </option>
                     {ontologies
                       .filter((ontology) => ontology._id !== "default")
@@ -321,16 +321,14 @@ function CreateRequest() {
               </div>
 
               <div className="alert alert-warning mt-3" role="alert">
-                Select one or more ontologies. If the ontology you're looking
-                for isn't listed,{" "}
+                {t("selected_ontologies_text_1")}{" "}
                 <Link
                   to="/requesterBase/ontologies"
                   className="text-decoration-underline"
                 >
-                  go to the Ontologies page
+                  {t("selected_ontologies_text_2")}
                 </Link>{" "}
-                to upload it. The default ontology will always be used, even if
-                you don't select any ontologies.
+                {t("selected_ontologies_text_3")}
               </div>
 
               {/* <div style={{ marginTop: "2rem" }}>
