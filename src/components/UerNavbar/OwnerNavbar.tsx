@@ -5,7 +5,7 @@ import styles from "../../css/Navbar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext"; // Use AuthContext
 import { changeLanguage } from "../../utils/language";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 
 // components
 // import logo from "../../assets/logo.png";
@@ -13,6 +13,7 @@ import { t } from "i18next";
 const OwnerNavbar: React.FC = () => {
   const navigate = useNavigate();
   const { logout, userData, user } = useAuth();
+  const { t, i18n } = useTranslation();
 
   const handleLogout = async () => {
     logout();
@@ -76,16 +77,23 @@ const OwnerNavbar: React.FC = () => {
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
-                  <li>
+                  <li className="px-3 py-2">
+                    <label htmlFor="languageSelect" className="form-label mb-1">
+                      {t("language")}
+                    </label>
+
                     <select
-                      value={localStorage.getItem("language") || "en"}
+                      id="languageSelect"
+                      className="form-select form-select-sm"
+                      value={i18n.resolvedLanguage || i18n.language}
                       onChange={(e) => changeLanguage(e.target.value)}
-                  >
+                    >
                       <option value="en">English</option>
                       <option value="es">Español</option>
-                      <option value="el">ελληνικά</option>
-                  </select>
+                      <option value="el">Ελληνικά</option>
+                    </select>
                   </li>
+
                   <li>
                     <hr className="dropdown-divider" />
                   </li>

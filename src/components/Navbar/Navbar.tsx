@@ -1,11 +1,12 @@
 // libraries
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 // components
 // import logo from "../../assets/logo.png";
 
 function Navbar() {
+  const { t } = useTranslation();
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">

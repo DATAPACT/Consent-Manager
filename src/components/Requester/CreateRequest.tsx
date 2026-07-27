@@ -18,9 +18,11 @@ import {
 // permissions utils
 import { usePermissions } from "../../helperFunctions/PermissionsUtils";
 import { renderPermissionsPreview } from "../../utils/renderPermissions";
+import { useTranslation } from "react-i18next";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // steps
@@ -494,7 +496,7 @@ function CreateRequest() {
                       {/* Action Select */}
                       <div className="mb-3">
                         <label className={`${styles.formLabel} form-label`}>
-                          Action
+                          {t("action")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
