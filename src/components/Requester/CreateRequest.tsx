@@ -29,7 +29,7 @@ function CreateRequest() {
   const [step, setStep] = useState(0);
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
-  const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
+  const stepTitles = [t("ontologies_selection"), t("permissions"), t("review_and_submit")];
 
   // ontologies
   const [ontologies, setOntologies] = useState<Ontology[]>([]);
@@ -181,7 +181,7 @@ function CreateRequest() {
         <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
       </Link>
 
-      <h3 className="mt-4">Create request</h3>
+      <h3 className="mt-4">{t("create_request")[0] + t("create_request").slice(1).toLowerCase()}</h3>
       <p>Create a new request by specifying the necessary details.</p>
 
       <hr />
