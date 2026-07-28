@@ -1,9 +1,7 @@
 import { extractReadableOperator, getRequestPermissions } from "./policyParser";
 import { Request } from "../components/Interfaces/Requests";
 import { RequestForm } from "../helperFunctions/PermissionsUtils";
-import { useTranslation } from "react-i18next";
-
-const { t } = useTranslation(); 
+import { TFunction } from "i18next";
 
 function formatOperand(operand: any): string {
     if (!operand) return "";
@@ -35,7 +33,7 @@ function formatOperand(operand: any): string {
     return String(operand);
   }
 
-export default function renderPermissions(requestDetails: Request) {
+export default function renderPermissions(requestDetails: Request, t: TFunction) {
     
     // Parse permissions from ODRL policy or fallback to legacy permissions
     const parsedPermissions = getRequestPermissions(requestDetails);
@@ -155,14 +153,14 @@ export default function renderPermissions(requestDetails: Request) {
         
   }
 
-export function renderPermissionsPreview(requestDetails: RequestForm) {
+export function renderPermissionsPreview(requestDetails: RequestForm, t: TFunction) {
     
     // Parse permissions from ODRL policy or fallback to legacy permissions
     const parsedPermissions = getRequestPermissions(requestDetails);
 
     return parsedPermissions.map((permission, ruleIndex) => (
       <div key={ruleIndex} className="mb-4 mt-4">
-        <h5>Permission {ruleIndex + 1}</h5>
+        <h5>{t("permission")} {ruleIndex + 1}</h5>
         <h5 className="mt-4">What's being requested</h5>
         <p>
           <strong>Dataset:</strong> The requester wants access to data

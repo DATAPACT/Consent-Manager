@@ -850,7 +850,7 @@ function CreateRequest() {
               ...formData,
               selectedOntologies,
               permissions,
-            })}
+            }, t)}
             <p className="text-muted mt-4">
               {t("create_request_text_1")} <br />
               <br /> {t("create_request_text_2")}{" "}

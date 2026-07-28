@@ -8,6 +8,7 @@ import { Request, Permission } from "../Interfaces/Requests";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
+import { t } from "i18next";
 
 // ✅ Helper: sanitize ODRL -> flatten rdf:value, @id, remove odrl:/rdf: prefixes
 function sanitizeODRL(obj: any): any {
@@ -250,7 +251,7 @@ function OwnerApprovedRequestsDetails() {
           {requestDetails.extraText ? requestDetails.extraText : ""}
         </text>
 
-        {renderPermissions(requestDetails)}
+        {renderPermissions(requestDetails, t)}
 
         <hr />
         <div className="d-flex gap-3">

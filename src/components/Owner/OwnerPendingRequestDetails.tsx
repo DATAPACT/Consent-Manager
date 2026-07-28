@@ -22,6 +22,7 @@ import styles from "../../css/Ontology.module.css";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
+import { t } from "i18next";
 
 function OwnerPendingRequestDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -803,7 +804,7 @@ function OwnerPendingRequestDetails() {
           {requestDetails.extraText ? requestDetails.extraText : ""}
         </text>
 
-        {renderPermissions(requestDetails)}
+        {renderPermissions(requestDetails, t)}
 
         <div className="alert alert-warning" role="alert">
           If you are unsure whether to accept, reject or negotiate the request,

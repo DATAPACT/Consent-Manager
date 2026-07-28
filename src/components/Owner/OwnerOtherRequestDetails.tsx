@@ -15,6 +15,7 @@ import styles from "../../css/Ontology.module.css";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
+import { t } from "i18next";
 
 function OwnerOtherRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -310,7 +311,7 @@ function OwnerOtherRequestsDetails() {
           {requestDetails.extraText ? requestDetails.extraText : ""}
         </text>
 
-        {renderPermissions(requestDetails)}
+        {renderPermissions(requestDetails, t)}
 
         {/* Show negotiation info if exists */}
         {negotiationInfo && (
