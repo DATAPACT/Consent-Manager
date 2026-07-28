@@ -350,7 +350,7 @@ function CreateRequest() {
               onClick={nextStep}
               disabled={!formData.requestName.trim()}
             >
-              Next
+              {t("next")}
             </button>
           </>
         )}
@@ -364,7 +364,7 @@ function CreateRequest() {
                 <div className="border p-4">
                   <div className="d-flex mb-2">
                     <div className="me-auto">
-                      <h5>Permission {index + 1}</h5>
+                      <h5>{t("permission")} {index + 1}</h5>
                     </div>
                     <div>
                       {/* Remove permission button (disables for the first permission) */}
@@ -375,7 +375,7 @@ function CreateRequest() {
                           type="button"
                           onClick={() => removePermission(permission.id)}
                         >
-                          Delete permission
+                          {t("delete_permission")}
                         </a>
                       )}
                     </div>
@@ -383,7 +383,7 @@ function CreateRequest() {
 
                   <div className="mb-3">
                     <label className={`${styles.formLabel} form-label`}>
-                      Dataset
+                      {t("dataset")}
                     </label>
                     <input
                       value={permission.dataset}
@@ -401,7 +401,7 @@ function CreateRequest() {
                   {permission.datasetRefinements.map((item) => (
                     <div className="row mt-2 mb-3" key={item.id}>
                       <div className="d-flex mb-3 mt-3">
-                        <h6 className="me-auto">Dataset Refinement</h6>
+                        <h6 className="me-auto">{t("dataset_refinement")}</h6>
                         <i
                           className="fa-solid fa-trash"
                           onClick={() =>
@@ -412,7 +412,7 @@ function CreateRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Attribute
+                          {t("left_operand")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -436,7 +436,7 @@ function CreateRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Instance
+                          {t("operator")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -461,7 +461,7 @@ function CreateRequest() {
 
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Value
+                          {t("right_operand")}
                         </label>
                         <input
                           type="text"
@@ -486,7 +486,7 @@ function CreateRequest() {
                     className={`${styles.secondaryButton} btn btn-sm mt-3`}
                     disabled={!permission.dataset} // Disable button if dataset URL is empty
                   >
-                    Add dataset refinement
+                    {t("add_dataset_refinement")}
                   </button>
 
                   <div className="row mt-4">
@@ -505,7 +505,7 @@ function CreateRequest() {
                           }
                           required
                         >
-                          <option disabled selected> -- Select an action -- </option>
+                          <option disabled selected> -- {t("select_an_action")} -- </option>
                           {/* Ontology-based options */}
                           {actionOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -519,7 +519,7 @@ function CreateRequest() {
                       {permission.actionRefinements.map((item) => (
                         <div className="row mt-2 mb-3" key={item.id}>
                           <div className="d-flex mb-3 mt-3">
-                            <h6 className="me-auto">Action Refinement</h6>
+                            <h6 className="me-auto">{t("action_refinement")}</h6>
                             <i
                               className="fa-solid fa-trash"
                               onClick={() =>
@@ -530,7 +530,7 @@ function CreateRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Attribute
+                              {t("left_operand")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -554,7 +554,7 @@ function CreateRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Instance
+                              {t("operator")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -578,7 +578,7 @@ function CreateRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Value
+                              {t("right_operand")}
                             </label>
                             <input
                               value={item.rightOperand || ""}
@@ -603,7 +603,7 @@ function CreateRequest() {
                         className={`${styles.secondaryButton} btn btn-sm mt-3`}
                         disabled={!permission.action} // Disable button if no action is selected
                       >
-                        Add action refinement
+                        {t("add_action_refinement")}
                       </button>
                     </div>
 
@@ -611,7 +611,7 @@ function CreateRequest() {
                       {/* Purpose Select */}
                       <div className="mb-3">
                         <label className={`${styles.formLabel} form-label`}>
-                          Purpose
+                          {t("purpose")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -622,7 +622,7 @@ function CreateRequest() {
                           }
                           required
                         >
-                          <option disabled selected> -- Select a purpose -- </option>
+                          <option disabled selected> -- {t("select_a_purpose")} -- </option>
                           {/* Ontology-based options */}
                           {purposeOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -636,7 +636,7 @@ function CreateRequest() {
                       {permission.purposeRefinements.map((item) => (
                         <div className="row mt-2 mb-3" key={item.id}>
                           <div className="d-flex mb-3 mt-3">
-                            <h6 className="me-auto">Purpose Refinement</h6>
+                            <h6 className="me-auto">{t("purpose_refinement")}</h6>
                             <i
                               className="fa-solid fa-trash"
                               onClick={() =>
@@ -647,7 +647,7 @@ function CreateRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Attribute
+                              {t("left_operand")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -671,7 +671,7 @@ function CreateRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Instance
+                              {t("operator")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -695,7 +695,7 @@ function CreateRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Value
+                              {t("right_operand")}
                             </label>
                             <input
                               type="text"
@@ -720,7 +720,7 @@ function CreateRequest() {
                         className={`${styles.secondaryButton} btn btn-sm mt-3`}
                         disabled={!permission.purpose} // Disable button if no action is selected
                       >
-                        Add purpose refinement
+                        {t("add_purpose_refinement")}
                       </button>
                     </div>
                   </div>
@@ -740,7 +740,7 @@ function CreateRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Attribute
+                          {t("left_operand")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -764,7 +764,7 @@ function CreateRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Instance
+                          {t("operator")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -788,7 +788,7 @@ function CreateRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Value
+                          {t("right_operand")}
                         </label>
                         <input
                           type="text"
@@ -812,7 +812,7 @@ function CreateRequest() {
                     onClick={() => addConstraintRefinement(permission.id)}
                     className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
                   >
-                    Add constraint
+                    {t("add_constraint")}
                   </button>
                 </div>
               </div>
@@ -822,7 +822,7 @@ function CreateRequest() {
               onClick={addPermission}
               className={`${styles.secondaryButton} btn w-100`}
             >
-              Add Permission
+              {t("add_permission")}
             </button>
 
             <button
@@ -830,7 +830,7 @@ function CreateRequest() {
               className={`${styles.secondaryButton} btn mt-3 w-20`}
               onClick={prevStep}
             >
-              Previous
+              {t("previous")}
             </button>
             <button
               type="button"
@@ -838,7 +838,7 @@ function CreateRequest() {
               onClick={nextStep}
               disabled={!allFieldsFilled}
             >
-              Next
+              {t("next")}
             </button>
           </>
         )}
@@ -852,24 +852,22 @@ function CreateRequest() {
               permissions,
             })}
             <p className="text-muted mt-4">
-              Before you create your request please make sure that all your
-              permissions and refinements are correct. Wrong values can lead to
-              rejection by the data owner. <br />
-              <br /> If you're not sure please contact the data owner or see our{" "}
-              <a href="#">Guideline section</a>.
+              {t("create_request_text_1")} <br />
+              <br /> {t("create_request_text_2")}{" "}
+              <a href="#">{t("guideline_section")}</a>.
             </p>
             <button
               type="button"
               className={`${styles.secondaryButton} btn mt-3 w-20`}
               onClick={prevStep}
             >
-              Previous
+              {t("previous")}
             </button>
             <button
               className={`${styles.primaryButton} btn mt-3 w-20 ms-2`}
               type="submit"
             >
-              Create Request
+              {t("create_request")}
             </button>
           </>
         )}
