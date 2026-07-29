@@ -211,8 +211,8 @@ function EditDraftRequest() {
         <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
       </Link>
 
-      <h3 className="mt-4">Edit Request</h3>
-      <p>Update your request details below.</p>
+      <h3 className="mt-4">{t("edit_request")[0] + t("edit_request").slice(1).toLowerCase()}</h3>
+      <p>{t("update_request_details")}</p>
       <hr />
 
       {/* progress bar with step titles */}
@@ -255,7 +255,7 @@ function EditDraftRequest() {
           <>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Request name
+                {t("request_name")}
               </label>
               <input
                 name="requestName"
@@ -268,7 +268,7 @@ function EditDraftRequest() {
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Additional Terms (Optional)
+                {t("additional_terms")} ({t("optional")})
               </label>
               <textarea
                 name="extraText"
@@ -277,12 +277,12 @@ function EditDraftRequest() {
                 id="extraText"
                 onChange={handleChange}
                 rows={4}
-                placeholder="Enter any additional terms or requirements for this consent request..."
+                placeholder={t("additional_terms_placeholder")}
               />
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Email Text (Optional)
+                {t("email_text")} ({t("optional")})
               </label>
               <textarea
                 name="emailText"
@@ -291,12 +291,12 @@ function EditDraftRequest() {
                 id="emailText"
                 onChange={handleChange}
                 rows={4}
-                placeholder="Enter the text to display when sending emails to data owners for this request..."
+                placeholder={t("email_text_placeholder")}
               />
             </div>
             <div className="mb-3">
               <label className={`${styles.formLabel} form-label`}>
-                Ontologies
+                {t("ontologies")}
               </label>
               <select
                 className={`${styles.formInput} form-select`}
@@ -306,11 +306,11 @@ function EditDraftRequest() {
                 disabled={ontologies.length === 0}
               >
                 {ontologies.length === 0 ? (
-                  <option disabled>Loading custom ontologies...</option>
+                  <option disabled>{t("loading_ontologies")}</option>
                 ) : (
                   <>
                     <option className="mb-2" disabled selected>
-                      Double-click to select
+                      {t("double_click_to_select")}
                     </option>
                     {ontologies
                       .filter((ontology) => ontology._id !== "default")
@@ -349,16 +349,14 @@ function EditDraftRequest() {
             </div>
 
             <div className="alert alert-warning mt-3" role="alert">
-              Select one or more ontologies. If the ontology you're looking
-              for isn't listed,{" "}
+              {t("selected_ontologies_text_1")}{" "}
               <Link
                 to="/requesterBase/ontologies"
                 className="text-decoration-underline"
               >
-                go to the Ontologies page
+                {t("selected_ontologies_text_2")}
               </Link>{" "}
-              to upload it. The default ontology will always be used, even if
-              you don't select any ontologies.
+              {t("selected_ontologies_text_3")}
             </div>
 
             <button
@@ -367,7 +365,7 @@ function EditDraftRequest() {
               onClick={nextStep}
               disabled={!formData.requestName.trim()}
             >
-              Next
+              {t("next")}
             </button>
           </>
         )}
@@ -379,7 +377,7 @@ function EditDraftRequest() {
                 <div className="border p-4">
                   <div className="d-flex mb-2">
                     <div className="me-auto">
-                      <h5>Permission {index + 1}</h5>
+                      <h5>{t("permission")} {index + 1}</h5>
                     </div>
                     <div>
                       {permission.id !== permissions[0].id && (
@@ -388,7 +386,7 @@ function EditDraftRequest() {
                           className="text-danger text-decoration-none"
                           onClick={() => removePermission(permission.id)}
                         >
-                          Delete permission
+                          {t("delete_permission")}
                         </a>
                       )}
                     </div>
@@ -396,7 +394,7 @@ function EditDraftRequest() {
 
                   <div className="mb-3">
                     <label className={`${styles.formLabel} form-label`}>
-                      Dataset
+                      {t("dataset")}
                     </label>
                     <input
                       type="text"
@@ -405,7 +403,7 @@ function EditDraftRequest() {
                       onChange={(e) =>
                         updateDataset(permission.id, e.target.value)
                       }
-                      placeholder="Dataset URL"
+                      placeholder={t("dataset_url")}
                       required
                     />
                   </div>
@@ -424,7 +422,7 @@ function EditDraftRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Attribute
+                          {t("left_operand")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -447,7 +445,7 @@ function EditDraftRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Instance
+                          {t("operator")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -470,7 +468,7 @@ function EditDraftRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Value
+                          {t("right_operand")}
                         </label>
                         <input
                           type="text"
@@ -495,13 +493,13 @@ function EditDraftRequest() {
                     onClick={() => addDatasetRefinement(permission.id)}
                     disabled={!permission.dataset}
                   >
-                    Add dataset refinement
+                    {t("add_dataset_refinement")}
                   </button>
 
                   <div className="row mt-4">
                     <div className="col">
                       <label className={`${styles.formLabel} form-label`}>
-                        Action
+                        {t("action")}
                       </label>
                       <select
                         className={`${styles.formInput} form-select`}
@@ -531,7 +529,7 @@ function EditDraftRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Attribute
+                              {t("left_operand")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -554,7 +552,7 @@ function EditDraftRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Instance
+                              {t("operator")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -577,7 +575,7 @@ function EditDraftRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Value
+                              {t("right_operand")}
                             </label>
                             <input
                               className={`${styles.formInput} form-control`}
@@ -601,13 +599,13 @@ function EditDraftRequest() {
                         className={`${styles.secondaryButton} btn btn-sm mt-3`}
                         disabled={!permission.action}
                       >
-                        Add action refinement
+                        {t("add_action_refinement")}
                       </button>
                     </div>
 
                     <div className="col">
                       <label className={`${styles.formLabel} form-label`}>
-                        Purpose
+                        {t("purpose")}
                       </label>
                       <select
                         className={`${styles.formInput} form-select`}
@@ -637,7 +635,7 @@ function EditDraftRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Attribute
+                              {t("left_operand")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -660,7 +658,7 @@ function EditDraftRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Instance
+                              {t("operator")}
                             </label>
                             <select
                               className={`${styles.formInput} form-select`}
@@ -683,7 +681,7 @@ function EditDraftRequest() {
                           </div>
                           <div className="col">
                             <label className={`${styles.formLabel} form-label`}>
-                              Value
+                              {t("right_operand")}
                             </label>
                             <input
                               className={`${styles.formInput} form-control`}
@@ -707,7 +705,7 @@ function EditDraftRequest() {
                         className={`${styles.secondaryButton} btn btn-sm mt-3`}
                         disabled={!permission.purpose}
                       >
-                        Add purpose refinement
+                        {t("add_purpose_refinement")}
                       </button>
                     </div>
                   </div>
@@ -726,7 +724,7 @@ function EditDraftRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Attribute
+                          {t("left_operand")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -749,7 +747,7 @@ function EditDraftRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Instance
+                          {t("operator")}
                         </label>
                         <select
                           className={`${styles.formInput} form-select`}
@@ -772,7 +770,7 @@ function EditDraftRequest() {
                       </div>
                       <div className="col">
                         <label className={`${styles.formLabel} form-label`}>
-                          Value
+                          {t("right_operand")}
                         </label>
                         <input
                           className={`${styles.formInput} form-control`}
@@ -795,7 +793,7 @@ function EditDraftRequest() {
                     onClick={() => addConstraintRefinement(permission.id)}
                     className={`${styles.dashedButton} btn btn-sm w-100 mt-4`}
                   >
-                    Add constraint
+                    {t("add_constraint")}
                   </button>
                 </div>
               </div>
@@ -806,7 +804,7 @@ function EditDraftRequest() {
               onClick={addPermission}
               className={`${styles.secondaryButton} btn w-100`}
             >
-              Add Permission
+              {t("add_permission")}
             </button>
 
             <button
@@ -814,7 +812,7 @@ function EditDraftRequest() {
               className={`${styles.secondaryButton} btn mt-3 w-20`}
               onClick={prevStep}
             >
-              Previous
+              {t("previous")}
             </button>
             <button
               type="button"
@@ -822,7 +820,7 @@ function EditDraftRequest() {
               onClick={nextStep}
               disabled={!allFieldsFilled}
             >
-              Next
+              {t("next")}
             </button>
           </>
         )}
@@ -830,21 +828,20 @@ function EditDraftRequest() {
         {step === 2 && (
           <>
             <p className="text-muted mt-4">
-              Before you update your request, ensure all values are accurate.
-              Incorrect information may cause rejection by the data owner.
+              {t("update_request_text_1")}
             </p>
             <button
               type="button"
               className={`${styles.secondaryButton} btn mt-3 w-20`}
               onClick={prevStep}
             >
-              Previous
+              {t("previous")}
             </button>
             <button
               className={`${styles.primaryButton} btn mt-3 w-20 ms-2`}
               type="submit"
             >
-              Update Request
+              {t("update_request")}
             </button>
           </>
         )}

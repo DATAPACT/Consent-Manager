@@ -182,7 +182,7 @@ function CreateRequest() {
       </Link>
 
       <h3 className="mt-4">{t("create_request")[0] + t("create_request").slice(1).toLowerCase()}</h3>
-      <p>Create a new request by specifying the necessary details.</p>
+      <p>{t("create_new_request_text")}</p>
 
       <hr />
 
@@ -392,7 +392,7 @@ function CreateRequest() {
                       }
                       type="text"
                       className={`${styles.formInput} form-control`}
-                      placeholder="Dataset URL"
+                      placeholder={t("dataset_url")}
                       required
                     />
                   </div>
