@@ -101,6 +101,9 @@ i18n
                     remove: "Remove",
                     what_happens_next: "What happens next?",
                     what_happens_next_desc: "Once the request is sent, the recipient will be notified. Please note that it may take some time for them to get back to you with a decision.",
+
+                    requester_details: "Requester details",
+
                     render_permissions_text_1_prefix: "What's being requested",
                     render_permissions_text_1_suffix: "",
                     render_permissions_text_2_prefix: "The requester wants access to data from",
@@ -108,7 +111,7 @@ i18n
                     render_permissions_text_3_prefix: "The requester wants to",
                     render_permissions_text_3_suffix: "to this dataset.",
                     render_permissions_text_4_prefix: "This request is for",
-                    render_permissions_text_4_suffix: "reasons."
+                    render_permissions_text_4_suffix: "reasons"
 
 
                 }
@@ -200,6 +203,15 @@ i18n
                     remove: "Quitar",
                     what_happens_next: "Siguientes pasos",
                     what_happens_next_desc: "Una vez enviada la solicitud, el(la) destinatario(a) será notificado(a). Tenga en cuenta que puede tardar un tiempo en recibir una respuesta.",
+
+                    render_permissions_text_1_prefix: "Se solicita",
+                    render_permissions_text_1_suffix: "",
+                    render_permissions_text_2_prefix: "El(la) solicitante requiere uso de",
+                    render_permissions_text_2_suffix: "",
+                    render_permissions_text_3_prefix: "El(la) solicitante quiere ",
+                    render_permissions_text_3_suffix: "los datos.",
+                    render_permissions_text_4_prefix: "Esta solicitud tiene el propósito de",
+                    render_permissions_text_4_suffix: ""
                 }
             },
 

@@ -9,6 +9,7 @@ import { ODRLPolicy } from "../Interfaces/ODRL";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
+import { t } from "i18next";
 
 function RequesterSentRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -238,7 +239,7 @@ function RequesterSentRequestsDetails() {
               {requestDetails.extraText ? requestDetails.extraText : ""}
             </text>
 
-            {renderPermissions(requestDetails)}
+            {renderPermissions(requestDetails, t)}
           </div>
           {/* status tab */}
           <div

@@ -22,17 +22,19 @@ import {
 } from "../../helperFunctions/RequestDropdowns";
 
 import { usePermissions } from "../../helperFunctions/PermissionsUtils";
+import { useTranslation } from "react-i18next";
 
 function EditDraftRequest() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { requestId } = useParams();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState(0);
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
-  const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
+  const stepTitles = [t("ontologies_selection"), t("permissions"), t("review_and_submit")];
 
   // const stepTitles = ["Ontologies Selection", "Permissions", "Review & Submit"];
 
@@ -71,7 +73,7 @@ function EditDraftRequest() {
             emailText: data.emailText || "",
            });
           const ontologyDocs = ontologies.filter((ontology: any)=>{
-            data.setOntologies.some((setOntology: any) => setOntology._id === ontology._id );
+            data.selectedOntologies.some((setOntology: any) => setOntology._id === ontology._id );
           });
           setSelectedOntologies(ontologyDocs || []);
           setPermissions(data.permissions || []);

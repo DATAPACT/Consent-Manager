@@ -790,7 +790,7 @@ function OwnerPendingRequestDetails() {
         <h3 className={isIframeMode ? "mt-2" : "mt-4"}>
           {requestDetails.requestName}
         </h3>
-        <h5 className="mt-4 mb-3">Requester details</h5>
+        <h5 className="mt-4 mb-3">{t("requester_details")}</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
           {requestDetails.requester.requesterName}
