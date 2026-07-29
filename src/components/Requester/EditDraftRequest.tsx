@@ -73,7 +73,7 @@ function EditDraftRequest() {
             emailText: data.emailText || "",
            });
           const ontologyDocs = ontologies.filter((ontology: any)=>{
-            data.selectedOntologies.some((setOntology: any) => setOntology._id === ontology._id );
+            return data.selectedOntologies.some((setOntology: any) => setOntology._id === ontology._id );
           });
           setSelectedOntologies(ontologyDocs || []);
           setPermissions(data.permissions || []);
@@ -85,7 +85,7 @@ function EditDraftRequest() {
       }
     };
     loadRequest();
-  }, [requestId]);
+  }, [requestId, ontologies]);
 
   useEffect(() => {
     const loadOntologies = async () => {
