@@ -8,7 +8,7 @@ import { Request, Permission } from "../Interfaces/Requests";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 
 // ✅ Helper: sanitize ODRL -> flatten rdf:value, @id, remove odrl:/rdf: prefixes
 function sanitizeODRL(obj: any): any {
@@ -42,6 +42,7 @@ function OwnerApprovedRequestsDetails() {
   const [contractDetails, setContractDetails] = useState<any | null>(null);
   const [contractLoading, setContractLoading] = useState<boolean>(false);
   const [contractError, setContractError] = useState<string>("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -130,9 +131,7 @@ function OwnerApprovedRequestsDetails() {
 
   const downloadContract = async (contractId: string | undefined) => {
     if (!contractId) {
-      alert(
-        "Contract ID not found. Please ensure the contract has been created."
-      );
+      alert(t("contract_id_not_found"));
       return;
     }
 
@@ -180,9 +179,7 @@ function OwnerApprovedRequestsDetails() {
 
     const contractId = requestDetails?.contractId;
     if (!contractId) {
-      alert(
-        "Contract ID not found. Please ensure the contract has been created."
-      );
+      alert(t("contract_id_not_found"));
       return;
     }
 
@@ -224,7 +221,7 @@ function OwnerApprovedRequestsDetails() {
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails)
-    return <div className="text-danger">No request details available.</div>;
+    return <div className="text-danger">{t("no_request_details_available")}</div>;
 
   return (
     <>
@@ -234,10 +231,10 @@ function OwnerApprovedRequestsDetails() {
           to="/ownerBase/ownerApprovedRequests"
           role="button"
         >
-          <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+          <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
         </Link>
         <h3 className="mt-4">{requestDetails.requestName}</h3>
-        <h5 className="mt-4 mb-3">Requester details</h5>
+        <h5 className="mt-4 mb-3">{t("requester_details")}</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
           {requestDetails.requester.requesterName}
@@ -259,7 +256,7 @@ function OwnerApprovedRequestsDetails() {
             className={`${styles.primaryButton} btn`}
             onClick={() => downloadContract(requestDetails?.contractId)}
           >
-            Download Contract
+            {t("download_contract")}
           </button>
 
           <button
@@ -272,7 +269,7 @@ function OwnerApprovedRequestsDetails() {
 
         {showContract && (
           <div className="mt-3 bg-light p-3 rounded border">
-            {contractLoading && <p>Loading contract...</p>}
+            {contractLoading && <p>${t("loading_contract")}...</p>}
             {contractError && <p className="text-danger">{contractError}</p>}
             {!contractLoading && !contractError && (
               <pre style={{ whiteSpace: "pre-wrap" }}>

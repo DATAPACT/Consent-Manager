@@ -5,10 +5,12 @@ import { updateUser } from "../../../services/api";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 // css
 import styles from "../../../css/CreateRequest.module.css";
+import { useTranslation } from "react-i18next";
 
 function OwnerProfile() {
   const { userData, user } = useAuth(); // Get user and logout function from context
   let navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
     name: user?.displayName || "",
@@ -29,12 +31,12 @@ function OwnerProfile() {
       e.preventDefault();
       
       if (!user) {
-        alert("User not authenticated");
+        alert(t("user_not_authenticated"));
         return;
       }
 
       if (formData.new_password !== formData.confirm_password){
-        alert("New passwords do not match.");
+        alert(t("new_passwords_do_not_match"));
         return;
       }
 
@@ -48,10 +50,10 @@ function OwnerProfile() {
       });
       
       if (result.success) {
-        alert("Password changed successfully!");
+        alert(t("password_changed_successfully"));
         navigate(`/ownerBase/OwnerProfile/${user.uid}`);
       } else {
-        alert("Error creating request");
+        alert(t("error_updating_password"));
       }
   };
 
@@ -81,7 +83,7 @@ function OwnerProfile() {
             <div className="col">
               <div>
                 <label className={`${styles.formLabel} form-label`}>
-                  Your name
+                  {t("your_name")}
                 </label>
                 <input
                   type="text"
@@ -95,13 +97,13 @@ function OwnerProfile() {
               <button
                 className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}
               >
-                Update
+                {t("update")}
               </button>
             </div>
             <div className="col">
               <div>
                 <label className={`${styles.formLabel} form-label`}>
-                  Your email
+                  {t("your_email")}
                 </label>
                 <input
                   type="text"
@@ -115,14 +117,14 @@ function OwnerProfile() {
               <button
                 className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}
               >
-                Update
+                {t("update")}
               </button>
             </div>
             <div className="border p-4 mt-4">
             <div className="row">
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  Current password
+                  {t("current_password")}
                 </label>
                 <input
                   type="password"
@@ -133,7 +135,7 @@ function OwnerProfile() {
               </div>
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  New password
+                  {t("new_password")}
                 </label>
                 <input
                   type="password"
@@ -142,7 +144,7 @@ function OwnerProfile() {
                   onChange={(e) => handleChange(e)}
                 />
                 <label className={`${styles.formLabel} form-label`}>
-                  Confirm new password
+                  {t("confirm_new_password")}
                 </label>
                 <input
                   type="password"
@@ -154,19 +156,19 @@ function OwnerProfile() {
                   className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}
                   onClick={handleSubmit}
                 >
-                  Update
+                  {t("update")}
                 </button>
               </div>
             </div>
             <button className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}>
-              Change password
+              {t("change_password")}
             </button>
             </div>
           </form>
         </div>
         <div className="text-center mt-4">
           <a className="text-danger text-decoration-none" href="#">
-            Delete account
+            {t("delete_account")}
           </a>
         </div>
       </div>

@@ -5,11 +5,13 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequesterDashboard } from "../../services/api";
 import { useAuth } from "../../AuthContext";
+import { useTranslation } from "react-i18next";
 
 function RequesterDashboard() {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,35 +33,33 @@ function RequesterDashboard() {
   }, [user]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>{t("loading")}...</div>;
   }
 
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
-        <h3>Dashboard</h3>
+        <h3>{t("dashboard")}</h3>
         <p>
-          Monitor and manage your data requests, ontologies, and consent
-          settings.
+          {t("requester_dashboard_text_1")}
         </p>
         <hr />
         <div className="row row-cols-1 row-cols-md-3 g-4">
           <div className="col">
             <div className="card h-100">
               <div className="card-body">
-                <h4 className="card-title">Ontologies</h4>
-                <small className="text-muted">You have</small>
+                <h4 className="card-title">{t("ontologies")}</h4>
+                <small className="text-muted">{t("you_have_ontologies_1")}</small>
                 <h3 className="mt-2">{dashboardData?.statistics?.ontologiesCount || 0}</h3>
-                <small className="text-muted">ontologies.</small>
+                <small className="text-muted">{t("you_have_ontologies_2")}</small>
                 <p className="card-text mt-2">
-                  View, edit, and organize your ontologies. Upload new ones to
-                  expand your data structure and maintain control.
+                  {t("requester_dashboard_text_")}
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn`}
                   to="/requesterBase/ontologies"
                 >
-                  Manage
+                  {t("manage")}
                 </Link>
               </div>
             </div>
@@ -67,19 +67,18 @@ function RequesterDashboard() {
           <div className="col">
             <div className="card h-100">
               <div className="card-body">
-                <h4 className="card-title">Requests</h4>
-                <small className="text-muted">You have</small>
+                <h4 className="card-title">{t("requests")}</h4>
+                <small className="text-muted">{t("you_have_ontologies_1")}</small>
                 <h3 className="mt-2">{dashboardData?.statistics?.totalRequests || 0}</h3>
-                <small className="text-muted">requests.</small>
+                <small className="text-muted">{t("you_have_requests_2")}</small>
                 <p className="card-text mt-2">
-                  Send new requests, review approved ones, or create a new
-                  access request to manage data permissions effectively.
+                  {t("requester_dashboard_text_3")}
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn`}
                   to="/requesterBase/requesterRequests"
                 >
-                  Manage
+                  {t("manage")}
                 </Link>
               </div>
             </div>
@@ -90,18 +89,14 @@ function RequesterDashboard() {
               className={`${styles.documentationCard} card h-100 text-dark text-decoration-none`}
             >
               <div className="card-body">
-                <h4 className="card-title">How it works</h4>
+                <h4 className="card-title">{t("how_it_works")}</h4>
                 <i className="fa-solid fa-book fa-lg mt-4"></i>
                 <p className="card-text mt-2">
-                  Access detailed guides and resources to help you navigate the
-                  platform. Find information on managing data requests,
-                  configuring ontologies, and understanding consent management
-                  workflows.
+                  {t("requester_dashboard_text_4")}
                 </p>
                 <div className="alert alert-success" role="alert">
                   <small>
-                    <i className="fa-solid fa-lightbulb me-2"></i>Recommended
-                    for new users.
+                    <i className="fa-solid fa-lightbulb me-2"></i>{t("recommended_for_new_users")}
                   </small>
                 </div>
               </div>
@@ -109,9 +104,7 @@ function RequesterDashboard() {
           </div>
         </div>
         <div className="alert alert-primary mt-5" role="alert">
-          Please ensure that all data access requests are reviewed promptly.
-          Pending requests must be addressed to maintain compliance and ensure
-          proper data sharing practices.
+          {t("requester_dashboard_text_5")}
         </div>
       </div>
     </>

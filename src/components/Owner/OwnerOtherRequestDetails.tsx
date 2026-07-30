@@ -15,7 +15,7 @@ import styles from "../../css/Ontology.module.css";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 
 function OwnerOtherRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -29,6 +29,7 @@ function OwnerOtherRequestsDetails() {
     useState<boolean>(false);
   const [autoRedirectAttempted, setAutoRedirectAttempted] =
     useState<boolean>(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -276,7 +277,7 @@ function OwnerOtherRequestsDetails() {
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
-  if (!requestDetails) return <div>No request details found.</div>;
+  if (!requestDetails) return <div>{t("no_request_details_available")}</div>;
 
   return (
     <>
@@ -290,14 +291,14 @@ function OwnerOtherRequestsDetails() {
             to="/ownerBase/ownerOtherRequests"
             role="button"
           >
-            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
           </Link>
         )}
         <h3 className={isIframeMode ? "mt-2" : "mt-4"}>
           {requestDetails.requestName}
         </h3>
 
-        <h5 className="mt-4 mb-3">Requester details</h5>
+        <h5 className="mt-4 mb-3">{t("requester_details")}</h5>
         <p>
           <i className="fa-solid fa-user me-3"></i>
           {requestDetails.requester.requesterName}
@@ -318,10 +319,10 @@ function OwnerOtherRequestsDetails() {
           <div className="alert alert-info" role="alert">
             <div className="d-flex justify-content-between align-items-center">
               <div>
-                <strong>Negotiation Available</strong>
+                <strong>{t("negotiation_available")}</strong>
                 <br />
                 <small>
-                  This consent request has an associated negotiation (ID:{" "}
+                  {t("negotiation_available_text_1")} (ID:{" "}
                   {negotiationInfo.negotiationId})
                 </small>
               </div>
@@ -331,7 +332,7 @@ function OwnerOtherRequestsDetails() {
                   onClick={viewNegotiation}
                   disabled={checkingNegotiation}
                 >
-                  {checkingNegotiation ? "Loading..." : "View Negotiation"}
+                  {checkingNegotiation ? `${t("loading")}...` : t("view_negotiation")}
                 </button>
               )}
             </div>
@@ -349,7 +350,7 @@ function OwnerOtherRequestsDetails() {
                 data-bs-toggle="modal"
                 data-bs-target="#acceptRequestModal"
               >
-                Accept
+                {t("accept")}
               </button>
             </div>
             <div className="ms-3">
@@ -359,7 +360,7 @@ function OwnerOtherRequestsDetails() {
                 data-bs-target="#negotiateRequestModal"
                 disabled={updating}
               >
-                {updating ? "Processing..." : "Negotiate"}
+                {updating ? `${t("processing")}...` : t("negotiate")}
               </button>
             </div>
 
@@ -370,7 +371,7 @@ function OwnerOtherRequestsDetails() {
                 data-bs-target="#rejectRequestModal"
                 disabled={updating}
               >
-                {updating ? "Processing..." : "Reject"}
+                {updating ? `${t("processing")}...` : t("reject")}
               </button>
             </div>
           </div>
@@ -380,15 +381,14 @@ function OwnerOtherRequestsDetails() {
         {isIframeMode && negotiationInfo && (
           <div className="text-center mt-4">
             <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
+              <span className="visually-hidden">{t("loading")}...</span>
             </div>
-            <p className="mt-2">Opening negotiation dashboard...</p>
-            <small className="text-muted">This will open in a new tab</small>
+            <p className="mt-2">{t("opening_negotiation_dashboard")}...</p>
+            <small className="text-muted">{t("this_will_open_a_new_tab")}</small>
             <div className="mt-3">
               <p className="text-muted small">
                 <i className="fa-solid fa-circle-info me-1"></i>
-                If the tab doesn't open, please check your browser's pop-up
-                blocker
+                {t("new_tab_troubleshoot")}
               </p>
               <button
                 className={`${styles.primaryButton} btn btn-sm mt-2`}
@@ -396,8 +396,8 @@ function OwnerOtherRequestsDetails() {
                 disabled={checkingNegotiation}
               >
                 {checkingNegotiation
-                  ? "Opening..."
-                  : "Open Negotiation Manually"}
+                  ? `${t("opening")}...`
+                  : t("opening_negotiation_manually")}
               </button>
             </div>
           </div>

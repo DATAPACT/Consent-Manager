@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../AuthContext";
 import { getOntologies, deleteOntology, getRequests } from "../../services/api";
+import { useTranslation } from "react-i18next";
 
 const Ontologies: React.FC = () => {
   const [ontologies, setOntologies] = useState<any[]>([]);
@@ -15,6 +16,7 @@ const Ontologies: React.FC = () => {
   >(null);
   const [isOntologyInUse, setIsOntologyInUse] = useState<boolean>(false);
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchOntologies = async () => {
@@ -80,13 +82,13 @@ const Ontologies: React.FC = () => {
           setOntologies(
             ontologies.filter((ontology) => ontology._id !== ontologyId)
           );
-          alert("Ontology deleted successfully!");
+          alert(t("ontology_deleted_successfully"));
         } else {
-          alert(`Error deleting ontology: ${result.error}`);
+          alert(`${t("error_deleting_ontology")}: ${result.error}`);
         }
       } catch (error: any) {
         console.error("Error deleting ontology:", error);
-        alert(`Error deleting ontology: ${error.message}`);
+        alert(`${t("error_deleting_ontology")}: ${error.message}`);
       }
     }
   };
@@ -104,10 +106,9 @@ const Ontologies: React.FC = () => {
 
         <div className="d-flex mb-3">
           <div className="me-auto">
-            <h3 className="mt-4">Ontologies</h3>
+            <h3 className="mt-4">{t("ontologies")}</h3>
             <p>
-              Manage and organize your ontologies for seamless integration and
-              use.
+              {t("ontologies_text_1")}
             </p>
           </div>
           <div className="align-self-center">
@@ -115,7 +116,7 @@ const Ontologies: React.FC = () => {
               className={`${styles.primaryButton} btn`}
               to="/requesterBase/uploadOntology"
             >
-              Upload ontology
+              {t("upload_ontology")}
             </Link>
           </div>
         </div>
@@ -123,22 +124,22 @@ const Ontologies: React.FC = () => {
         <hr />
 
         {loading ? (
-          <p>Loading ontologies...</p>
+          <p>{t("loading_ontologies")}...</p>
         ) : ontologies.length === 0 ? (
           <div className="text-center mt-5">
-            <h4>No ontologies found</h4>
+            <h4>{t("no_ontologies_found")}</h4>
             <p className="mt-3">
-              Upload an Ontology file to define and manage data structures.
+              {t("upload_an_ontology_text_1")}
             </p>
           </div>
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Date uploaded</th>
+                <th scope="col">{t("name")}</th>
+                <th scope="col">{t("date_uploaded")}</th>
                 <th scope="col" className="text-center">
-                  Actions
+                  {t("actions")}
                 </th>
               </tr>
             </thead>
@@ -147,7 +148,7 @@ const Ontologies: React.FC = () => {
                 <tr key={ontology._id}>
                   <td className="py-4">{ontology.name}</td>
                   <td className="py-4">
-                    {ontology.uploadedAt ? new Date(ontology.uploadedAt).toLocaleString() : 'Unknown'}
+                    {ontology.uploadedAt ? new Date(ontology.uploadedAt).toLocaleString() : t("unknown")}
                   </td>
                   <td className="py-4 text-center">
                     <button
@@ -183,7 +184,7 @@ const Ontologies: React.FC = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="deleteOntologyModalLabel">
-                Confirm Deletion
+                {t("confirm_deletion")}
               </h5>
               <button
                 type="button"
@@ -195,13 +196,12 @@ const Ontologies: React.FC = () => {
             <div className="modal-body">
               {isOntologyInUse ? (
                 <p>
-                  <h5 className="text-danger mb-2">Warning</h5>
-                  This ontology is currently used in one or more requests.
-                  Please delete the associated requests first.
+                  <h5 className="text-danger mb-2">{t("warning")}</h5>
+                  {t("confirm_deletion_warning")}
                 </p>
               ) : (
                 <p>
-                  Are you sure you want to delete{" "}
+                  {t("confirm_deletion_confirmation")}{" "}
                   <strong>{ontologyNameToDelete}</strong>?
                 </p>
               )}
@@ -213,7 +213,7 @@ const Ontologies: React.FC = () => {
                 data-bs-dismiss="modal"
                 onClick={() => setIsOntologyInUse(false)}
               >
-                Cancel
+                {t("cancel")}
               </button>
               {!isOntologyInUse && (
                 <button
@@ -226,7 +226,7 @@ const Ontologies: React.FC = () => {
                   }}
                   data-bs-dismiss="modal"
                 >
-                  Delete
+                  {t("delete")}
                 </button>
               )}
             </div>

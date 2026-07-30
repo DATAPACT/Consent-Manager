@@ -1,4 +1,5 @@
 // css
+import { t } from "i18next";
 import styles from "../../css/Footer.module.css";
 
 function Footer() {
@@ -7,14 +8,13 @@ function Footer() {
       <footer className={`${styles.footerComp} container-fluid py-5 mt-5`}>
         <div className="container text-center">
           <h4 className="text-dark" id="logo-footer">
-            DIPS Consent Manager
+            {t("appName")}
           </h4>
           <p className="text-muted mt-2">
             {/* <strong>© 2025 UPCAST. All rights reserved.</strong> */}
           </p>
           <p>
-            This project has received funding from the European Union's Horizon
-            Research and Innovation Actions under Grant Agreement nº 101093216.
+            {t("acknowledgement")}
           </p>
 
           {/* <div className="d-flex flex-row mb-3">

@@ -9,7 +9,7 @@ import { ODRLPolicy } from "../Interfaces/ODRL";
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 
 function RequesterSentRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -28,11 +28,12 @@ function RequesterSentRequestsDetails() {
   const [ownerDetails, setOwnerDetails] = useState<
     { name: string; email: string; status: string }[]
   >([]);
+  const { t } = useTranslation();
 
   const downloadODRL = async (policy: ODRLPolicy | undefined, owner: {name: string, email: string, status: string}) => {
     if (!policy) {
       alert(
-        "Policy data not found."
+        t("policy_data_not_found")
       );
       return;
     }
@@ -174,7 +175,7 @@ function RequesterSentRequestsDetails() {
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
   if (!requestDetails)
-    return <div className="text-danger">No request details available.</div>;
+    return <div className="text-danger">{t("no_request_details_available")}</div>;
 
   return (
     <>
@@ -188,7 +189,7 @@ function RequesterSentRequestsDetails() {
             to="/requesterBase/requesterRequests"
             role="button"
           >
-            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+            <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
           </Link>
         )}
         <h3 className={isIframeMode ? "mt-2" : "mt-4"}>
@@ -207,7 +208,7 @@ function RequesterSentRequestsDetails() {
               aria-controls="home-tab-pane"
               aria-selected="true"
             >
-              Request details
+              {t("request_details")}
             </button>
           </li>
           <li className="nav-item" role="presentation">
@@ -221,7 +222,7 @@ function RequesterSentRequestsDetails() {
               aria-controls="profile-tab-pane"
               aria-selected="false"
             >
-              Status
+              {t("status")}
             </button>
           </li>
         </ul>
@@ -255,7 +256,7 @@ function RequesterSentRequestsDetails() {
                   htmlFor="statusFilter"
                   className={`${styles.formLabel} form-label me-2`}
                 >
-                  Filter by status:
+                  {t("filter_by_status")}:
                 </label>
                 <select
                   id="statusFilter"
@@ -263,10 +264,10 @@ function RequesterSentRequestsDetails() {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="All">All</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Rejected">Rejected</option>
-                  <option value="Pending">Pending</option>
+                  <option value="All">{t("all")}</option>
+                  <option value="Accepted">{t("accepted")}</option>
+                  <option value="Rejected">{t("rejected")}</option>
+                  <option value="Pending">{t("pending")}</option>
                 </select>
               </div>
 
@@ -275,7 +276,7 @@ function RequesterSentRequestsDetails() {
                   <input
                     type="text"
                     className={`${styles.formInput} form-control`}
-                    placeholder="Search owner by name or email..."
+                    placeholder={t("search_owner_placeholder")}
                     aria-label="Recipient’s username"
                     aria-describedby="basic-addon2"
                     value={searchTerm}
@@ -290,19 +291,18 @@ function RequesterSentRequestsDetails() {
 
             {filteredOwners.length === 0 ? (
               <div className="text-center mt-5">
-                <h4> No matching requests</h4>
+                <h4>{t("no_matching_requests")}</h4>
                 <p className="mt-2">
-                  Try changing your filter options or search for another data
-                  owner
+                  {t("no_matching_requests_text_1")}
                 </p>
               </div>
             ) : (
               <table className="table mt-4">
                 <thead>
                   <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Status</th>
+                    <th scope="col">{t("name")}</th>
+                    <th scope="col">{t("email")}</th>
+                    <th scope="col">{t("status")}</th>
                     <th scope="col"></th>
                   </tr>
                 </thead>
@@ -328,7 +328,7 @@ function RequesterSentRequestsDetails() {
                           className={`${styles.primaryButton} btn`}
                           onClick={() => downloadODRL(requestDetails?.policy, owner)}
                         >
-                          Download ODRL
+                          {t("download_ODRL")}
                         </button>
                       </td>
                       : <td></td>}           
@@ -349,7 +349,7 @@ function RequesterSentRequestsDetails() {
                       className="page-link"
                       onClick={() => setCurrentPage(currentPage - 1)}
                     >
-                      Previous
+                      {t("previous")}
                     </button>
                   </li>
                   {[...Array(totalPages)].map((_, i) => (
@@ -376,7 +376,7 @@ function RequesterSentRequestsDetails() {
                       className="page-link"
                       onClick={() => setCurrentPage(currentPage + 1)}
                     >
-                      Next
+                      {t("next")}
                     </button>
                   </li>
                 </ul>

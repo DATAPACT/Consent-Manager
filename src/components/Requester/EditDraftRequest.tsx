@@ -166,11 +166,11 @@ function EditDraftRequest() {
       if (result.success) {
         navigate("/requesterBase/requesterRequests");
       } else {
-        alert("Error updating request");
+        alert(t("error_updating_request"));
       }
     } catch (err) {
       console.error("Error updating request:", err);
-      alert("Error updating request");
+      alert(t("error_updating_request"));
     }
   };
 
@@ -208,7 +208,7 @@ function EditDraftRequest() {
         to="/requesterBase/requesterRequests"
         className="text-decoration-none"
       >
-        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
       </Link>
 
       <h3 className="mt-4">{t("edit_request")[0] + t("edit_request").slice(1).toLowerCase()}</h3>

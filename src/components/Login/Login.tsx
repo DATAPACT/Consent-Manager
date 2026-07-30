@@ -6,6 +6,7 @@ import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
 
 import log from "loglevel";
+import { useTranslation } from "react-i18next";
 
 log.setLevel("debug");
 
@@ -18,6 +19,7 @@ const Login: React.FC = () => {
   const { user, role, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation
 
   const params = new URLSearchParams(location.search);
   const redirect = params.get("redirect");
@@ -45,18 +47,18 @@ const Login: React.FC = () => {
       await login(email, password);
       // Redirect happens in useEffect
     } catch (err: any) {
-      let errorMessage = "Login failed. Please try again.";
+      let errorMessage = t("login_error_message_1");
 
       if (err.code) {
         switch (err.code) {
           case "auth/user-not-found":
-            errorMessage = "No account found with this email.";
+            errorMessage = t("login_error_message_2");
             break;
           case "auth/invalid-credential":
-            errorMessage = "Incorrect email or password.";
+            errorMessage = t("login_error_message_3");
             break;
           case "auth/too-many-requests":
-            errorMessage = "Too many attempts. Please wait and try again.";
+            errorMessage = t("login_error_message_4");
             break;
         }
       }
@@ -70,9 +72,9 @@ const Login: React.FC = () => {
     <>
       <Navbar />
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
-        <h3>Login to your account</h3>
+        <h3>{t("login_to_your_account")}</h3>
         <p className="mt-3">
-          Don't have an account? <Link to="/getStarted">Sign up</Link>
+          {t("dont_have_an_account")} <Link to="/getStarted">{t("sign_up")}</Link>
         </p>
         {error && (
           <div className="alert alert-danger mt-3" role="alert">
@@ -82,7 +84,7 @@ const Login: React.FC = () => {
         <form className="mt-4" onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>
-              Email address
+              {t("email_address")}
             </label>
             <input
               type="email"
@@ -94,7 +96,7 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="mb-3">
-            <label className={`${styles.formLabel} form-label`}>Password</label>
+            <label className={`${styles.formLabel} form-label`}>{t("password")}</label>
             <input
               type="password"
               className={`${styles.formInput} form-control`}
@@ -112,12 +114,12 @@ const Login: React.FC = () => {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? "Signing in..." : "Sign in"}
+                {loading ? `${t("signing_in")}...` : t("login")}
               </button>
             </div>
 
             <div className="align-self-center">
-              <Link to="">I forgot my password.</Link>
+              <Link to="">{t("forgot_password")}</Link>
             </div>
           </div>
         </form>

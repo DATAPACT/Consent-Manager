@@ -126,7 +126,7 @@ function CreateRequest() {
     e.preventDefault();
     
     if (!user) {
-      alert("User not authenticated");
+      alert(t("user_not_authenticated"));
       return;
     }
 
@@ -139,7 +139,7 @@ function CreateRequest() {
     if (result.success) {
       navigate("/requesterBase/RequesterRequests");
     } else {
-      alert("Error creating request");
+      alert(t("error_creating_request"));
     }
   };
 
@@ -178,7 +178,7 @@ function CreateRequest() {
         to="/requesterBase/requesterRequests"
         role="button"
       >
-        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
       </Link>
 
       <h3 className="mt-4">{t("create_request")[0] + t("create_request").slice(1).toLowerCase()}</h3>
@@ -280,7 +280,7 @@ function CreateRequest() {
                 disabled={ontologies.length === 0}
               >
                 {ontologies.length === 0 ? (
-                  <option disabled>{t("loading_ontologies")}</option>
+                  <option disabled>{t("loading_custom_ontologies")}</option>
                 ) : (
                   <>
                     <option className="mb-2" disabled selected>

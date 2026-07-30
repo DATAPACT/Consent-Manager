@@ -84,6 +84,7 @@ export const getFeatureDropdownValue = async (
   type: "action" | "purpose"
 ): Promise<Option[]> => {
   const store = rdflib.graph();
+  const language = localStorage.getItem("language") || "en"; 
 
   for (const ontology of ontologies) {
       const textStream = JSON.stringify(ontology.content); //This is now guaranteed to be in JSON-LD.

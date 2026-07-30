@@ -219,7 +219,7 @@ const validateEmail = (email: string) => {
       setShowDropdown(false);
     }
     else{
-      alert("Please input a valid email address.");
+      alert(t("invalid_email_warning"));
       return;
     }
   };
@@ -230,12 +230,12 @@ const validateEmail = (email: string) => {
 
   const handleSendRequest = async () => {
     if (selectedOwners.length === 0) {
-      alert("Please add at least one valid owner.");
+      alert(t("send_request_warning_1"));
       return;
     }
 
     if (!requestId) {
-      alert("Request ID is missing.");
+      alert(t("request_id_missing"));
       return;
     }
 
@@ -304,7 +304,7 @@ const validateEmail = (email: string) => {
       console.log("====================");
 
       if (result.success) {
-        alert("Request sent successfully!");
+        alert(t("request_sent_successfully"));
         // Clear selected owners after sending
         setSelectedOwners([]);
 
@@ -327,7 +327,7 @@ const validateEmail = (email: string) => {
         
         console.log("======================");
       } else {
-        alert("Error sending request. Please try again.");
+        alert(t("error_sending_request"));
       }
     } catch (error) {
       console.error("Error sending request:", error);
@@ -356,7 +356,7 @@ const validateEmail = (email: string) => {
       {/* Show already sent requests */}
       {sentOwners.length > 0 && (
         <div className="mb-4">
-          <h5>Already sent to</h5>
+          <h5>{t("already_sent_to")}</h5>
           <table className="table table-bordered table-sm">
             <thead>
               <tr>
@@ -404,7 +404,7 @@ const validateEmail = (email: string) => {
               onFocus={() =>
                 emailInput && setShowDropdown(filteredOwners.length > 0)
               }
-              placeholder="Type name or email to search..."
+              placeholder={t("type_name_email_to_search")}
             />
 
             {/* Dropdown for autocomplete */}

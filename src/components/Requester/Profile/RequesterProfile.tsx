@@ -1,4 +1,5 @@
 // libraries
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../AuthContext"; // Use AuthContext
 
 // css
@@ -6,6 +7,7 @@ import styles from "../../../css/CreateRequest.module.css";
 
 function RequesterProfile() {
   const { userData } = useAuth(); // Get user and logout function from context
+  const { t } = useTranslation();
   return (
     <>
       <div className={`${styles.dashboard} container w-50`}>
@@ -24,7 +26,7 @@ function RequesterProfile() {
             <form className="border p-4">
               <div>
                 <label className={`${styles.formLabel} form-label`}>
-                  Your name
+                  {t("your_name")}
                 </label>
                 <input
                   type="text"
@@ -36,7 +38,7 @@ function RequesterProfile() {
               <button
                 className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}
               >
-                Update
+                {t("update")}
               </button>
             </form>
           </div>
@@ -44,7 +46,7 @@ function RequesterProfile() {
             <form className="border p-4">
               <div>
                 <label className={`${styles.formLabel} form-label`}>
-                  Your email
+                  {t("your_email")}
                 </label>
                 <input
                   type="text"
@@ -55,7 +57,7 @@ function RequesterProfile() {
               <button
                 className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}
               >
-                Update
+                {t("update")}
               </button>
             </form>
           </div>
@@ -65,7 +67,7 @@ function RequesterProfile() {
             <div className="row">
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  Current password
+                  {t("current_password")}
                 </label>
                 <input
                   type="password"
@@ -74,7 +76,7 @@ function RequesterProfile() {
               </div>
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  New password
+                  {t("new_password")}
                 </label>
                 <input
                   type="password"
@@ -83,13 +85,13 @@ function RequesterProfile() {
               </div>
             </div>
             <button className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}>
-              Update
+              {t("update")}
             </button>
           </form>
         </div>
         <div className="text-center mt-4">
           <a className="text-danger text-decoration-none" href="#">
-            Delete account
+            {t("delete_account")}
           </a>
         </div>
       </div>

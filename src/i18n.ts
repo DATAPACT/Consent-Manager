@@ -12,14 +12,18 @@ i18n
         resources: {
             en: {
                 translation: {
+                    //NAVBAR
                     appName: "DIPS Consent Manager",
                     profile: "My Profile",
                     language: "Language",
                     logout: "Sign out",
+                    documentation: "Documentation",
                     about: "About",
                     who_is_it_for: "Who is it for",
                     contact: "Contact",
                     login: "Sign in",
+                    acknowledgement: "This project has received funding from the European Union's Horizon Research and Innovation Actions under Grant Agreement nº 101093216.",
+                    //HOME
                     home_header_1: "Manage User Consent with Confidence",
                     home_text_1: "The DIPS Consent Manager helps you collect, store, and control user privacy preferences across all your websites and apps—while staying compliant with global data laws.",
                     home_header_2: "Fast Integration",
@@ -33,18 +37,194 @@ i18n
                     home_header_6: "See It in Action",
                     home_header_7: "Ready to Get Started?",
                     home_text_7: "Try the beta version now and experience how simple user consent management can be.",
+                    //GET STARTED
                     get_started: "Get Started",
+                    //LOGIN
+                    login_to_your_account: "Login to your account",
+                    dont_have_an_account: "Don't have an account?",
+                    sign_up: "Sign up",
+                    email_address: "Email address",
+                    password: "Password",
+                    signing_in: "Signing in",
+                    forgot_password: "I forgot my password.",
+                    login_error_message_1: "Login failed. Please try again.",
+                    login_error_message_2: "No account found with this email.",
+                    login_error_message_3: "Incorrect email or password.",
+                    login_error_message_4: "Too many attempts. Please wait and try again.",
+                    //OWNER OTP
+                    verify_your_account: "Verify your account",
+                    sent_verification_code_1: "We have sent a verification code to",
+                    sent_verification_code_2: "Enter the OTP below to verify your account.",
+                    sent_verification_code_3: "The code is valid for 10 minutes.",
+                    verification_code: "Verification code",
+                    verification_code_example: "For example: 1H7X3H",
+                    verify: "Verify",
+                    resend_code: "Resend code",
+                    //OWNER REGISTER
+                    passwords_do_not_match: "Passwords do not match.",
+                    registration_failed: "Registration failed",
+                    register_as_owner: "Register as a data owner",
+                    already_have_account: "Already have an account?",
+                    retype_password: "Re-type password",
+                    terms_and_conditions_notice: "I have read and agree to the",
+                    terms_and_conditions: "Terms and Conditions",
+                    and: "and",
+                    register: "Register",
+                    registering: "Registering",
+                    privacy_policy: "Privacy Policy",
+                    //REQUESTER REGISTER
+                    register_as_requester: "Register as a data requester",
+
+                    //OWNER PROFILE
+                    new_passwords_do_not_match: "New passwords do not match.",
+                    password_changed_successfully: "Password changed successfully!",
+                    error_updating_password: "Error updating password.",
+                    your_name: "Your name",
+                    update: "Update",
+                    your_email: "Your email",
+                    current_password: "Current password",
+                    new_password: "New password",
+                    confirm_new_password: "Confirm new password",
+                    change_password: "Change password",
+                    delete_account: "Delete account",
+                    back: "Back",
+
+                    //OWNER APPROVED REQUESTS
+                    approved_requests: "Approved requests",
+                    approved_requests_text_1: "View details of the requests you have approved or revoke them.",
+                    no_approved_requests: "No approved requests",
+                    no_approved_requests_text_1: "Once you approve a request, it will appear here.",
+                    date_received: "Date received",
+                    view_details: "View Details",
+                    revoke: "Revoke",
+                    revoke_request: "Revoke request",
+                    revoke_request_text_1: "Are you sure you want to revoke this request? Please explain below the reason for revoking this request so we can notify the Requester about your decision.",
+                    describe_your_decision: "Describe your decision",
+                    cancel: "Cancel",
+
+                    //OWNER DASHBOARD
+                    dashboard: "Dashboard",
+                    dashboard_text_1: "Review pending, approved, negotiation, and rejected requests to ensure compliance and security.",
+                    pending_requests: "Pending requests",
+                    you_have_pending_requests_1: "You have",
+                    you_have_pending_requests_2: "pending requests.",
+                    dashboard_text_2: "Review and manage incoming requests. Approve, reject, or negotiate based on consent preferences.",
+                    manage: "Manage",
+                    you_have_approved_requests_2: "approved requests.",
+                    approved_requests_text_2: "Requests you have approved. Review, revoke and manage them anytime to maintain control over data access.",
+                    view: "View",
+                    other_requests: "Other requests",
+                    you_have_other_requests_2: "negotiation or rejected requests.",
+                    other_requests_text_1: "Requests that are under negotiation or have been rejected. These may require your attention if you wish to renew, modify, or review them.",
+                    dashboard_text_3: "You might have pending, approved, and other data access requests. Review and take action to ensure permissions align with user consent. Approve, reject, negotiate, or revoke access as needed to maintain data security and compliance.",
+
+                    //OWNER OTHER REQUEST DETAILS
+                    negotiation_available: "Negotiation available",
+                    negotiation_available_text_1: "This consent request has an associated negotiation",
+                    view_negotiation: "View Negotiation",
+                    processing: "Processing",
+                    negotiate: "Negotiate",
+                    opening: "Opening",
+                    opening_negotiation_dashboard: "Opening negotiation dashboard",
+                    opening_negotiation_manually: "Opening Negotiation Manually",
+                    this_will_open_a_new_tab: "This will open in a new tab",
+                    new_tab_troubleshoot: "If the tab doesn't open, please check your browser's pop-up blocker",
+
+                    //OWNER OTHER REQUESTS
+                    other_requests_details: "View details of the requests under negotiation or rejected.",
+                    no_other_requests: "No negotiation or rejected requests",
+                    no_other_requests_text_1: "Requests under negotiation or rejected will appear here.",
+                    under_negotiation: "Under Negotiation",
+
+                    //OWNER APPROVED REQUEST DETAILS
+                    contract_id_not_found: "Contract ID not found. Please ensure the contract has been created.",
+                    no_request_details_available: "No request details available.",
+                    download_contract: "Download Contract",
+                    loading_contract: "Loading contract",
+
+                    //OWNER PENDING REQUEST DETAILS
+                    pending_request_disclaimer: "If you are unsure whether to accept, reject or negotiate the request, please contact the data provider.",
+                    acceptance_confirmation: "Acceptance Confirmation",
+                    acceptance_confirmation_text_1: "Are you sure you want to approve this request?",
+                    approving: "Approving",
+                    approve: "Approve",
+                    disclaimer: "Disclaimer",
+                    redirect_to_negotiation_plugin: "This action will redirect you to the negotiation plugin.",
+                    redirecting: "Redirecting",
+                    continue: "Continue",
+                    confirm_rejection: "Confirm Rejection",
+                    confirm_rejection_text_1: "Are you sure you want to reject this request?",
+                    rejecting: "Rejecting",
+                    confirm: "Confirm",
+
+                    //OWNER PENDING REQUESTS
+                    owner_pending_requests_text_1: "Manage and organise your requests for seamless integration and use.",
+                    no_pending_requests: "No pending requests",
+                    owner_pending_requests_text_2: "Once you receive a request, it will appear here.",
+
+                    //ONTOLOGIES
+                    ontology_deleted_successfully: "Ontology deleted successfully!",
+                    error_deleting_ontology: "Error deleting ontology",
+                    ontologies: "Ontologies",
+                    ontologies_text_1: "Manage and organize your ontologies for seamless integration and use.",
+                    upload_ontology: "Upload ontology",
+                    loading_ontologies: "Loading ontologies",
+                    no_ontologies_found: "No ontologies found.",
+                    upload_an_ontology_text_1: "Upload an Ontology file to define and manage data structures.",
+                    date_uploaded: "Date uploaded",
+                    confirm_deletion: "Confirm Deletion",
+                    confirm_deletion_warning: "This ontology is currently used in one or more requests. Please delete the associated requests first.",
+                    confirm_deletion_confirmation: "Are you sure you want to delete",
+                    warning: "Warning",
+
+                    //REQUESTER DASHBOARD
+                    requester_dashboard_text_1: "Monitor and manage your data requests, ontologies, and consent settings.",
+                    you_have_ontologies_1: "You have",
+                    you_have_ontologies_2: "ontologies.",
+                    requester_dashboard_text_2: "View, edit, and organize your ontologies. Upload new ones to expand your data structure and maintain control.",
+                    requests: "Requests",
+                    you_have_requests_2: "requests.",
+                    requester_dashboard_text_3: "Send new requests, review approved ones, or create a new access request to manage data permissions effectively.",
+                    how_it_works: "How it works",
+                    requester_dashboard_text_4: "Access detailed guides and resources to help you navigate the platform. Find information on managing data requests, configuring ontologies, and understanding consent management workflows.",
+                    recommended_for_new_users: "Recommended for new users.",
+                    requester_dashboard_text_5: "Please ensure that all data access requests are reviewed promptly. Pending requests must be addressed to maintain compliance and ensure proper data sharing practices.",
+
+                    //REQUESTER REQUESTS
+                    requester_requests_text_1: "Manage and organise your requests.",
+                    new_request: "New request",
+                    drafts: "Drafts",
+                    sent: "Sent",
+                    no_draft_requests: "No draft requests",
+                    no_draft_requests_text_1: "Once you create a request it will appear here.",
+                    no_sent_requests: "No sent requests",
+                    no_sent_requests_text_1: "Go to your drafts and send a request to a data owner.",
+                    date_sent: "Date Sent",
+                    sent_to_more: "Sent to more",
+                    delete_request_confirmation: "Are you sure you want to delete this request?",
+
+                    //REQUESTER SENT REQUEST DETAILS
+                    policy_data_not_found: "Policy data not found.",
+                    request_details: "Request details",
+                    filter_by_status: "Filter by status",
+                    all: "All",
+                    no_matching_requests: "No matching requests",
+                    no_matching_requests_text_1: "Try changing your filter options or search for another data owner",
+                    download_odrl: "Download ODRL",
+                    search_owner_placeholder: "Search owner by name or email...",
+
+                    //CREATE REQUEST
+                    error_creating_request: "Error creating request.",
                     ontologies_selection: "Ontologies Selection",
                     permissions: "Permissions",
                     review_and_submit: "Review & Submit",
-                    ontologies: "Ontologies",
                     request_name: "Request Name",
                     additional_terms: "Additional Terms",
                     additional_terms_placeholder: "Enter any additional terms or requirements for this consent request...",
                     email_text: "Email Text",
                     email_text_placeholder: "Enter the text to display when sending emails to data owners for this request...",
                     optional: "Optional",
-                    loading_ontologies: "Loading custom ontologies...",
+                    loading_custom_ontologies: "Loading custom ontologies...",
                     double_click_to_select: "Double-click to select",
                     selected_ontologies_text_1: "Select one or more ontologies. If the ontology you're looking for isn't listed,",
                     selected_ontologies_text_2: "go to the Ontologies page",
@@ -58,6 +238,7 @@ i18n
                     dataset_refinements: "Dataset conditions",
                     add_dataset_refinement: "Add dataset refinement",
                     action: "Action",
+                    actions: "Actions",
                     select_an_action: "Select an action",
                     action_refinement: "Action Refinement",
                     action_refinements: "Action conditions",
@@ -82,6 +263,8 @@ i18n
                     edit_request: "Edit Request",
                     edit_request_text_1: "",
                     edit_request_text_2: "",
+                    //EDIT REQUEST
+                    error_updating_request: "Error updating request.",
                     update_request_details: "Update your request details below.",
                     update_request_text_1: "Before you update your request, ensure all values are accurate. Incorrect information may cause rejection by the data owner.",
 
@@ -89,6 +272,8 @@ i18n
                     note: "Note",
                     previous: "Previous",
                     next: "Next",
+
+                    //SEND DRAFT REQUEST
                     sending: "Sending",
                     sending_a_request: "Sending a request",
                     sending_a_request_alert: "If you search for someone and they don't appear, it means you've already sent this request to them.",
@@ -108,9 +293,9 @@ i18n
                     remove: "Remove",
                     what_happens_next: "What happens next?",
                     what_happens_next_desc: "Once the request is sent, the recipient will be notified. Please note that it may take some time for them to get back to you with a decision.",
-
+                    
+                    //RENDER PERMISSIONS
                     requester_details: "Requester details",
-
                     render_permissions_text_1_prefix: "What's being requested",
                     render_permissions_text_1_suffix: "",
                     render_permissions_text_2_prefix: "The requester wants access to data from",
@@ -118,8 +303,10 @@ i18n
                     render_permissions_text_3_prefix: "The requester wants to",
                     render_permissions_text_3_suffix: "to this dataset.",
                     render_permissions_text_4_prefix: "This request is for",
-                    render_permissions_text_4_suffix: "reasons"
+                    render_permissions_text_4_suffix: "reasons",
 
+                    //ERROR MESSAGES:
+                    user_not_authenticated: "User not authenticated.",
 
                 }
             },
@@ -130,6 +317,7 @@ i18n
                     profile: "Mi Perfil",
                     language: "Idioma",
                     logout: "Cerrar sesión",
+                    documentation: "Documentación",
                     about: "Acerca de",
                     who_is_it_for: "Para quien es esto",
                     contact: "Contacto",

@@ -6,6 +6,7 @@ import { getRequests } from "../../services/api";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
+import { useTranslation } from "react-i18next";
 
 // Define the type for the request object
 interface Request {
@@ -22,6 +23,7 @@ function OwnerPendingRequests() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -73,29 +75,29 @@ function OwnerPendingRequests() {
   return (
     <div className={`${styles.dashboard} container w-50`}>
       <Link className="text-decoration-none" to="/ownerBase/ownerDashboard">
-        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
       </Link>
 
-      <h3 className="mt-4">Pending requests</h3>
-      <p>Manage and organize your requests for seamless integration and use.</p>
+      <h3 className="mt-4">{t("pending_requests")}</h3>
+      <p>{t("owner_pending_requests_text_1")}</p>
 
       <hr />
 
       {pendingRequests.length === 0 ? (
         <div className="text-center mt-5">
-          <h4>No pending requests</h4>
+          <h4>{t("no_pending_requests")}</h4>
           <p className="mt-2">
-            Once you receive a request, it will appear here.
+            {t("owner_pending_requests_text_2")}
           </p>
         </div>
       ) : (
         <table className="table">
           <thead>
             <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Date received</th>
+              <th scope="col">{t("name")}</th>
+              <th scope="col">{t("date_received")}</th>
               <th scope="col" className="text-center">
-                Actions
+                {t("actions")}
               </th>
             </tr>
           </thead>
@@ -109,7 +111,7 @@ function OwnerPendingRequests() {
                     to={`/ownerBase/ownerPendingRequestsDetails/${request._id}`}
                     className={`${styles.primaryButton} btn btn-sm`}
                   >
-                    See details
+                    {t("view_details")}
                   </Link>
                 </td>
               </tr>

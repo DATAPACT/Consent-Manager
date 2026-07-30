@@ -5,6 +5,7 @@ import { register } from "../../services/api";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import styles from "../../css/Login.module.css";
+import { useTranslation } from "react-i18next";
 
 const OwnerRegister: React.FC = () => {
   const { login } = useAuth();
@@ -15,12 +16,13 @@ const OwnerRegister: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false); // Add loading state
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== retypePassword) {
-      setError("Passwords do not match.");
+      setError(t("passwords_do_not_match"));
       return;
     }
 
@@ -70,7 +72,7 @@ const OwnerRegister: React.FC = () => {
         await login(email, password);
         navigate("/ownerBase/ownerDashboard");
       } else {
-        setError(result.error || "Registration failed");
+        setError(result.error || t("registration_failed"));
         setLoading(false); // Stop loading
       }
     } catch (error: any) {
@@ -83,9 +85,9 @@ const OwnerRegister: React.FC = () => {
     <>
       <Navbar />
       <div className={`${styles.loginBox} container w-25 p-5 shadow rounded`}>
-        <h3>Register as a data owner</h3>
+        <h3>{t("register_as_owner")}</h3>
         <p className="mt-3">
-          Already have an account? <Link to="/login">Login</Link>
+          {t("already_have_account")} <Link to="/login">{t("login")}</Link>
         </p>
         {error && (
           <div className="alert alert-danger" role="alert">
@@ -95,7 +97,7 @@ const OwnerRegister: React.FC = () => {
 
         <form className="mt-4" onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className={`${styles.formLabel} form-label`}>Name</label>
+            <label className={`${styles.formLabel} form-label`}>{t("name")}</label>
             <input
               type="text"
               value={name}
@@ -108,7 +110,7 @@ const OwnerRegister: React.FC = () => {
           </div>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>
-              Email address
+              {t("email_address")}
             </label>
             <input
               type="email"
@@ -121,7 +123,7 @@ const OwnerRegister: React.FC = () => {
             />
           </div>
           <div className="mb-3">
-            <label className={`${styles.formLabel} form-label`}>Password</label>
+            <label className={`${styles.formLabel} form-label`}>{t("password")}</label>
             <input
               type="password"
               value={password}
@@ -134,7 +136,7 @@ const OwnerRegister: React.FC = () => {
           </div>
           <div className="mb-3">
             <label className={`${styles.formLabel} form-label`}>
-              Re-type password
+              {t("retype_password")}
             </label>
             <input
               type="password"
@@ -155,13 +157,13 @@ const OwnerRegister: React.FC = () => {
               disabled={loading} // Disable during loading
             />
             <label className="form-check-label">
-              I have read and agree to the{" "}
+              {t("terms_and_conditions_notice")}{" "}
               <Link className="text-decoration-none" to="/">
-                Terms and Conditions
+                {t("terms_and_conditions")}
               </Link>{" "}
-              and{" "}
+              {t("and")}{" "}
               <Link className="text-decoration-none" to="/">
-                Privacy Policy
+                {t("privacy_policy")}
               </Link>
               .
             </label>
@@ -173,7 +175,7 @@ const OwnerRegister: React.FC = () => {
               className={`${styles.primaryButton} btn`}
               disabled={loading} // Disable button during loading
             >
-              {loading ? "Registering..." : "Register"}
+              {loading ? `${t("registering")}...` : t("register")}
             </button>
           </div>
         </form>

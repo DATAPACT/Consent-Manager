@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { useAuth } from "../../AuthContext";
 import { uploadOntology } from "../../services/api";
+import { useTranslation } from "react-i18next";
 
 const UploadOntology: React.FC = () => {
   const [name, setName] = useState("");
@@ -13,6 +14,7 @@ const UploadOntology: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +43,7 @@ const UploadOntology: React.FC = () => {
         setName("");
         setFile(null);
         setError("");
-        alert("Ontology uploaded successfully!");
+        alert(t("ontology_uploaded_successfully"));
         navigate("/requesterBase/Ontologies");
       } else {
         setError(result.error || "Error uploading ontology");
@@ -61,12 +63,12 @@ const UploadOntology: React.FC = () => {
         to="/requesterBase/Ontologies"
         role="button"
       >
-        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;Back
+        <i className="fa-solid fa-arrow-left"></i>&nbsp;&nbsp;&nbsp;{t("back")}
       </Link>
 
-      <h3 className="mt-4">Upload ontology</h3>
+      <h3 className="mt-4">{t("upload_ontology")}</h3>
       <p>
-        Upload your ontology to seamlessly integrate data and enhance analysis.
+        {t("upload_ontology_text_1")}
       </p>
 
       <hr />
@@ -74,7 +76,7 @@ const UploadOntology: React.FC = () => {
       <form className="w-50" onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className={`${styles.formLabel} form-label`}>
-            Ontology name
+            {t("ontology_name")}
           </label>
           <input
             type="text"
@@ -87,7 +89,7 @@ const UploadOntology: React.FC = () => {
 
         <div className="mb-3">
           <label className={`${styles.formLabel} form-label`}>
-            Ontology file
+            {t("ontology_file")}
           </label>
           <input
             type="file"
@@ -104,23 +106,21 @@ const UploadOntology: React.FC = () => {
             className={`${styles.primaryButton} btn`}
             disabled={loading}
           >
-            {loading ? "Uploading..." : "Upload Ontology"}
+            {loading ? `${t("uploading")}...` : t("upload_ontology")}
           </button>
         </div>
       </form>
 
       {error && <p className="text-danger mt-3">{error}</p>}
 
-      <h5 className="mt-5">Uploading an ontology</h5>
+      <h5 className="mt-5">{t("uploading_an_ontology")}</h5>
       <p>
-        Please ensure your ontology is in a compatible format (e.g., OWL, RDF)
-        to easily integrate it into our system.
+        {t("upload_ontology_text_2")}
       </p>
 
-      <h5 className="mt-4">What happens next?</h5>
+      <h5 className="mt-4">{t("what_happens_next")}</h5>
       <p>
-        You can include your ontologies in your requests. This allows you to
-        leverage your ontology for structured data processing.
+        {t("upload_ontology_text_3")}
       </p>
     </div>
   );
