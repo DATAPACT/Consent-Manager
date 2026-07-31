@@ -912,7 +912,7 @@ function OwnerPendingRequestDetails() {
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">Acceptance Confirmation</h5>
+              <h5 className="modal-title">{t("acceptance_confirmation")}</h5>
               <button
                 type="button"
                 className="btn-close"

@@ -3,7 +3,7 @@ import { db } from "../config/database.service.ts";
 import { Collection, Document, ObjectId, WithId } from "mongodb";
 import { permissionsToODRLPolicy } from "../utils/policyParser.ts";
 import { verify } from "../config/keycloak.ts";
-import { RequestEmail, VerificationEmail } from "../../emails/templates/requestDetails.tsx";
+import { RequestEmail, VerificationEmail } from "../../emails/templates/requestDetails";
 import { sendTestEmail } from "../config/nodemailer.ts";
 import { jwtVerify, SignJWT } from "jose";
 import { RequestData } from "../../src/components/Interfaces/Requests.ts";
@@ -633,6 +633,7 @@ router.post("/:id/send", async (req, res) => {
     let userDocs: WithId<Document>[] | null = null;
     let test_email_urls = [];
     let unregisteredOwners: String[] = []
+    let lang = req.body.language || "en";
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
       console.error("Missing bearer token.")
@@ -742,7 +743,7 @@ router.post("/:id/send", async (req, res) => {
         .setExpirationTime("7d")
         .sign(secret);
 
-        const email_content = RequestEmail(requestDoc, userId, email_token);
+        const email_content = RequestEmail(requestDoc, userId, email_token, lang);
 
         const email_details = {
             from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
@@ -782,7 +783,7 @@ router.post("/:id/send", async (req, res) => {
         const insert_token = await db.collection("tokens").insertOne(token_payload);
         
         if (insert_token) {
-          const email_content = VerificationEmail(requestDoc, email_token);
+          const email_content = VerificationEmail(requestDoc, email_token, lang);
 
           const email_details = {
               from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',

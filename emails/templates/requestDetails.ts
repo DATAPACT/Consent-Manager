@@ -1,5 +1,8 @@
 import { getRequestPermissions } from "../../server/utils/policyParser";
 import type { RequestData } from "../../src/components/Interfaces/Requests";
+import en from "../../src/locales/en";
+import es from "../../src/locales/es";
+import el from "../../src/locales/el";
 
 const baseUrl = process.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 
@@ -33,24 +36,23 @@ function formatOperand(operand: any): string {
     return String(operand);
   }
 
-function parsePermissionsToHTML(requestDetails: RequestData) {
+function parsePermissionsToHTML(requestDetails: RequestData, t: any) {
   const parsedPermissions = getRequestPermissions(requestDetails);
   return parsedPermissions.map((permission, ruleIndex) => (
     `<div key=${ruleIndex}>
-      <h5>Permission ${ruleIndex + 1}</h5>
-      <h5>What's being requested</h5>
+      <h5>${t.permission} ${ruleIndex + 1}</h5>
+      <h5>${t.render_permissions_text_1_prefix} ${t.render_permissions_text_1_suffix}</h5>
       <p>
-        <strong>Dataset:</strong> The requester wants access to data
-        from <strong>${permission.dataset}</strong>.
+        <strong>Dataset:</strong> ${t.render_permissions_text_2_prefix} <strong>${permission.dataset}</strong>. ${t.render_permissions_text_2_suffix}
       </p>
       <p>
-        <strong>Action:</strong> The requester wants to
-        <strong>${permission.action}</strong> to this dataset.
+        <strong>Action:</strong> ${t.render_permissions_text_3_prefix}
+        <strong>${permission.action}</strong> ${t.render_permissions_text_3_suffix}
       </p>
 
       <p>
-        <strong>Purpose:</strong> This request is for
-        <strong>${formatOperand(permission.purpose)}</strong> reasons.
+        <strong>Purpose:</strong> ${t.render_permissions_text_4_prefix}
+        <strong>${formatOperand(permission.purpose)}</strong> ${t.render_permissions_text_4_suffix}.
       </p>
 
       ${permission.constraints && permission.constraints.length > 0 && (
@@ -128,7 +130,22 @@ function parsePermissionsToHTML(requestDetails: RequestData) {
   ));
 }
 
-export function VerificationEmail(requestDetails: RequestData, token: string) { 
+export function VerificationEmail(requestDetails: RequestData, token: string, lang?: string) { 
+    let t;
+    switch (lang){
+      case "en":
+        t = en;
+        break;
+      case "es":
+        t = es;
+        break;
+      case "el":
+        t = el;
+        break;
+      default:
+        t = en;
+    }
+
     const acceptUrl = `${baseUrl}/auth/verify/${token}`;
     return (
     `
@@ -168,13 +185,13 @@ export function VerificationEmail(requestDetails: RequestData, token: string) {
     </head>
     <body>
     <div class="dashboard">
-        <h3>Requester details</h5>
+        <h3>${t.requester_details}</h5>
         <p>
-          <i>Name:</i>
+          <i>${t.name}:</i>
           ${requestDetails.requester?.requesterName}
         </p>
         <p>
-          <i>Email address:</i>
+          <i>${t.email_address}:</i>
           ${requestDetails.requester?.requesterEmail}
         </p>
 
@@ -184,11 +201,10 @@ export function VerificationEmail(requestDetails: RequestData, token: string) {
 
         ${requestDetails.extraTerms? requestDetails.extraTerms : ""}
 
-        <text>Requester ${requestDetails.requester?.requesterName} has sent you a consent request.
+        <text>${t.requester} ${requestDetails.requester?.requesterName} ${t.email_template_text_1}
 
         <div>
-          By clicking on 'Accept', you agree for your email address to be registered in our system. This will allow us to keep track of consent requests you have accepted, rejected or revoked.
-          If you are unsure whether to accept, please contact the data requester at ${requestDetails.requester?.requesterEmail}
+          ${t.email_template_disclaimer} ${requestDetails.requester?.requesterEmail}
         </div>
 
         <div style="margin-top:24px;">
@@ -202,7 +218,7 @@ export function VerificationEmail(requestDetails: RequestData, token: string) {
               margin-right:12px;
             "
           >
-            Accept
+            ${t.agree}
           </a>
         </div>
       </div>
@@ -210,9 +226,23 @@ export function VerificationEmail(requestDetails: RequestData, token: string) {
   </html>`);
 }
 
-export function RequestEmail(requestDetails: RequestData, userId: string, token: string) {
+export function RequestEmail(requestDetails: RequestData, userId: string, token: string, lang?: string) {
     const acceptUrl = `${baseUrl}/requests/${requestDetails._id}/accept/${userId}${token ? `/?token=${token}` : ""}`;
     const rejectUrl = `${baseUrl}/requests/${requestDetails._id}/reject/${userId}${token ? `/?token=${token}` : ""}`;
+    let t = en;
+    switch (lang){
+      case "en":
+        t = en;
+        break;
+      case "es":
+        t = es;
+        break;
+      case "el":
+        t = el;
+        break;
+      default:
+        t = en;
+    }
     return (
     `
     <html>
@@ -251,13 +281,13 @@ export function RequestEmail(requestDetails: RequestData, userId: string, token:
     </head>
     <body>
     <div class="dashboard">
-        <h3>Requester details</h5>
+        <h3>${t.requester_details}</h5>
         <p>
-          <i>Name:</i>
+          <i>${t.name}:</i>
           ${requestDetails.requester?.requesterName}
         </p>
         <p>
-          <i>Email address:</i>
+          <i>${t.email_address}:</i>
           ${requestDetails.requester?.requesterEmail}
         </p>
 
@@ -267,11 +297,10 @@ export function RequestEmail(requestDetails: RequestData, userId: string, token:
 
         ${requestDetails.extraTerms? requestDetails.extraTerms : ""}
 
-        ${parsePermissionsToHTML(requestDetails)}
+        ${parsePermissionsToHTML(requestDetails, t)}
 
         <div>
-          If you are unsure whether to accept, reject or negotiate the request,
-          please contact the data provider at ${requestDetails.requester?.requesterEmail}
+          ${t.pending_request_disclaimer.trim().endsWith(".") ? t.pending_request_disclaimer.trim().slice(0,-1) : t.pending_request_disclaimer} at ${requestDetails.requester?.requesterEmail}
         </div>
 
         <div style="margin-top:24px;">
@@ -285,7 +314,7 @@ export function RequestEmail(requestDetails: RequestData, userId: string, token:
               margin-right:12px;
             "
           >
-            Accept
+            ${t.accept}
           </a>
 
           <a
@@ -297,7 +326,7 @@ export function RequestEmail(requestDetails: RequestData, userId: string, token:
               text-decoration:none;
             "
           >
-            Reject
+            ${t.reject}
           </a>
         </div>
       </div>
