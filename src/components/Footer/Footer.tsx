@@ -1,8 +1,9 @@
 // css
-import { t } from "i18next";
 import styles from "../../css/Footer.module.css";
+import { useTranslation } from "react-i18next";
 
 function Footer() {
+  const { t } = useTranslation();
   return (
     <>
       <footer className={`${styles.footerComp} container-fluid py-5 mt-5`}>

@@ -192,7 +192,7 @@ export default {
     no_sent_requests: "Δεν υπάρχουν αποσταλμένα αιτήματα",
     no_sent_requests_text_1: "Μεταβείτε στα πρόχειρά σας και στείλτε ένα αίτημα σε έναν κάτοχο δεδομένων.",
     date_sent: "Ημερομηνία αποστολής",
-    sent_to_more: "Αποστολή σε περισσότερους",
+    send_to_more: "Αποστολή σε περισσότερους",
     delete_request_confirmation: "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το αίτημα;",
     
     //REQUESTER SENT REQUEST DETAILS

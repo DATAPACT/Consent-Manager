@@ -190,7 +190,7 @@ export default {
     no_sent_requests: "No sent requests",
     no_sent_requests_text_1: "Go to your drafts and send a request to a data owner.",
     date_sent: "Date Sent",
-    sent_to_more: "Sent to more",
+    send_to_more: "Send to more",
     delete_request_confirmation: "Are you sure you want to delete this request?",
 
     //REQUESTER SENT REQUEST DETAILS
