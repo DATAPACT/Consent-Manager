@@ -109,6 +109,7 @@ export const getFeatureDropdownValue = async (
         console.error("Failed to parse ontology:", ontology.name, e);
       }
   }
+  console.log("Language:", language);
 
   if (type === "action") {
     // NOTE: Currently, we can only retrieve actions that are explicitly odrl:Action or dpv:Processing.
