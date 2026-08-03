@@ -53,7 +53,7 @@ function RequesterDashboard() {
                 <h3 className="mt-2">{dashboardData?.statistics?.ontologiesCount || 0}</h3>
                 <small className="text-muted">{t("you_have_ontologies_2")}</small>
                 <p className="card-text mt-2">
-                  {t("requester_dashboard_text_")}
+                  {t("requester_dashboard_text_2")}
                 </p>
                 <Link
                   className={`${styles.primaryButton} btn`}
