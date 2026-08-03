@@ -1,8 +1,8 @@
 import { getRequestPermissions } from "../../server/utils/policyParser";
 import type { RequestData } from "../../src/components/Interfaces/Requests";
-import en from "../../src/locales/en";
-import es from "../../src/locales/es";
-import el from "../../src/locales/el";
+import en from "../../locales/en";
+import es from "../../locales/es";
+import el from "../../locales/el";
 
 const baseUrl = process.env.VITE_API_BASE_URL || "http://localhost:8019/api";
 
