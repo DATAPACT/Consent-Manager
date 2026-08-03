@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import path from "path";
@@ -13,7 +12,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const result = dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const app = express();
@@ -93,7 +91,7 @@ const swaggerDocument = YAML.parse(file);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check endpoint
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
@@ -108,7 +106,7 @@ import negotiationRouter from "./routes/negotiations.js";
 // import emailRouter from "./routes/email.js";
 
 // API Routes
-app.use("/api", (req, res, next) => {
+app.use("/api", (req, _res, next) => {
   console.log(`API request: ${req.method} ${req.path}`);
   next();
 });

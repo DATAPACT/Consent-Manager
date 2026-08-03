@@ -444,7 +444,7 @@ router.post("/:id/accept", async (req, res) => {
       });
     }
 
-    const userDoc = await db.collection("users").findOne({'username_email': {$eq: user_email}});
+    const userDoc = await db.collection("users").findOne({'email': {$eq: user_email}});
 
     if (!userDoc) {
       return res.status(404).json({
@@ -547,7 +547,7 @@ router.post("/:id/reject", async (req, res) => {
       }
     }
 
-    const userDoc = await db.collection("users").findOne({'username_email': {$eq: verification.email}});
+    const userDoc = await db.collection("users").findOne({'email': {$eq: verification.email}});
 
     if (!userDoc) {
       return res.status(404).json({
@@ -649,8 +649,8 @@ router.post("/:id/send", async (req, res) => {
     }
     else if (req.body.user_emails) {
       const user_emails = req.body.user_emails;
-      userDocs = await db.collection("users").find({'username_email': {$in: user_emails}}).toArray();
-      unregisteredOwners = userDocs && userDocs.length > 0 ? user_emails.filter((o: String) => !userDocs?.some((doc) => doc.username_email === o)) : user_emails;
+      userDocs = await db.collection("users").find({'email': {$in: user_emails}}).toArray();
+      unregisteredOwners = userDocs && userDocs.length > 0 ? user_emails.filter((o: String) => !userDocs?.some((doc) => doc.email === o)) : user_emails;
     }
     else {
       console.error("Request body has no owners pending or user emails.")
@@ -747,7 +747,7 @@ router.post("/:id/send", async (req, res) => {
 
         const email_details = {
             from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
-            to: userDoc.username_email,
+            to: userDoc.email,
             subject: 'Consent Request',
             html: email_content,
           }
@@ -760,7 +760,7 @@ router.post("/:id/send", async (req, res) => {
     }
 
     for (const owner of unregisteredOwners) {
-      const userDoc = await db.collection("users").findOne({'username_email': {$eq: owner}});
+      const userDoc = await db.collection("users").findOne({'email': {$eq: owner}});
       if (userDoc) {
         console.log(`Email address already registered to user ${userDoc._id}`);
         continue;

@@ -15,13 +15,31 @@ const keycloak = new Keycloak({
     client_id: process.env.KEYCLOAK_CLIENT_ID || ""
 });
 
+interface KeycloakTokenResponse {
+  access_token: any;
+  refresh_token: string;
+  expires_in: number;
+  refresh_expires_in: number;
+  token_type: string;
+  session_state: string;
+  scope: string;
+}
+
+interface VerificationResponse {
+    email?: string, 
+    type?: string, 
+    uid?: string, 
+    success: boolean,
+    reason?: string,
+}
+
 const JWKS = createRemoteJWKSet(
     new URL(
         `${keycloak_base_url}/realms/${keycloak_realm}/protocol/openid-connect/certs`
     )
 );
 
-export const login = async (email: string, password: string) => {
+export const login = async (email: string, password: string): Promise<KeycloakTokenResponse> => {
   try {
     const params = new URLSearchParams({
         client_id: process.env.KEYCLOAK_CLIENT_ID || "",
@@ -45,14 +63,14 @@ export const login = async (email: string, password: string) => {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return (await response.json()) as KeycloakTokenResponse;
   } catch (error) {
     console.error("Error logging in:", error);
     throw error;
   }
 };
 
-export const verify = async (token: string) => {
+export const verify = async (token: string): Promise<VerificationResponse> => {
     try{
         const { payload } = await jwtVerify(token, JWKS, {issuer: `${keycloak_base_url}/realms/${keycloak_realm}`});
         const userDoc = await db.collection("users").findOne({username_email: {$eq: payload.email}});
@@ -60,9 +78,10 @@ export const verify = async (token: string) => {
 
         if (!userDoc) {
             console.log("User not found");
+            return {success: false, reason: "User not found"};
         }
         else{
-            return {email: payload.email, type: payload.user_type, uid: userDoc._id.toString(), success: true};
+            return {email: payload.email as string, type: payload.user_type as string, uid: userDoc._id.toString(), success: true};
         }
     }
     catch(error) {
@@ -71,7 +90,7 @@ export const verify = async (token: string) => {
             return {success: false, reason: "Token expired"}
         }
         else{
-            return {success: false, reason: error}
+            return {success: false, reason: error as string}
         }
         
     }

@@ -16,6 +16,13 @@ declare module "express-session" {
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
 
+interface UserRecord{
+  _id: string,
+  type: "consumer" | "provider",
+  name: string,
+  email: string,
+}
+
 // POST /api/auth/login - User login with keycloak
 router.post("/login", async (req, res) => {
   try {
@@ -67,28 +74,47 @@ router.post("/login", async (req, res) => {
               }
             );
 
-            const userDoc = await db.collection("users").findOne({username_email: {$eq: email}});
+            const userDoc = await db.collection("users").findOne({email: {$eq: email}});
 
             console.log("User details response:",userDetailsResponse);
             console.log("User doc: ", userDoc);
 
             if (userDetailsResponse.ok) {
-              userData = await userDetailsResponse.json();
+              userData = (await userDetailsResponse.json()) as UserRecord;
               userUid = userData._id;
             }
-            else if (userDoc) {
+            else if (userDoc !== null) {
               userData = userDoc;
-              userUid = userDoc._id;
+              userUid = userDoc._id.toString();
             }
             else {
               console.warn("Error fetching user details:", userDetailsResponse.statusText);
+              return res.status(401).json({
+                error:  userDetailsResponse.statusText,
+                success: false,
+              });
             }
           } catch (userDetailsError) {
             console.warn("Error fetching user details:", userDetailsError);
+            return res.status(401).json({
+                error:  userDetailsError,
+                success: false,
+              });
           }
       }
     } catch (apiError) {
       console.log("External API login failed:", apiError);
+      return res.status(401).json({
+        error: "External API login failed",
+        success: false,
+      });
+    }
+
+    if (!userData) {
+      return res.status(500).json({
+        success: false,
+        error: "User details unavailable",
+      });
     }
 
     if (!apiToken) {
@@ -101,7 +127,9 @@ router.post("/login", async (req, res) => {
     // --- Store login info in session ---
     if (req.session) {
       req.session.loginSource = loginSource;
-      req.session.userUid = userUid;
+      if (userUid) {
+        req.session.userUid = userUid;
+      }
     }
 
     console.log("User data is:",userData);
@@ -231,7 +259,7 @@ router.post("/create", async (req, res) => { //TODO: add authentication
       const fallback = "unknown";
 
       const registrationPayload = {
-        username_email: email,
+        email: email,
         username: email.includes("@") ? email.split("@")[0] : email,
         password: "Random_Password_For_Testing_13!",
         name: fallback,
@@ -260,16 +288,13 @@ router.post("/create", async (req, res) => { //TODO: add authentication
 
       apiRegistrationSuccess = apiResponse.ok;
       if (apiResponse.ok) {
-        const successData = await apiResponse.json();
+        const successData = (await apiResponse.json()) as UserRecord;
         userRecord = successData;
         console.log("User Management Service API registration successful:", successData);
 
         // Extract MongoDB user ID from the response
-        if (
-          successData &&
-          (successData.user_id || successData.id || successData._id)
-        ) {
-          uid = successData.user_id || successData.id || successData._id;
+        if (successData && (successData._id)) {
+          uid = successData._id;
           console.log("MongoDB user ID received:", uid);
         } else {
           console.warn("No user ID found in API response:", successData);
@@ -291,6 +316,13 @@ router.post("/create", async (req, res) => { //TODO: add authentication
         error: apiError.message,
         stack: apiError.stack,
         email: email,
+      });
+    }
+
+    if (!userRecord) {
+      return res.status(500).json({
+        success: false,
+        error: "Unable to retrieve new user record",
       });
     }
 
@@ -369,13 +401,10 @@ router.post("/update", async (req, res) => {
       });
     }
 
-    let apiToken: any = null;
     const formData = new URLSearchParams();
     formData.append("username", email);
     formData.append("password", password);
 
-    // Save user data to appropriate Firestore collection
-    const collection = role === "owner" ? "owners" : "requesters";
     const userData = {
       name,
       email,
@@ -396,7 +425,7 @@ router.post("/update", async (req, res) => {
 
       const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
 
-      console.log("Calling negotiation API registration...");
+      console.log("Calling User Management Service registration...");
       console.log("URL:", `${externalApiUrl}/user/update-password`);
       console.log("Email:", email);
       console.log("Type:", role === "requester" ? "consumer" : "provider");
@@ -409,7 +438,7 @@ router.post("/update", async (req, res) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            username_email: email,
+            email: email,
             password: new_password,
             name: name,
             type: role === "requester" ? "consumer" : "provider",
@@ -417,13 +446,13 @@ router.post("/update", async (req, res) => {
         }
       );
 
-      console.log("Negotiation API response status:", apiResponse.status);
+      console.log("User Management Service response status:", apiResponse.status);
 
       apiRegistrationSuccess = apiResponse.ok;
       if (apiResponse.ok) {
-        const successData = await apiResponse.json();
+        const successData = (await apiResponse.json()) as UserRecord;
         userRecord = successData;
-        console.log("Negotiation API password changed successfully:", successData);
+        console.log("Password changed successfully:", successData);
 
         // Extract MongoDB user ID from the response
       } else {
@@ -437,6 +466,7 @@ router.post("/update", async (req, res) => {
           role: role,
           type: role === "requester" ? "consumer" : "provider",
         });
+        return 
       }
     } catch (apiError: any) {
       console.error("External API registration exception:", {
@@ -447,10 +477,17 @@ router.post("/update", async (req, res) => {
       });
     }
 
+    if (!userRecord) {
+      return res.status(500).json({
+        success: false,
+        error: "Unable to retrieve user record",
+      });
+    }
+
     res.status(201).json({
       success: true,
       user: {
-        uid: userRecord.uid,
+        uid: userRecord._id,
         email: userRecord.email,
         role,
         userData,
@@ -534,7 +571,7 @@ router.post("/register", async (req, res) => {
       const fallback = "unknown";
  
       const registrationPayload = {
-        username_email: email,
+        email: email,
         username: email.includes("@") ? email.split("@")[0] : email,
         password: password,
         name: name,
@@ -563,7 +600,7 @@ router.post("/register", async (req, res) => {
 
       apiRegistrationSuccess = apiResponse.ok;
       if (apiResponse.ok) {
-        const successData = await apiResponse.json();
+        const successData = (await apiResponse.json()) as UserRecord;
         userRecord = successData;
         console.log("API registration successful:", successData);
 
@@ -585,10 +622,17 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    if (!userRecord) {
+      return res.status(500).json({
+        success: false,
+        error: "Unable to retrieve new user record",
+      });
+    }
+
     res.status(201).json({
       success: true,
       user: {
-        uid: userRecord.uid,
+        uid: userRecord._id,
         email: userRecord.email,
         role,
         userData,
@@ -605,7 +649,7 @@ router.post("/register", async (req, res) => {
 });
 
 // POST /api/auth/logout - User logout
-router.post("/logout", async (req, res) => {
+router.post("/logout", async (_req, res) => {
   try {
     // For server-side logout, we just return success
     // Client will handle clearing local storage
@@ -666,17 +710,17 @@ router.get("/user/:uid", async (req, res) => {
 });
 
 // GET /api/auth/owners - Get all owners
-router.get("/owners", async (req, res) => {
+router.get("/owners", async (_req, res) => {
   try {
     const ownersSnapshot = await db.collection("users").find({type: {$eq: "provider"}}).toArray();
     const owners: { id: string; email: string; name?: string }[] = [];
 
     ownersSnapshot.forEach((doc) => {
       const data = doc;
-      if (data.username_email) {
+      if (data.email) {
         owners.push({
           id: doc._id.toString(),
-          email: data.username_email,
+          email: data.email,
           name: data.name || "Unknown",
         });
       }
@@ -726,10 +770,6 @@ router.delete("/user/:email", async (req, res) => {
     }
 
     console.log("Deleting user:", email);
-
-    // First, get the user's UID from Firebase to delete from Firestore
-    let userRecord = null;
-    let userUid = null;
 
     // Delete from external API first (if it exists there)
     let externalApiDeleteSuccess = false;
@@ -861,7 +901,7 @@ router.get("/verify/:token", async (req, res) => {
         const randomPassword = "Random_Password_For_Testing_13!";
 
         const registrationPayload = {
-          username_email: email,
+          email: email,
           username: email.includes("@") ? email.split("@")[0] : email,
           password: randomPassword, // Ideally this should be null so we can create users who can only login through an email link.
           name: `${fallback} ${fallback}`, // The user management service takes this value and splits it into first name and last name. We should model it otherwise.
@@ -889,16 +929,20 @@ router.get("/verify/:token", async (req, res) => {
         console.log("API response status:", apiResponse.status);
 
         if (apiResponse.ok) {
-          const successData = await apiResponse.json();
+          const successData = (await apiResponse.json()) as UserRecord;
           userRecord = successData;
           console.log("User Management Service API registration successful:", successData);
 
           // Extract MongoDB user ID from the response
-          if (successData && (successData.user_id || successData.id || successData._id)) {
-            uid = successData.user_id || successData.id || successData._id;
+          if (successData && (successData._id)) {
+            uid = successData._id;
             console.log("MongoDB user ID received:", uid);
           } else {
             console.warn("No user ID found in API response:", successData);
+            return res.status(500).json({
+              success: false,
+              error: "No user ID found in API response.",
+            })
           }
 
           await db.collection("tokens").updateOne({token: {$eq: decoded_token.token}}, {$set: {used: true}}); //Mark the token as used.
@@ -922,7 +966,7 @@ router.get("/verify/:token", async (req, res) => {
           const redirect_url = process.env.FRONTEND_URL || "https://dips.soton.ac.uk/consent-manager"
 
 
-          const userData = {uid: userRecord._id, role: "owner", email: userRecord.username_email, ...userRecord};
+          const userData = {uid: userRecord._id, role: "owner", ...userRecord};
           const encodedUser = encodeURIComponent(JSON.stringify(userData));
           const encodedToken = encodeURIComponent(access_token);
 

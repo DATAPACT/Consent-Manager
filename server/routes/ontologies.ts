@@ -30,7 +30,7 @@ const upload = multer({
   limits: {
     fileSize: getFileSizeLimit(),
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     // Accept ontology files (common formats)
     const allowedTypes = ['.ttl', '.rdf', '.owl', '.n3', '.jsonld', '.xml', '.json'];
     const fileExtension = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));

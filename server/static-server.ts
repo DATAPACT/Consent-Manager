@@ -1,9 +1,6 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-
-const result = dotenv.config();
 
 const app = express();
 const PORT = process.env.STATIC_PORT || "5173";
@@ -17,7 +14,7 @@ const distPath = path.join(__dirname, '../dist');
 app.use('/consent-manager', express.static(distPath));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'OK', service: 'static-server', timestamp: new Date().toISOString() });
 });
 

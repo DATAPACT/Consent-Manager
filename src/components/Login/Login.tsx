@@ -19,7 +19,7 @@ const Login: React.FC = () => {
   const { user, role, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation
+  const { t } = useTranslation();
 
   const params = new URLSearchParams(location.search);
   const redirect = params.get("redirect");

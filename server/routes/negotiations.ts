@@ -3,6 +3,32 @@ import { db } from "../config/database.service.ts";
 import { Document, ObjectId, WithId } from "mongodb";
 import { RequestData } from "../../src/components/Interfaces/Requests.ts";
 
+interface NegotiationCreationResponse{
+  message: string,
+  negotiation_id: string,
+  offer_id: string,
+  request_id: string,
+  status: string,
+}
+
+interface NegotiationResponse{
+  _id: string,
+  title: string,
+  user_id: string,
+  consumer_id: string,
+  provider_id: string,
+  negotiation_status: string,
+  resource_description?: any,
+  dpw?: any,
+  nlp?: string,
+  conflict_status: string,
+  negotiations?: string[],
+  negotiation_contracts?: string[]
+  created_at?: string,
+  updated_at?: string,
+  original_offer_id?: string
+}
+
 const router = express.Router();
 
 const NEGOTIATION_API_BASE_URL = process.env.NEGOTIATION_API_BASE_URL || "https://dips.soton.ac.uk/negotiation-api"
@@ -301,9 +327,9 @@ router.post("/create-with-initial", async (req, res) => {
       );
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as NegotiationCreationResponse;
 
-    const negotiationId = result.id || result.negotiation_id;
+    const negotiationId = result.negotiation_id;
 
     // Update the request status to indicate it's been sent to negotiation
     const update = await docRef.updateOne({'_id':new ObjectId(requestId)}, {$set: {
@@ -457,17 +483,16 @@ router.post("/create-accepted", async (req, res) => {
       });
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as NegotiationCreationResponse;
     console.log("EXTERNAL API SUCCESS:", {
       responseBody: result,
-      negotiationId:
-        result.id || result.negotiation_id || "NOT_FOUND_IN_RESPONSE",
-      hasId: !!(result.id || result.negotiation_id),
+      negotiationId: result.negotiation_id || "NOT_FOUND_IN_RESPONSE",
+      hasId: !!result.negotiation_id,
     });
 
     // Update the request status to indicate it's been sent to negotiation as accepted
     console.log("🔍 STEP 6: Updating Firebase with negotiation result...");
-    const negotiationId = result.id || result.negotiation_id;
+    const negotiationId = result.negotiation_id;
 
     if (!negotiationId) {
       console.log(
@@ -562,14 +587,14 @@ router.get("/by-request/:requestId", async (req, res) => {
         );
 
         if (negotiationResponse.ok) {
-          const negotiationData = await negotiationResponse.json();
+          const negotiationData = (await negotiationResponse.json()) as NegotiationResponse;
           providerMongoId = negotiationData.provider_id;
 
           // Get provider Firebase ID and email from requesters collection
           if (providerMongoId) {
             const requestersSnapshot = await db
               .collection("users")
-              .findOne({_id: {$eq: providerMongoId}});
+              .findOne({_id: {$eq: new ObjectId(providerMongoId)}});
 
             if (requestersSnapshot) {
               providerEmail = requestersSnapshot.email;
