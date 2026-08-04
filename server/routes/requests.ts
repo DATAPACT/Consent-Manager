@@ -8,7 +8,6 @@ import { sendTestEmail } from "../config/nodemailer.ts";
 import { jwtVerify, SignJWT } from "jose";
 import { RequestData } from "../../src/components/Interfaces/Requests.ts";
 import crypto from "crypto";
-import { env } from "process";
 
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
