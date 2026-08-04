@@ -8,6 +8,7 @@ import { sendTestEmail } from "../config/nodemailer.ts";
 import { jwtVerify, SignJWT } from "jose";
 import { RequestData } from "../../src/components/Interfaces/Requests.ts";
 import crypto from "crypto";
+import { env } from "process";
 
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
@@ -634,6 +635,7 @@ router.post("/:id/send", async (req, res) => {
     let test_email_urls = [];
     let unregisteredOwners: String[] = []
     let lang = req.body.language || "en";
+    const email_sender = process.env.DEFAULT_EMAIL_SENDER || "DIPS Consent Manager <dips-consent-manager@soton.ac.uk>";
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
       console.error("Missing bearer token.")
@@ -746,7 +748,7 @@ router.post("/:id/send", async (req, res) => {
         const email_content = RequestEmail(requestDoc, userId, email_token, lang);
 
         const email_details = {
-            from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
+            from: email_sender,
             to: userDoc.email,
             subject: 'Consent Request',
             html: email_content,
@@ -786,7 +788,7 @@ router.post("/:id/send", async (req, res) => {
           const email_content = VerificationEmail(requestDoc, email_token, lang);
 
           const email_details = {
-              from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
+              from: email_sender,
               to: owner,
               subject: 'Consent Request',
               html: email_content,

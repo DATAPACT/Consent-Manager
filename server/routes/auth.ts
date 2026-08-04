@@ -15,6 +15,7 @@ declare module "express-session" {
 
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
+const email_sender = process.env.DEFAULT_EMAIL_SENDER || "DIPS Consent Manager <dips-consent-manager@soton.ac.uk>";
 
 interface UserRecord{
   _id: string,
@@ -214,7 +215,7 @@ router.post("/create", async (req, res) => { //TODO: add authentication
     }
 
     const email_details = {
-      from: 'DIPS Consent Manager <dips-consent-manager@soton.ac.uk>',
+      from: email_sender,
       to: email,
       subject: 'Consent Request',
       html: '<p>Please click the link to consent:</p><p><a href="LINK">Consent</a></p><p>Or click the following link to reject:</p><p><a href="LINK">Reject</a></p>',
