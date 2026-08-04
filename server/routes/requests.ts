@@ -767,6 +767,7 @@ router.post("/:id/send", async (req, res) => {
         continue;
       }
       else {
+        console.log(`Attempting to send email to ${owner}`);
         const random_token = crypto.randomBytes(32).toString("hex");
         const token_payload = {
           email: owner,
@@ -795,6 +796,9 @@ router.post("/:id/send", async (req, res) => {
           const email_result = await sendTestEmail(email_details);
           console.log("Email result:", email_result.url);
           test_email_urls.push(email_result.url);
+        }
+        else{
+          console.log("Unable to insert new token.");
         }
       }
     }

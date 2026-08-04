@@ -32,16 +32,18 @@ export async function createTransporter(){
 export const sendTestEmail = async (email_details: any) => {
 
     const info = await transporter.sendMail(email_details);
+    console.log(`This is our transporter: ${transporter}`);
+
 
     if (info.accepted) {
         console.log("Email sent successfully. Preview URL:",nodemailer.getTestMessageUrl(info));
         return {url: nodemailer.getTestMessageUrl(info), success: true};
       }
     else{
-    console.error("Error sending email");
-    return {
-        error: "Failed to send email",
-        success: false,
-    };
+        console.error("Error sending email");
+        return {
+            error: "Failed to send email",
+            success: false,
+        };
     }
 }
