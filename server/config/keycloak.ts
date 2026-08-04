@@ -73,7 +73,7 @@ export const login = async (email: string, password: string): Promise<KeycloakTo
 export const verify = async (token: string): Promise<VerificationResponse> => {
     try{
         const { payload } = await jwtVerify(token, JWKS, {issuer: `${keycloak_base_url}/realms/${keycloak_realm}`});
-        const userDoc = await db.collection("users").findOne({username_email: {$eq: payload.email}});
+        const userDoc = await db.collection("users").findOne({email: {$eq: payload.email}});
         console.log("JWT Verification Payload is: ", payload);
 
         if (!userDoc) {
