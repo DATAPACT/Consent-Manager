@@ -281,6 +281,7 @@ const validateEmail = (email: string) => {
         owners: allOwnerIds,
         ownersPending: allPendingIds,
         user_emails: unregisteredOwners,
+        language: localStorage.getItem("language") || "en",
         status: "sent",
         sentAt: `${days[now.getDay()]} ${now
           .getDate()
