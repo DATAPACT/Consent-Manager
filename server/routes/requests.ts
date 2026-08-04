@@ -648,12 +648,12 @@ router.post("/:id/send", async (req, res) => {
       const ownersPendingIds = req.body.ownersPending.map((o : string) => new ObjectId(o));
       userDocs = await db.collection("users").find({_id: {$in: ownersPendingIds}}).toArray();
     }
-    else if (req.body.user_emails) {
+    if (req.body.user_emails) {
       const user_emails = req.body.user_emails;
       userDocs = await db.collection("users").find({'email': {$in: user_emails}}).toArray();
       unregisteredOwners = userDocs && userDocs.length > 0 ? user_emails.filter((o: String) => !userDocs?.some((doc) => doc.email === o)) : user_emails;
     }
-    else {
+    if (!req.body.ownersPending && !req.body.user_emails) {
       console.error("Request body has no owners pending or user emails.")
       return res.status(400).json({
         success: false,
