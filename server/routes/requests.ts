@@ -630,7 +630,7 @@ router.post("/:id/reject", async (req, res) => {
 router.post("/:id/send", async (req, res) => {
   try {
     const { id } = req.params;
-    let userDocs: WithId<Document>[] | null = null;
+    let userDocs: WithId<Document>[] | null = [];
     let test_email_urls = [];
     let unregisteredOwners: String[] = []
     let lang = req.body.language || "en";
@@ -650,7 +650,7 @@ router.post("/:id/send", async (req, res) => {
     }
     if (req.body.user_emails) {
       const user_emails = req.body.user_emails;
-      userDocs = await db.collection("users").find({'email': {$in: user_emails}}).toArray();
+      userDocs = userDocs.concat(await db.collection("users").find({'email': {$in: user_emails}}).toArray());
       unregisteredOwners = userDocs && userDocs.length > 0 ? user_emails.filter((o: String) => !userDocs?.some((doc) => doc.email === o)) : user_emails;
     }
     if (!req.body.ownersPending && !req.body.user_emails) {
