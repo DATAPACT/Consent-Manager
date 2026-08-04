@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getRequest, getAllOwners, sendRequest } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 
 function SendDraftRequest() {
   const { requestId } = useParams();
@@ -22,6 +22,7 @@ function SendDraftRequest() {
     { email: string; id: string; name?: string }[]
   >([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { t } = useTranslation();
 
   const now = new Date();
   const days = [

@@ -145,6 +145,7 @@ export function VerificationEmail(requestDetails: RequestData, token: string, la
       default:
         t = en;
     }
+    console.log(`Language: ${lang}`);
 
     const acceptUrl = `${baseUrl}/auth/verify/${token}`;
     return (
