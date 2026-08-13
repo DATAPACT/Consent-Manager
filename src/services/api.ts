@@ -767,7 +767,7 @@ export async function forgotPassword(email: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email}),
+        email: email}),
     });
 
     const data = await response.json();
@@ -794,7 +794,7 @@ export async function changePassword(password: string, token: string) {
       body: JSON.stringify({
         new_password: password,
         confirm_password: password,
-        token}),
+        token: token}),
     });
 
     const data = await response.json();

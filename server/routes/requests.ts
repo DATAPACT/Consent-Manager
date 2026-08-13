@@ -772,6 +772,7 @@ router.post("/:id/send", async (req, res) => {
         const token_payload = {
           email: owner,
           requestId: id,
+          language: lang,
           action: "confirm",
           token: random_token,
           createdAt: new Date(),

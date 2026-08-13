@@ -6,6 +6,7 @@ import { ObjectId } from "mongodb";
 import { sendTestEmail } from "../config/nodemailer.ts";
 import { decodeJwt, jwtVerify, SignJWT } from "jose";
 import { ChangePasswordEmail } from "../../emails/templates/changePassword.ts";
+import crypto from "crypto";
 
 declare module "express-session" {
   interface SessionData {
@@ -564,6 +565,13 @@ router.post("/change-password", async (req, res) => {
       });
     }
 
+    if (verification.action !== "change-password"){
+      return res.status(401).json({
+        error: "Token action mismatch.",
+        success: false,
+      });
+    }
+
     if (verification.used) {
       return res.status(401).json({
         error: "Token already used",
@@ -582,7 +590,6 @@ router.post("/change-password", async (req, res) => {
     const user_doc = await db.collection("users").findOne({email: decoded_token.email.toString()});
 
     const email = decoded_token.email.toString();
-    const name = decoded_token.username;
 
     if (!user_doc) {
       return res.status(401).json({
@@ -627,6 +634,7 @@ router.post("/change-password", async (req, res) => {
       if (apiResponse.ok) {
         const successData = (await apiResponse.json()) as UserRecord;
         userRecord = successData;
+        await db.collection("tokens").updateOne({token: {$eq: decoded_token.token}}, {$set: {used: true}});
         console.log("Password changed successfully:", successData);
 
         // Extract MongoDB user ID from the response
@@ -637,7 +645,6 @@ router.post("/change-password", async (req, res) => {
           statusText: apiResponse.statusText,
           error: errorData,
           email: email,
-          name: name,
         });
         return 
       }
@@ -646,7 +653,6 @@ router.post("/change-password", async (req, res) => {
         error: apiError.message,
         stack: apiError.stack,
         email: email,
-        name: name,
       });
     }
 
@@ -1055,6 +1061,8 @@ router.get("/verify/:token", async (req, res) => {
       });
     }
 
+    const lang = verification.language || "en";
+
     console.log("Creating new user");
     try {
       const email = decoded_token.email.toString();
@@ -1141,6 +1149,36 @@ router.get("/verify/:token", async (req, res) => {
           const userData = {uid: userRecord._id, role: "owner", ...userRecord};
           const encodedUser = encodeURIComponent(JSON.stringify(userData));
           const encodedToken = encodeURIComponent(access_token);
+
+          console.log(`Attempting to send email to ${email}`);
+          const random_token = crypto.randomBytes(32).toString("hex");
+          const token_payload = {
+            email: email,
+            action: "change-password",
+            token: random_token,
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+            used: false
+          }
+          const email_token = await new SignJWT(token_payload)
+            .setProtectedHeader({alg: "HS256"})
+            .sign(secret);
+
+          const insert_token = await db.collection("tokens").insertOne(token_payload);
+          
+          if (insert_token) {
+            const email_content = ChangePasswordEmail(email_token, lang);
+
+            const email_details = {
+                from: email_sender,
+                to: email,
+                subject: 'Change Password',
+                html: email_content,
+              }
+            const email_result = await sendTestEmail(email_details);
+
+          console.log(email_result.success);
+            }
 
           req.session.userUid = uid;
           res.redirect(
@@ -1243,7 +1281,7 @@ router.get("/decode/:token", async (req, res) => {
 }
 );
 
-router.post("forgot-password", async (req, res) => {
+router.post("/forgot-password", async (req, res) => {
   try {
     if (!req.body.email) {
       return res.status(401).json({
@@ -1256,26 +1294,35 @@ router.post("forgot-password", async (req, res) => {
 
     const email = req.body.email;
 
-    const email_token = await new SignJWT({
-      email,
+    console.log(`Attempting to send email to ${email}`);
+    const random_token = crypto.randomBytes(32).toString("hex");
+    const token_payload = {
+      email: email,
       action: "change-password",
-    }).setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("30m")
-    .sign(secret);
-
-    const email_content = ChangePasswordEmail(email_token, lang);
-
-    const email_details = {
-      from: email_sender,
-      to: email,
-      subject: "Forgot Password",
-      html: email_content,
+      token: random_token,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      used: false
     }
+    const email_token = await new SignJWT(token_payload)
+      .setProtectedHeader({alg: "HS256"})
+      .sign(secret);
 
-    const email_result = await sendTestEmail(email_details);
+    const insert_token = await db.collection("tokens").insertOne(token_payload);
+    
+    if (insert_token) {
+      const email_content = ChangePasswordEmail(email_token, lang);
+
+      const email_details = {
+          from: email_sender,
+          to: email,
+          subject: 'Change Password',
+          html: email_content,
+        }
+      const email_result = await sendTestEmail(email_details);
 
     console.log(email_result.success);
+      }
   }
   catch (error) {
     console.error("Error sending email to reset password:", error);
