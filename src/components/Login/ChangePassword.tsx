@@ -2,7 +2,7 @@
 import { useTranslation } from "react-i18next";
 
 // css
-import styles from "../../../css/CreateRequest.module.css";
+import styles from "../../css/CreateRequest.module.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { changePassword } from "../../services/api";
