@@ -32,6 +32,7 @@ function ForgotPassword() {
               break;
           }
         }
+        alert(errorMessage);
       }
     };
 

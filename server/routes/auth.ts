@@ -1284,7 +1284,7 @@ router.post("forgot-password", async (req, res) => {
       success: false,
     })
   }
-})
+});
 
 // GET /api/auth/token/:token - Authenticate with external API token and redirect
 // TODO: Test this
