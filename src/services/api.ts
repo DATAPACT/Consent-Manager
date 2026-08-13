@@ -759,6 +759,85 @@ export const redirectToNegotiationDisplay = async (
   }
 };
 
+export async function forgotPassword(email: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email}),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to send email to reset password.");
+    }
+
+    return data;
+  }
+  catch (error) {
+    console.error("Error changing password:", error);
+    throw error;
+  }
+}
+
+export async function changePassword(password: string, token: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        new_password: password,
+        confirm_password: password,
+        token}),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to change password.");
+    }
+
+    return data;
+  }
+  catch (error) {
+    console.error("Error changing password:", error);
+    throw error;
+  }
+}
+
+export async function decodeToken(token: string) {
+  try {
+    console.log("Token received:", token);
+
+    const response = await fetch(
+      `${API_BASE_URL}/auth/${token}/createContract`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to create contract");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("❌ Error creating contract:", error);
+    throw error;
+  }
+}
+
 export async function createContractAPI(request: ContractRequest) {
   try {
     console.log("📝 Request object received:", request);

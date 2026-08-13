@@ -119,7 +119,7 @@ const Login: React.FC = () => {
             </div>
 
             <div className="align-self-center">
-              <Link to="">{t("forgot_password")}</Link>
+              <Link to="/forgotPassword">{t("forgot_password")}</Link>
             </div>
           </div>
         </form>

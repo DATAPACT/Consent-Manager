@@ -4,7 +4,8 @@ import "express-session";
 import keycloak, { login, verify } from "../config/keycloak.ts";
 import { ObjectId } from "mongodb";
 import { sendTestEmail } from "../config/nodemailer.ts";
-import { decodeJwt, jwtVerify } from "jose";
+import { decodeJwt, jwtVerify, SignJWT } from "jose";
+import { ChangePasswordEmail } from "../../emails/templates/changePassword.ts";
 
 declare module "express-session" {
   interface SessionData {
@@ -491,6 +492,176 @@ router.post("/update", async (req, res) => {
         uid: userRecord._id,
         email: userRecord.email,
         role,
+        userData,
+        apiRegistrationSuccess,
+        mongoUserId,
+      },
+    });
+  } catch (error: any) {
+    console.error("Update error:", error);
+    res.status(400).json({
+      error: error.message || "Update failed",
+      success: false,
+    });
+  }
+});
+
+router.post("/change-password", async (req, res) => {
+  try {
+    console.log("========================================");
+    console.log("📝 UPDATE REQUEST RECEIVED");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    console.log("========================================");
+
+    const {
+      new_password,
+      confirm_password,
+      token
+    } = req.body;
+
+    if (!new_password) {
+      console.error("Missing required fields:", {
+        hasPassword: !!new_password,
+      });
+      return res.status(400).json({
+        error: "New password is required.",
+        success: false,
+      });
+    }
+
+    if (new_password !== confirm_password) {
+      console.error("New passwords do not match.");
+      return res.status(400).json({
+        error: 'New passwords do not match.',
+        success: false,
+      });
+    }
+
+    const { payload } = await jwtVerify(token, secret);
+    if (!payload) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
+    }
+    const decoded_token = decodeJwt(token);
+    console.log("Decoded token payload is:");
+    console.log(decoded_token);
+
+    if (!decoded_token.email) {
+      return res.status(401).json({
+        error: "Email address missing",
+        success: false,
+      });
+    }
+    
+    const verification = await db.collection("tokens").findOne({token: {$eq: decoded_token.token}});
+
+    if (!verification) {
+      return res.status(401).json({
+        error: "Token verification failed",
+        success: false,
+      });
+    }
+
+    if (verification.used) {
+      return res.status(401).json({
+        error: "Token already used",
+        success: false,
+      });
+    }
+
+    if (Date.now() > verification.expiresAt) {
+      //TODO: Renew token?
+      return res.status(401).json({
+        error: "Token is expired",
+        success: false,
+      });
+    }
+
+    const user_doc = await db.collection("users").findOne({email: decoded_token.email.toString()});
+
+    const email = decoded_token.email.toString();
+    const name = decoded_token.username;
+
+    if (!user_doc) {
+      return res.status(401).json({
+        error: "User not found.",
+        success: false,
+      });
+    }
+
+    const userData = {
+      _id: user_doc._id,
+      email: user_doc.email,
+      keycloak_sub: user_doc.keycloak_sub,
+      password: new_password,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // External API registration
+    let apiRegistrationSuccess = false;
+    let mongoUserId = null;
+    let userRecord = null;
+    try {
+      const externalApiUrl =
+        process.env.USER_MANAGEMENT_SERVICE_API_URL ||
+        "https://dips.soton.ac.uk/negotiation-api";
+      const masterPasswordParam = process.env.MASTER_PASSWORD || "master_password";
+      const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
+
+      const apiResponse = await fetch(
+        `${externalApiUrl}/user/update-password?master_password_input=${encodedMasterPassword}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
+
+      console.log("User Management Service response status:", apiResponse.status);
+
+      apiRegistrationSuccess = apiResponse.ok;
+      if (apiResponse.ok) {
+        const successData = (await apiResponse.json()) as UserRecord;
+        userRecord = successData;
+        console.log("Password changed successfully:", successData);
+
+        // Extract MongoDB user ID from the response
+      } else {
+        const errorData = await apiResponse.json();
+        console.error("External API registration failed:", {
+          status: apiResponse.status,
+          statusText: apiResponse.statusText,
+          error: errorData,
+          email: email,
+          name: name,
+        });
+        return 
+      }
+    } catch (apiError: any) {
+      console.error("External API registration exception:", {
+        error: apiError.message,
+        stack: apiError.stack,
+        email: email,
+        name: name,
+      });
+    }
+
+    if (!userRecord) {
+      return res.status(500).json({
+        success: false,
+        error: "Unable to retrieve user record",
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      user: {
+        uid: userRecord._id,
+        email: userRecord.email,
         userData,
         apiRegistrationSuccess,
         mongoUserId,
@@ -1015,6 +1186,105 @@ router.get("/verify/:token", async (req, res) => {
   }
 }
 );
+
+router.get("/decode/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { payload } = await jwtVerify(token, secret);
+    if (!payload) {
+      return res.status(401).json({
+        error: "Invalid token",
+        success: false,
+      });
+    }
+    const decoded_token = decodeJwt(token);
+    console.log("Decoded token payload is:");
+    console.log(decoded_token);
+
+    if (!decoded_token.email) {
+      return res.status(401).json({
+        error: "Email address missing",
+        success: false,
+      });
+    }
+    
+    const verification = await db.collection("tokens").findOne({token: {$eq: decoded_token.token}});
+
+    if (!verification) {
+      return res.status(401).json({
+        error: "Token verification failed",
+        success: false,
+      });
+    }
+
+    if (verification.used) {
+      return res.status(401).json({
+        error: "Token already used",
+        success: false,
+      });
+    }
+
+    if (Date.now() > verification.expiresAt) {
+      //TODO: Renew token?
+      return res.status(401).json({
+        error: "Token is expired",
+        success: false,
+      });
+    }
+
+    res.json({...decoded_token, success: true})
+  }
+  catch(error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Token verification failed",
+    })
+  }
+}
+);
+
+router.post("forgot-password", async (req, res) => {
+  try {
+    if (!req.body.email) {
+      return res.status(401).json({
+        error: "Email address is required.",
+        success: false,
+      });
+    }
+
+    const lang = req.body.language || "en";
+
+    const email = req.body.email;
+
+    const email_token = await new SignJWT({
+      email,
+      action: "change-password",
+    }).setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("30m")
+    .sign(secret);
+
+    const email_content = ChangePasswordEmail(email_token, lang);
+
+    const email_details = {
+      from: email_sender,
+      to: email,
+      subject: "Forgot Password",
+      html: email_content,
+    }
+
+    const email_result = await sendTestEmail(email_details);
+
+    console.log(email_result.success);
+  }
+  catch (error) {
+    console.error("Error sending email to reset password:", error);
+    res.status(500).json({
+      error: "Failed to send email to reset password.",
+      success: false,
+    })
+  }
+})
 
 // GET /api/auth/token/:token - Authenticate with external API token and redirect
 // TODO: Test this
