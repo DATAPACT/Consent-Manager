@@ -321,7 +321,9 @@ export default {
 
     //EMAIL TEMPLATES:
     agree: "Agree",
+    send: "Send",
     email_template_text_1: "has sent you a consent request.",
     email_template_disclaimer: "By clicking on 'Accept', you agree for your email address to be registered in our system. This will allow us to keep track of consent requests you have accepted, rejected or revoked. If you are unsure whether to accept, please contact the data requester at",
     reset_password_text_1: "Click on the button to reset your password.",
+    expired_reset_password_text_1: "",
 }

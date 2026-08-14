@@ -3,7 +3,7 @@ import es from "../../locales/es";
 import el from "../../locales/el";
 
 const baseUrl = process.env.FRONTEND_URL || "http://localhost:8019/api";
-export function ChangePasswordEmail(token: string, lang?: string) {
+export default function ChangePasswordEmail(token: string, lang?: string) {
     const acceptUrl = `${baseUrl}/changePassword/?token=${encodeURIComponent(token)}`;
     let t = en;
     switch (lang){

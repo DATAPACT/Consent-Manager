@@ -323,9 +323,11 @@ export default {
 
     //EMAIL TEMPLATES:
     agree: "Αποδοχή",
+    send: "Αποστολή",
     email_template_text_1: "σου έστειλε αίτημα συγκατάθεσης.",
     email_template_disclaimer: "Κάνοντας κλικ στο «Αποδοχή», συναινείτε στην καταχώριση της διεύθυνσης ηλεκτρονικού ταχυδρομείου σας στο σύστημά μας. Αυτό θα μας επιτρέψει να παρακολουθούμε τα αιτήματα συγκατάθεσης που έχετε αποδεχτεί, απορρίψει ή ανακαλέσει. Εάν δεν είστε σίγουροι αν πρέπει να αποδεχτείτε, παρακαλούμε επικοινωνήστε με τον αιτούντα τα δεδομένα.",
-    reset_password_text_1: "Click on the button to reset your password.",
+    reset_password_text_1: "Κάντε κλικ στο κουμπί για να επαναφέρετε τον κωδικό πρόσβασής σας.",
+    expired_reset_password_text_1: "",
 
 }
 //Translated with DeepL.com (free version)

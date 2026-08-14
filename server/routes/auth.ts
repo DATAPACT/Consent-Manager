@@ -5,8 +5,11 @@ import keycloak, { login, verify } from "../config/keycloak.ts";
 import { ObjectId } from "mongodb";
 import { sendTestEmail } from "../config/nodemailer.ts";
 import { decodeJwt, jwtVerify, SignJWT } from "jose";
-import { ChangePasswordEmail } from "../../emails/templates/changePassword.ts";
+import ChangePasswordEmail from "../../emails/templates/changePassword.ts";
 import crypto from "crypto";
+import { ExpiredChangePasswordEmail, ExpiredVerificationEmail } from "../../emails/templates/expiredLink.ts";
+import { error } from "console";
+import { RequestData } from "../../src/components/Interfaces/Requests.ts";
 
 declare module "express-session" {
   interface SessionData {
@@ -581,6 +584,44 @@ router.post("/change-password", async (req, res) => {
 
     if (Date.now() > verification.expiresAt) {
       //TODO: Renew token?
+
+      const language = decoded_token.language ? decoded_token.language.toString() : "en";
+      const email = decoded_token.email;
+      const random_token = crypto.randomBytes(32).toString("hex");
+      const token_payload = {
+        email: email,
+        action: "change-password",
+        token: random_token,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+        used: false
+      }
+      const email_token = await new SignJWT(token_payload)
+        .setProtectedHeader({alg: "HS256"})
+        .sign(secret);
+
+      // Delete the expired token.
+      await db.collection("tokens").deleteOne({token: {$eq: decoded_token.token}});
+      // Insert the new token.
+      const insert_token = await db.collection("tokens").insertOne(token_payload);
+      
+      if (insert_token) {
+        const email_content = ExpiredChangePasswordEmail(email_token, language);
+
+        const email_details = {
+            from: email_sender,
+            to: email,
+            subject: 'Change Password',
+            html: email_content,
+          }
+        await sendTestEmail(email_details);
+
+        return res.status(401).json({
+          error: "Token is expired. A new email has been sent.",
+          success: false,
+        })
+      }
+
       return res.status(401).json({
         error: "Token is expired",
         success: false,
@@ -1054,7 +1095,47 @@ router.get("/verify/:token", async (req, res) => {
     }
 
     if (Date.now() > verification.expiresAt) {
-      //TODO: Renew token?
+      // Workflow to send another verification email if the token is expired.
+      const language = decoded_token.language ? decoded_token.language.toString() : "en";
+      const email = decoded_token.email;
+      const random_token = crypto.randomBytes(32).toString("hex");
+      const token_payload = {
+        email: email,
+        requestId: requestId,
+        language: language,
+        action: "confirm",
+        token: random_token,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        used: false
+      }
+      const email_token = await new SignJWT(token_payload)
+        .setProtectedHeader({alg: "HS256"})
+        .sign(secret);
+
+      // Delete the expired token.
+      await db.collection("tokens").deleteOne({token: {$eq: decoded_token.token}});
+      // Insert the new token.
+      const insert_token = await db.collection("tokens").insertOne(token_payload);
+      const request_doc = await db.collection<RequestData>("requests").findOne({_id: new ObjectId(requestId.toString())});
+      
+      if (insert_token && request_doc) {
+        const email_content = ExpiredVerificationEmail(request_doc, email_token, language);
+
+        const email_details = {
+            from: email_sender,
+            to: email,
+            subject: 'Change Password',
+            html: email_content,
+          }
+        await sendTestEmail(email_details);
+
+        return res.status(401).json({
+          error: "Token is expired. A new email has been sent.",
+          success: false,
+        })
+      }
+
       return res.status(401).json({
         error: "Token is expired",
         success: false,
@@ -1177,8 +1258,8 @@ router.get("/verify/:token", async (req, res) => {
               }
             const email_result = await sendTestEmail(email_details);
 
-          console.log(email_result.success);
-            }
+            console.log(email_result.success);
+          }
 
           req.session.userUid = uid;
           res.redirect(
@@ -1322,6 +1403,7 @@ router.post("/forgot-password", async (req, res) => {
       const email_result = await sendTestEmail(email_details);
 
       console.log(email_result.success);
+      // Should respond successfully even if user doesn't exist.
       res.json({
         success: true,
         message: "Email sent successfully!",
