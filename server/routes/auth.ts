@@ -8,7 +8,6 @@ import { decodeJwt, jwtVerify, SignJWT } from "jose";
 import ChangePasswordEmail from "../../emails/templates/changePassword.ts";
 import crypto from "crypto";
 import { ExpiredChangePasswordEmail, ExpiredVerificationEmail } from "../../emails/templates/expiredLink.ts";
-import { error } from "console";
 import { RequestData } from "../../src/components/Interfaces/Requests.ts";
 
 declare module "express-session" {
