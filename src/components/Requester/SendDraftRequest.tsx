@@ -467,9 +467,10 @@ const validateEmail = (email: string) => {
                 <tbody>
                   {selectedOwners.map((owner) => (
                     <tr key={owner.email}>
-                      <td className="px-2">{owner.name || 
+                      <td className="px-2">{ 
                         <input
                           type="text"
+                          disabled={!!owner.id} 
                           className={`${styles.formInput} form-control`}
                           onChange={(e) => handleRenameOwner(e.target.value, owner.email)}
                           placeholder={t("unknown")}
