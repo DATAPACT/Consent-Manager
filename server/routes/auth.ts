@@ -582,8 +582,6 @@ router.post("/change-password", async (req, res) => {
     }
 
     if (Date.now() > verification.expiresAt) {
-      //TODO: Renew token?
-
       const language = decoded_token.language ? decoded_token.language.toString() : "en";
       const email = decoded_token.email;
       const random_token = crypto.randomBytes(32).toString("hex");
@@ -628,7 +626,6 @@ router.post("/change-password", async (req, res) => {
     }
 
     const user_doc = await db.collection("users").findOne({email: decoded_token.email.toString()});
-
     const email = decoded_token.email.toString();
 
     if (!user_doc) {
@@ -676,7 +673,6 @@ router.post("/change-password", async (req, res) => {
         userRecord = successData;
         await db.collection("tokens").updateOne({token: {$eq: decoded_token.token}}, {$set: {used: true}});
         console.log("Password changed successfully:", successData);
-
         // Extract MongoDB user ID from the response
       } else {
         const errorData = await apiResponse.json();

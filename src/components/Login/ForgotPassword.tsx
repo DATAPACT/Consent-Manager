@@ -14,7 +14,11 @@ function ForgotPassword() {
       e.preventDefault();
   
       try {
-        await forgotPassword(email);
+        const response = await forgotPassword(email);
+
+        if (response.success) {
+          alert(response.message);
+        }
         // Redirect happens in useEffect
       } catch (err: any) {
         let errorMessage = t("login_error_message_1");

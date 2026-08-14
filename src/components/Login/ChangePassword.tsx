@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 // css
 import styles from "../../css/CreateRequest.module.css";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { changePassword } from "../../services/api";
 
@@ -19,6 +19,10 @@ function ChangePassword() {
     new_password: "",
     confirm_password: "",
   });
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,7 +65,7 @@ function ChangePassword() {
           <h2>{t("change_password")}</h2>
         </div>
         <div className="border p-4 mt-4">
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="row">
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
@@ -76,7 +80,7 @@ function ChangePassword() {
               </div>
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  {t("confirm_password")}
+                  {t("confirm_new_password")}
                 </label>
                 <input
                   type="password"
@@ -87,7 +91,7 @@ function ChangePassword() {
               </div>
             </div>
             <button className={`${styles.primaryButton} btn btn-sm mt-3 w-20`}
-                onClick={handleSubmit}>
+                type="submit">
               {t("update")}
             </button>
           </form>
