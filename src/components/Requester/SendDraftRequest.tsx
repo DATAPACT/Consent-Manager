@@ -226,7 +226,7 @@ const validateEmail = (email: string) => {
   };
 
   const handleRenameOwner = (value: string, email: string) => {
-    selectedOwners.map((owner) => owner.email === email ? {...owner, name: value} : owner);
+    setSelectedOwners(selectedOwners.map((owner) => owner.email === email ? {...owner, name: value} : owner));
   };
 
   const removeOwner = (email: string) => {
