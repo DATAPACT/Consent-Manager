@@ -80,7 +80,7 @@ function ChangePassword() {
                 </label>
                 <input
                   type="password"
-                  name="confirm-password"
+                  name="confirm_password"
                   className={`${styles.formInput} form-control`}
                   onChange={(e) => handleChange(e)}
                 />
