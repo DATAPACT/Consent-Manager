@@ -470,6 +470,7 @@ const validateEmail = (email: string) => {
                       <td className="px-2">{ 
                         <input
                           type="text"
+                          value={owner.name}
                           disabled={!!owner.id} 
                           className={`${styles.formInput} form-control`}
                           onChange={(e) => handleRenameOwner(e.target.value, owner.email)}
