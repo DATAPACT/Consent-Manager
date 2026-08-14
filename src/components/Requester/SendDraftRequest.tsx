@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getRequest, getAllOwners, sendRequest } from "../../services/api";
 import styles from "../../css/Ontology.module.css";
@@ -223,6 +223,10 @@ const validateEmail = (email: string) => {
       alert(t("invalid_email_warning"));
       return;
     }
+  };
+
+  const handleRenameOwner = (value: string, email: string) => {
+    selectedOwners.map((owner) => owner.email === email ? {...owner, name: value} : owner);
   };
 
   const removeOwner = (email: string) => {
@@ -463,7 +467,13 @@ const validateEmail = (email: string) => {
                 <tbody>
                   {selectedOwners.map((owner) => (
                     <tr key={owner.email}>
-                      <td className="px-2">{owner.name || "Unknown"}</td>
+                      <td className="px-2">{owner.name || 
+                        <input
+                          type="text"
+                          className={`${styles.formInput} form-control`}
+                          onChange={(e) => handleRenameOwner(e.target.value, owner.email)}
+                          placeholder={t("unknown")}
+                        />}</td>
                       <td className="px-2">{owner.email}</td>
                       <td className="text-center">
                         <button
