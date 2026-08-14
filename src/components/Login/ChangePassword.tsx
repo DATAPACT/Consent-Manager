@@ -65,20 +65,22 @@ function ChangePassword() {
             <div className="row">
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  {t("current_password")}
+                  {t("new_password")}
                 </label>
                 <input
                   type="password"
+                  name="new_password"
                   className={`${styles.formInput} form-control`}
                   onChange={(e) => handleChange(e)}
                 />
               </div>
               <div className="col">
                 <label className={`${styles.formLabel} form-label`}>
-                  {t("new_password")}
+                  {t("confirm_password")}
                 </label>
                 <input
                   type="password"
+                  name="confirm-password"
                   className={`${styles.formInput} form-control`}
                   onChange={(e) => handleChange(e)}
                 />

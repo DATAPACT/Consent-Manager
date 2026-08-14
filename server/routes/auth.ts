@@ -1321,8 +1321,12 @@ router.post("/forgot-password", async (req, res) => {
         }
       const email_result = await sendTestEmail(email_details);
 
-    console.log(email_result.success);
-      }
+      console.log(email_result.success);
+      res.json({
+        success: true,
+        message: "Email sent successfully!",
+      });
+    }
   }
   catch (error) {
     console.error("Error sending email to reset password:", error);
