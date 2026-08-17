@@ -284,7 +284,7 @@ const validateEmail = (email: string) => {
       const updatePayload = {
         owners: allOwnerIds,
         ownersPending: allPendingIds,
-        user_emails: unregisteredOwners,
+        user_details: unregisteredOwners,
         language: localStorage.getItem("language") || "en",
         status: "sent",
         sentAt: `${days[now.getDay()]} ${now
