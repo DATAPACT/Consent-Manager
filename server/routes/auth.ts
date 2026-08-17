@@ -1058,9 +1058,9 @@ router.get("/verify/:token", async (req, res) => {
     console.log("Decoded token payload is:");
     console.log(decoded_token);
 
-    if (!decoded_token.email) {
+    if (!decoded_token.owner) {
       return res.status(401).json({
-        error: "Email address missing",
+        error: "Owner data missing",
         success: false,
       });
     }
@@ -1071,7 +1071,8 @@ router.get("/verify/:token", async (req, res) => {
         success: false,
       });
     }
-    
+
+    const owner = decoded_token.owner as {email: string, name?: string, id?: string};
     const requestId = decoded_token.requestId;
     const verification = await db.collection("tokens").findOne({token: {$eq: decoded_token.token}});
 
@@ -1091,11 +1092,10 @@ router.get("/verify/:token", async (req, res) => {
 
     if (Date.now() > verification.expiresAt) {
       // Workflow to send another verification email if the token is expired.
-      const language = decoded_token.language ? decoded_token.language.toString() : "en";
-      const email = decoded_token.email;
+      const language = decoded_token.language ? decoded_token.language.toString() : "en";  
       const random_token = crypto.randomBytes(32).toString("hex");
       const token_payload = {
-        email: email,
+        owner: owner,
         requestId: requestId,
         language: language,
         action: "confirm",
@@ -1119,7 +1119,7 @@ router.get("/verify/:token", async (req, res) => {
 
         const email_details = {
             from: email_sender,
-            to: email,
+            to: owner.email,
             subject: 'Change Password',
             html: email_content,
           }
@@ -1141,7 +1141,7 @@ router.get("/verify/:token", async (req, res) => {
 
     console.log("Creating new user");
     try {
-      const email = decoded_token.email.toString();
+      const email = owner.email;
 
       let uid = null;
       let userRecord = null;
@@ -1160,7 +1160,7 @@ router.get("/verify/:token", async (req, res) => {
           email: email,
           username: email.includes("@") ? email.split("@")[0] : email,
           password: randomPassword, // Ideally this should be null so we can create users who can only login through an email link.
-          name: `${fallback} ${fallback}`, // The user management service takes this value and splits it into first name and last name. We should model it otherwise.
+          name: owner.name || `${fallback} ${fallback}`, // The user management service takes this value and splits it into first name and last name. We should model it otherwise.
           type: "provider",
         
           incorporation: decoded_token.incorporation || fallback,

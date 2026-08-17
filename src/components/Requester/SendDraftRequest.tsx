@@ -248,7 +248,7 @@ const validateEmail = (email: string) => {
 
     try {
       const newOwnerIds = selectedOwners.filter((o) => o.id != "").map((o) => o.id);
-      const unregisteredOwners = selectedOwners.filter((o) => o.id === "").map((o) => o.email);
+      const unregisteredOwners = selectedOwners.filter((o) => o.id === "").map((o) => ({name: o.name || "Unknown", email: o.email}));
 
       console.log("=== BEFORE SENDING ===");
       console.log("Current owners state:", owners);

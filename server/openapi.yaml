@@ -969,7 +969,7 @@ paths:
               type: object
               anyOf:
                 - required:
-                    - user_emails
+                    - user_details
                 - required:
                     - ownersPending
               properties:
@@ -981,14 +981,27 @@ paths:
                   example:
                     - "6866c6ddd5b8974f1090781d"
 
-                user_emails:
+                user_details:
                   type: array
                   items:
-                    type: string
-                    format: email
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        format: email
+                      name:
+                        type: string
+                      id:
+                        type: string
+                    required:
+                      - email
                   example:
-                    - alice@example.com
-                    - bob@example.com
+                    - email: alice@example.com
+                      name: Alice
+                      id: "123"
+                    - email: bob@example.com
+                      name: Bob
+                      id: "456"
 
       parameters:
         - name: id
@@ -1529,7 +1542,7 @@ components:
         type:
           type: string
           enum: [provider, consumer]
-        username_email:
+        email:
           type: string
           format: email
           description: User's email address

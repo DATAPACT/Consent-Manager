@@ -12,6 +12,12 @@ import crypto from "crypto";
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
 
+interface UserInputData {
+  email: string,
+  name?: string, 
+  id?: string 
+}
+
 // POST /api/requests - Create a new request
 router.post("/", async (req, res) => {
   try {
@@ -632,7 +638,7 @@ router.post("/:id/send", async (req, res) => {
     const { id } = req.params;
     let userDocs: WithId<Document>[] | null = [];
     let test_email_urls = [];
-    let unregisteredOwners: String[] = []
+    let unregisteredOwners: UserInputData[] = []
     let lang = req.body.language || "en";
     const email_sender = process.env.DEFAULT_EMAIL_SENDER || "DIPS Consent Manager <dips-consent-manager@soton.ac.uk>";
 
@@ -648,10 +654,11 @@ router.post("/:id/send", async (req, res) => {
       const ownersPendingIds = req.body.ownersPending.map((o : string) => new ObjectId(o));
       userDocs = await db.collection("users").find({_id: {$in: ownersPendingIds}}).toArray();
     }
-    if (req.body.user_emails) {
-      const user_emails = req.body.user_emails;
+    if (req.body.user_details) {
+      const user_details = req.body.user_details;
+      const user_emails = user_details.map((user: UserInputData) => user.email);
       userDocs = userDocs.concat(await db.collection("users").find({'email': {$in: user_emails}}).toArray());
-      unregisteredOwners = userDocs && userDocs.length > 0 ? user_emails.filter((o: String) => !userDocs?.some((doc) => doc.email === o)) : user_emails;
+      unregisteredOwners = userDocs && userDocs.length > 0 ? user_details.filter((o: UserInputData) => !userDocs?.some((doc) => doc.email === o.email)) : user_details;
     }
     if (!req.body.ownersPending && !req.body.user_emails) {
       console.error("Request body has no owners pending or user emails.")
@@ -761,7 +768,7 @@ router.post("/:id/send", async (req, res) => {
     }
 
     for (const owner of unregisteredOwners) {
-      const userDoc = await db.collection("users").findOne({'email': {$eq: owner}});
+      const userDoc = await db.collection("users").findOne({'email': {$eq: owner.email}});
       if (userDoc) {
         console.log(`Email address already registered to user ${userDoc._id}`);
         continue;
@@ -770,7 +777,7 @@ router.post("/:id/send", async (req, res) => {
         console.log(`Attempting to send email to ${owner}`);
         const random_token = crypto.randomBytes(32).toString("hex");
         const token_payload = {
-          email: owner,
+          owner: owner,
           requestId: id,
           language: lang,
           action: "confirm",
@@ -790,7 +797,7 @@ router.post("/:id/send", async (req, res) => {
 
           const email_details = {
               from: email_sender,
-              to: owner,
+              to: owner.email,
               subject: 'Consent Request',
               html: email_content,
             }
