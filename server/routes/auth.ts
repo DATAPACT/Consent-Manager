@@ -1222,7 +1222,12 @@ router.get("/verify/:token", async (req, res) => {
           const redirect_url = process.env.FRONTEND_URL || "https://dips.soton.ac.uk/consent-manager"
 
 
-          const userData = {uid: userRecord._id, role: "owner", ...userRecord};
+          const userData = {
+            uid: userRecord._id, 
+            role: "owner", 
+            email: userRecord.email,
+            displayName: userRecord.name,
+            userData: {...userRecord}};
           const encodedUser = encodeURIComponent(JSON.stringify(userData));
           const encodedToken = encodeURIComponent(access_token);
 

@@ -49,7 +49,7 @@ export async function authorizeRequest(
         else {
           let userDoc = await db
           .collection("users")
-          .findOne({username_email: {$eq: verification.email}})//look for user id
+          .findOne({email: {$eq: verification.email}})//look for user id
           if (userDoc) {
             request_user_id = userDoc._id.toString();
           }
