@@ -656,6 +656,7 @@ router.post("/:id/send", async (req, res) => {
     }
     if (req.body.user_details) {
       const user_details = req.body.user_details;
+      console.log(`User details: ${user_details}`);
       const user_emails = user_details.map((user: UserInputData) => user.email);
       userDocs = userDocs.concat(await db.collection("users").find({'email': {$in: user_emails}}).toArray());
       unregisteredOwners = userDocs && userDocs.length > 0 ? user_details.filter((o: UserInputData) => !userDocs?.some((doc) => doc.email === o.email)) : user_details;
