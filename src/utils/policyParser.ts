@@ -1,5 +1,4 @@
 // Generic ODRL policy parser for consent management
-import { getOperandDropdownValue } from "../helperFunctions/RequestDropdowns";
 import { ODRLPermission, ODRLPolicy } from "../components/Interfaces/ODRL";
 import { Permission } from "../components/Interfaces/Requests";
 
