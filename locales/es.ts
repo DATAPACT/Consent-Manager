@@ -254,6 +254,21 @@ export default {
     edit_request_text_1: "",
     edit_request_text_2: "",
 
+    //OPERATORS
+    choose_an_operator: "Elija un operador",
+    equals: "es igual a",
+    gt: "es mayor a",
+    geq: "es mayor o igual a",
+    hasPart: "tiene parte",
+    isA: "es un(a)",
+    isAllOf: "es todo",
+    isAnyOf: "es cualquiera de",
+    isNoneOf: "no es ninguno de",
+    isPartOf: "es parte de",
+    lt: "menor a",
+    leq: "menor o igual a",
+    neq: "no es igual a",
+
     //EDIT REQUEST
     error_updating_request: "Error actualizando la solicitud.",
     update_request_details: "Actualice los datos de la solicitud.",
@@ -327,5 +342,6 @@ export default {
     email_template_disclaimer: "By clicking on 'Accept', you agree for your email address to be registered in our system. This will allow us to keep track of consent requests you have accepted, rejected or revoked. If you are unsure whether to accept, please contact the data requester at",
     reset_password_text_1: "Click on the button to reset your password.",
     expired_reset_password_text_1: "",
+    agree_to_use_system: "Agree to use the Consent Manager",
 
 }

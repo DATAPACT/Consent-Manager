@@ -459,7 +459,7 @@ function EditDraftRequest() {
                             )
                           }
                         >
-                          {getOperandDropdownValue().map((opt) => (
+                          {getOperandDropdownValue(t).map((opt) => (
                             <option key={opt.value} value={opt.value}>
                               {opt.label}
                             </option>
@@ -566,7 +566,7 @@ function EditDraftRequest() {
                                 )
                               }
                             >
-                              {getOperandDropdownValue().map((opt) => (
+                              {getOperandDropdownValue(t).map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                   {opt.label}
                                 </option>
@@ -672,7 +672,7 @@ function EditDraftRequest() {
                                 )
                               }
                             >
-                              {getOperandDropdownValue().map((opt) => (
+                              {getOperandDropdownValue(t).map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                   {opt.label}
                                 </option>
@@ -761,7 +761,7 @@ function EditDraftRequest() {
                             )
                           }
                         >
-                          {getOperandDropdownValue().map((opt) => (
+                          {getOperandDropdownValue(t).map((opt) => (
                             <option key={opt.value} value={opt.value}>
                               {opt.label}
                             </option>

@@ -1,5 +1,6 @@
 import { getOntologies } from "../services/api";
 import * as rdflib from "rdflib";
+import { TFunction } from "i18next";
 
 export interface Option {
   value: string;
@@ -219,21 +220,21 @@ export const getAttributeDropdownValue = async (
   ];
 };
 
-export const getOperandDropdownValue = (): Option[] => {
+export const getOperandDropdownValue = (language: TFunction): Option[] => {
   return [
-    { value: "", label: "Choose an operator" },
-    { value: "odrl:eq", label: "equals" },
-    { value: "odrl:gt", label: "greater than" },
-    { value: "odrl:gteq", label: "greater than or equal to" },
-    { value: "odrl:hasPart", label: "has part" },
-    { value: "odrl:isA", label: "is a" },
-    { value: "odrl:isAllOf", label: "is all of" },
-    { value: "odrl:isAnyOf", label: "is any of" },
-    { value: "odrl:isNoneOf", label: "is none of" },
-    { value: "odrl:isPartOf", label: "is part of" },
-    { value: "odrl:lt", label: "less than" },
-    { value: "odrl:lteq", label: "less than or equal to" },
-    { value: "odrl:neq", label: "not equal to" },
+    { value: "", label: language("choose_an_operator") },
+    { value: "odrl:eq", label: language("equals") },
+    { value: "odrl:gt", label: language("gt") },
+    { value: "odrl:gteq", label: language("geq") },
+    { value: "odrl:hasPart", label: language("hasPart") },
+    { value: "odrl:isA", label: language("isA") },
+    { value: "odrl:isAllOf", label: language("isAllOf") },
+    { value: "odrl:isAnyOf", label: language("isAnyOf") },
+    { value: "odrl:isNoneOf", label: language("isNoneOf") },
+    { value: "odrl:isPartOf", label: language("isPartOf") },
+    { value: "odrl:lt", label: language("lt") },
+    { value: "odrl:lteq", label: language("leq") },
+    { value: "odrl:neq", label: language("neq") },
   ];
 };
 

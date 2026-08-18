@@ -2,8 +2,7 @@ import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequest } from "../../services/api";
-import { getRequestPermissions } from "../../utils/policyParser";
-import { Request, Permission } from "../Interfaces/Requests";
+import { Request } from "../Interfaces/Requests";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -35,7 +34,6 @@ function sanitizeODRL(obj: any): any {
 function OwnerApprovedRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
-  const [, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [showContract, setShowContract] = useState<boolean>(false);
@@ -58,9 +56,6 @@ function OwnerApprovedRequestsDetails() {
         if (result.success) {
           const req = result.data as Request;
           setRequestDetails(req);
-
-          const parsed = getRequestPermissions(req);
-          setPermissions(parsed);
         } else {
           setError("Request not found.");
         }

@@ -771,7 +771,7 @@ function OwnerPendingRequestDetails() {
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
-  if (!requestDetails) return <div>No request details found.</div>;
+  if (!requestDetails) return <div>{t("no_request_details_found")}</div>;
 
   return (
     <>

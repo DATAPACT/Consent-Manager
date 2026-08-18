@@ -85,7 +85,21 @@ export function extractReadableName(id: string): string {
 }
 
 export function extractReadableOperator(id: string): string {
-  const operators = getOperandDropdownValue();
+  const operators = [
+    { value: "", label: "Choose an operator" },
+    { value: "odrl:eq", label: "equals" },
+    { value: "odrl:gt", label: "greater than" },
+    { value: "odrl:gteq", label: "greater than or equal to" },
+    { value: "odrl:hasPart", label: "has part" },
+    { value: "odrl:isA", label: "is a" },
+    { value: "odrl:isAllOf", label: "is all of" },
+    { value: "odrl:isAnyOf", label: "is any of" },
+    { value: "odrl:isNoneOf", label: "is none of" },
+    { value: "odrl:isPartOf", label: "is part of" },
+    { value: "odrl:lt", label: "less than" },
+    { value: "odrl:lteq", label: "less than or equal to" },
+    { value: "odrl:neq", label: "not equal to" },
+  ];
 
     const operator_string = operators.filter(element => element.value === id);
 
@@ -225,8 +239,8 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
 
     const datasetRefinements = parseConstraints(permission["odrl:target"]["odrl:refinement"]);
 
-    // Parse constraints generically
-    const constraints = parseConstraints(permission["odrl:constraint"]);
+    // Parse constraints generically (excluding purpose)
+    const constraints = parseConstraints(permission["odrl:constraint"]).filter((o) => !o.leftOperand.toLowerCase().includes("purpose"));
 
     // Parse assignees generically
     const assignees = parseAssignees(permission["odrl:assignee"]);

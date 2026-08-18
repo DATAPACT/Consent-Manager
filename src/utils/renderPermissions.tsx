@@ -73,7 +73,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
         )}
 
         {/* Show generic ODRL assignees */}
-        {permission.assignees && permission.assignees.length > 0 && (
+        {/* {permission.assignees && permission.assignees.length > 0 && (
           <div className="mt-3">
             <h6>{t("assigned_to")}:</h6>
             {permission.assignees.map((assignee, i) => (
@@ -92,7 +92,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
               </div>
             ))}
           </div>
-        )}
+        )} */}
 
         {permission.datasetRefinements?.length > 0 && (
           <div>
@@ -100,7 +100,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
             <ul className="list-unstyled">
               {permission.datasetRefinements.map((ref, i) => (
                 <li key={i}>
-                  Data about <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)} <strong>{ref.rightOperand}</strong>.
                 </li>
               ))}
             </ul>
@@ -113,7 +113,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
             <ul className="list-unstyled">
               {permission.actionRefinements.map((ref, i) => (
                 <li key={i}>
-                  Write access to <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)} <strong> {ref.rightOperand}</strong>.
+                  <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)} <strong> {ref.rightOperand}</strong>.
                 </li>
               ))}
             </ul>

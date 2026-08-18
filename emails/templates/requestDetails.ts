@@ -219,7 +219,7 @@ export function VerificationEmail(requestDetails: RequestData, token: string, la
               margin-right:12px;
             "
           >
-            ${t.agree}
+            ${t.agree_to_use_system}
           </a>
         </div>
       </div>
