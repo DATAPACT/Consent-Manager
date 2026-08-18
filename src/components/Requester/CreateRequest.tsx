@@ -451,7 +451,7 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {getOperandDropdownValue().map((option) => (
+                          {getOperandDropdownValue(t).map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
@@ -569,7 +569,7 @@ function CreateRequest() {
                               }
                               required
                             >
-                              {getOperandDropdownValue().map((option) => (
+                              {getOperandDropdownValue(t).map((option) => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
                                 </option>
@@ -686,7 +686,7 @@ function CreateRequest() {
                               }
                               required
                             >
-                              {getOperandDropdownValue().map((option) => (
+                              {getOperandDropdownValue(t).map((option) => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
                                 </option>
@@ -779,7 +779,7 @@ function CreateRequest() {
                           }
                           required
                         >
-                          {getOperandDropdownValue().map((option) => (
+                          {getOperandDropdownValue(t).map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
