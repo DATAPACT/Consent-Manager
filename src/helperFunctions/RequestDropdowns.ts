@@ -16,8 +16,6 @@ export type Ontology = {
 };
 
 export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]> => {
-  if (!requesterUid) throw new Error("User not authenticated");
-
   try {
     console.log("Fetching ontologies for user:", requesterUid);
     
