@@ -289,7 +289,7 @@ function CreateRequest() {
                       {t("double_click_to_select")}
                     </option>
                     {ontologies
-                      .filter((ontology) => ontology._id !== "default")
+                      .filter((ontology) => !ontology.isDefault)
                       .map(({ _id, name }) => (
                         <option key={_id} value={_id}>
                           {name}
