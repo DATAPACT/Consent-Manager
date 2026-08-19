@@ -12,7 +12,7 @@ export type Ontology = {
   _id: string;
   name: string;
   content: string;
-  default?: boolean;
+  isDefault: boolean;
 };
 
 export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]> => {
@@ -40,8 +40,8 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
 
     // Process ontologies and fetch their content
     const ontologyDocs = await Promise.all(
-      ontologyData.map(async (ontologyItem: any) => {
-        const { _id, name, content } = ontologyItem;
+      ontologyData.map(async (ontologyItem: Ontology) => {
+        const { _id, name, content, isDefault } = ontologyItem;
         console.log(`Processing ontology ${_id}: ${name}, URL: ${content}`);
 
         if (!content) {
@@ -49,7 +49,7 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
           return { _id, name, content: "No content found" };
         }
 
-        return { _id, name, content};
+        return { _id, name, content, isDefault};
       })
     );
 

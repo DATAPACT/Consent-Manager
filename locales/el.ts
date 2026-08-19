@@ -327,10 +327,10 @@ export default {
     requester_details: "Στοιχεία του αιτούντος",
     render_permissions_text_1_prefix: "Τι ζητείται",
     render_permissions_text_1_suffix: "",
-    render_permissions_text_2_prefix: "Ο αιτών επιθυμεί να έχει πρόσβαση σε δεδομένα από τη διεύθυνση ",
+    render_permissions_text_2_prefix: "Ο αιτών επιθυμεί να έχει πρόσβαση σε δεδομένα ",
     render_permissions_text_2_suffix: "",
-    render_permissions_text_3_prefix: "Ο αιτών επιθυμεί να",
-    render_permissions_text_3_suffix: "αυτό το σύνολο δεδομένων.",
+    render_permissions_text_3_prefix: "Ο αιτών επιθυμεί να εκτελέσει την πράξη",
+    render_permissions_text_3_suffix: "σε αυτό το σύνολο δεδομένων.",
     render_permissions_text_4_prefix: "Το αίτημα αυτό υποβάλλεται για",
     render_permissions_text_4_suffix: "σκοπούς",
 

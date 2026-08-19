@@ -62,7 +62,7 @@ function CreateRequest() {
         const data = await fetchOntologies(user.uid);
         setOntologies(data);
 
-        const defaultOntology = data.filter((o) => o.default === true);
+        const defaultOntology = data.filter((o) => o.isDefault === true);
         if (defaultOntology) {
           setSelectedOntologies(defaultOntology);
         }
