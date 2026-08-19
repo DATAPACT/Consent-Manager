@@ -1,17 +1,23 @@
-import { extractReadableOperator, getRequestPermissions } from "./policyParser";
+import { getRequestPermissions } from "./policyParser";
 import { Request } from "../components/Interfaces/Requests";
 import { RequestForm } from "../helperFunctions/PermissionsUtils";
+import { Option } from "../helperFunctions/RequestDropdowns";
 import { TFunction } from "i18next";
 
-function formatOperand(operand: any): string {
+function formatOperand(operand: any, labels: Option[]): string {
     if (!operand) return "";
 
     if (typeof operand === "string") return operand;
 
     // JSON-LD object with @id
     if (operand["@id"]) {
-      return operand["@id"].replace(/^.*:/, ""); // strip prefix like cactus:
-    }
+      if (labels.find((o) => o.value === operand["@id"])) {
+        return labels.find((o) => o.value === operand["@id"])?.label || operand["@id"].replace(/^.*:/, "");
+      }
+      else {
+        return operand["@id"].replace(/^.*:/, ""); // strip prefix like cactus:
+      }
+    }    
 
     // JSON-LD object with @value
     if (operand["@value"]) {
@@ -21,19 +27,19 @@ function formatOperand(operand: any): string {
     // JSON-LD object with @list
     if (operand["@list"]) {
       return operand["@list"]
-        .map((item: any) => formatOperand(item))
+        .map((item: any) => formatOperand(item, labels))
         .join(", ");
     }
 
     // Plain array of objects
     if (Array.isArray(operand)) {
-      return operand.map((item) => formatOperand(item)).join(", ");
+      return operand.map((item) => formatOperand(item, labels)).join(", ");
     }
 
     return String(operand);
   }
 
-export default function renderPermissions(requestDetails: Request, t: TFunction) {
+export default function renderPermissions(requestDetails: Request, t: TFunction, labels: Option[]) {
     
     // Parse permissions from ODRL policy or fallback to legacy permissions
     const parsedPermissions = getRequestPermissions(requestDetails);
@@ -51,7 +57,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
         </p>
         <p>
           <strong>{t("purpose")}:</strong> {t("render_permissions_text_4_prefix")}{" "}
-          <strong>{formatOperand(permission.purpose)}</strong> {t("render_permissions_text_4_suffix")}.
+          <strong>{formatOperand(permission.purpose, labels)}</strong> {t("render_permissions_text_4_suffix")}.
         </p>
 
         {/* Show generic ODRL constraints */}
@@ -62,9 +68,9 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
               {permission.constraints.map((constraint, i) => (
                 <li key={i} className="mb-1">
                   <small className="text-muted">
-                    • {formatOperand(constraint.leftOperand)}{" "}
-                    {formatOperand(constraint.operator)}{" "}
-                    {formatOperand(constraint.rightOperand)}
+                    • {formatOperand(constraint.leftOperand, labels)}{" "}
+                    {formatOperand(constraint.operator, labels)}{" "}
+                    {formatOperand(constraint.rightOperand, labels)}
                   </small>
                 </li>
               ))}
@@ -100,7 +106,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
             <ul className="list-unstyled">
               {permission.datasetRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  <strong>{ref.leftOperand}</strong> {t(ref.operator)} <strong>{ref.rightOperand}</strong>.
                 </li>
               ))}
             </ul>
@@ -113,7 +119,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
             <ul className="list-unstyled">
               {permission.actionRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)} <strong> {ref.rightOperand}</strong>.
+                  <strong>{ref.leftOperand}</strong> {t(ref.operator)} <strong> {ref.rightOperand}</strong>.
                 </li>
               ))}
             </ul>
@@ -127,7 +133,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
               {permission.purposeRefinements.map((ref, i) => (
                 <li key={i}>
                   Data will be used for <strong>{ref.leftOperand}</strong>{" "}
-                  {extractReadableOperator(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  {t(ref.operator)} <strong>{ref.rightOperand}</strong>.
                 </li>
               ))}
             </ul>
@@ -141,7 +147,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
               {permission.constraintRefinements.map((ref, i) => (
                 <li key={i}>
                   Data should meet the constraint:{" "}
-                  <strong>{ref.leftOperand}</strong> {extractReadableOperator(ref.operator)}{" "}
+                  <strong>{ref.leftOperand}</strong> {t(ref.operator)}{" "}
                   <strong>{ref.rightOperand}</strong>.
                 </li>
               ))}
@@ -153,7 +159,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction)
         
   }
 
-export function renderPermissionsPreview(requestDetails: RequestForm, t: TFunction) {
+export function renderPermissionsPreview(requestDetails: RequestForm, t: TFunction, labels: Option[]) {
     
     // Parse permissions from ODRL policy or fallback to legacy permissions
     const parsedPermissions = getRequestPermissions(requestDetails);
@@ -172,7 +178,7 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
         </p>
         <p>
           <strong>Purpose:</strong> This request is for{" "}
-          <strong>{formatOperand(permission.purpose)}</strong> reasons.
+          <strong>{formatOperand(permission.purpose, labels)}</strong> reasons.
         </p>
 
         {/* Show generic ODRL constraints */}
@@ -183,9 +189,9 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
               {permission.constraints.map((constraint, i) => (
                 <li key={i} className="mb-1">
                   <small className="text-muted">
-                    • {formatOperand(constraint.leftOperand)}{" "}
-                    {formatOperand(constraint.operator)}{" "}
-                    {formatOperand(constraint.rightOperand)}
+                    • {formatOperand(constraint.leftOperand, labels)}{" "}
+                    {formatOperand(constraint.operator, labels)}{" "}
+                    {formatOperand(constraint.rightOperand, labels)}
                   </small>
                 </li>
               ))}

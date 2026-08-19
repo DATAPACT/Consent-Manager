@@ -178,6 +178,7 @@ export const getFeatureDropdownValue = async (
 export const getAttributeDropdownValue = async (
   store: rdflib.Store,
 ): Promise<Option[]> => {
+  const language = localStorage.getItem("language") || "en";
   const sparql_left_operands_query = `
     SELECT ?value 
     WHERE {
@@ -186,6 +187,7 @@ export const getAttributeDropdownValue = async (
     const query = rdflib.SPARQLToQuery(sparql_left_operands_query, false, store);
     //@ts-ignore
     let ans = store.querySync(query);
+    ans = ans.filter((binding) => (binding['?value'].language === language));
     if (ans.length > 0) {
       return ans.map((binding) => ({
       value: binding['?variable'].value,

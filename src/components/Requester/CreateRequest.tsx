@@ -50,6 +50,7 @@ function CreateRequest() {
   const [purposeRefinementsOptions, setPurposeRefinementsOptions] = useState<Option[]>([]);
   const [datasetRefinementsOptions, setDatasetRefinementsOptions] = useState<Option[]>([]);
   const [generalRefinementsOptions, setGeneralRefinementsOptions] = useState<Option[]>([]);
+  const [labels, setLabels] = useState<Option[]>([]);
 
   useEffect(() => {
     const loadOntologies = async () => {
@@ -92,6 +93,7 @@ function CreateRequest() {
       const purposeRefinements = actionRefinements;
       const datasetRefinements = actionRefinements;
       const generalRefinements = actionRefinements;
+      const labels = actions.concat(purposes).concat(actionRefinements);
 
       setActionOptions(actions);
       setPurposeOptions(purposes);
@@ -99,6 +101,7 @@ function CreateRequest() {
       setPurposeRefinementsOptions(purposeRefinements);
       setDatasetRefinementsOptions(datasetRefinements);
       setGeneralRefinementsOptions(generalRefinements);
+      setLabels(labels);
     };
     
     loadDropdownValues();
@@ -852,7 +855,7 @@ function CreateRequest() {
               ...formData,
               selectedOntologies,
               permissions,
-            }, t)}
+            }, t, labels)}
             <p className="text-muted mt-4">
               {t("create_request_text_1")} <br />
               <br /> {t("create_request_text_2")}{" "}

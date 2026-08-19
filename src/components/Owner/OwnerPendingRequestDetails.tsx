@@ -23,6 +23,7 @@ import styles from "../../css/Ontology.module.css";
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
 import { useTranslation } from "react-i18next";
+import { getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
 
 function OwnerPendingRequestDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -37,7 +38,31 @@ function OwnerPendingRequestDetails() {
     useState<boolean>(false);
   const [autoRedirectAttempted, setAutoRedirectAttempted] =
     useState<boolean>(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [labels, setLabels] = useState<any>();
+
+  useEffect(() => {
+    const loadDropdownValues = async () => {
+      if (requestDetails?.selectedOntologies) {
+        const store = await loadGraph(requestDetails?.selectedOntologies);
+        const actions = await getFeatureDropdownValue(
+          store,
+          "action"
+        );
+        const purposes = await getFeatureDropdownValue(
+          store,
+          "purpose"
+        );
+        // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
+        const refinements = await getAttributeDropdownValue(store);
+        const labels = actions.concat(purposes).concat(refinements);
+        setLabels(labels);
+      }
+    
+  };
+  
+  loadDropdownValues();
+  },[requestDetails, i18n.language]);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -805,7 +830,7 @@ function OwnerPendingRequestDetails() {
           {requestDetails.extraText ? requestDetails.extraText : ""}
         </text>
 
-        {renderPermissions(requestDetails, t)}
+        {renderPermissions(requestDetails, t, labels)}
 
         <div className="alert alert-warning" role="alert">
           {t("pending_request_disclaimer")}
