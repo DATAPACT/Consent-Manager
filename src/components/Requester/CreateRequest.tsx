@@ -300,8 +300,8 @@ function CreateRequest() {
               </select>
 
               <div style={{ marginTop: "1rem" }}>
-                {selectedOntologies.map(({ _id, name }) =>
-                  _id === "default" ? (
+                {selectedOntologies.map(({ _id, name, isDefault }) =>
+                  isDefault ? (
                     <span
                       key={_id}
                       className="border bg-light px-2 py-1 me-2 text-muted"

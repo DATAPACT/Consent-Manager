@@ -326,13 +326,13 @@ function EditDraftRequest() {
               </select>
 
               <div style={{ marginTop: "1rem" }}>
-                {selectedOntologies.map(({ _id, name }) =>
-                  _id === "default" ? (
+                {selectedOntologies.map(({ _id, name, isDefault }) =>
+                  isDefault ? (
                     <span
                       key={_id}
                       className="border px-2 py-1 me-2 bg-light text-muted"
                       style={{ cursor: "not-allowed" }}
-                      title="Default ontology cannot be removed"
+                      title="$Default ontology cannot be removed"
                     >
                       {name}
                     </span>
@@ -413,7 +413,7 @@ function EditDraftRequest() {
                   {permission.datasetRefinements.map((ref) => (
                     <div className="row mt-2 mb-3" key={ref.id}>
                       <div className="d-flex mb-3 mt-3">
-                        <h6 className="me-auto">Dataset Refinement</h6>
+                        <h6 className="me-auto">{t("dataset_refinement")}</h6>
                         <i
                           className="fa-solid fa-trash"
                           onClick={() =>
@@ -520,7 +520,7 @@ function EditDraftRequest() {
                       {permission.actionRefinements.map((ref) => (
                         <div className="row mt-2 mb-3" key={ref.id}>
                           <div className="d-flex mb-3 mt-3">
-                            <h6 className="me-auto">Action Refinement</h6>
+                            <h6 className="me-auto">{t("action_refinement")}</h6>
                             <i
                               className="fa-solid fa-trash"
                               onClick={() =>
@@ -626,7 +626,7 @@ function EditDraftRequest() {
                       {permission.purposeRefinements.map((ref) => (
                         <div className="row mt-2 mb-3" key={ref.id}>
                           <div className="d-flex mb-3 mt-3">
-                            <h6 className="me-auto">Purpose Refinement</h6>
+                            <h6 className="me-auto">{t("purpose_refinement")}</h6>
                             <i
                               className="fa-solid fa-trash"
                               onClick={() =>
