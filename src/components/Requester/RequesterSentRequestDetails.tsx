@@ -33,27 +33,27 @@ function RequesterSentRequestsDetails() {
   const [labels, setLabels] = useState<any>();
     
   useEffect(() => {
-      const loadDropdownValues = async () => {
-        let ontologies = await getOntologies();
-        if (requestDetails?.selectedOntologies) {
-          ontologies = ontologies.concat(requestDetails.selectedOntologies);
-          const store = await loadGraph(ontologies);
-          const actions = await getFeatureDropdownValue(
-            store,
-            "action"
-          );
-          const purposes = await getFeatureDropdownValue(
-            store,
-            "purpose"
-          );
-          // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
-          const refinements = await getAttributeDropdownValue(store);
-          const labels = actions.concat(purposes).concat(refinements);
-          setLabels(labels);
-        }
-      };
-      loadDropdownValues();
-    },[requestDetails, i18n.language]);
+    const loadLabels = async () => {
+      let ontologies = await getOntologies();
+      if (requestDetails?.selectedOntologies) {
+        ontologies = ontologies.concat(requestDetails.selectedOntologies);
+      }
+      const store = await loadGraph(ontologies);
+      const actions = await getFeatureDropdownValue(
+        store,
+        "action"
+      );
+      const purposes = await getFeatureDropdownValue(
+        store,
+        "purpose"
+      );
+      // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
+      const refinements = await getAttributeDropdownValue(store);
+      const labels = actions.concat(purposes).concat(refinements);
+      setLabels(labels);
+    };
+    loadLabels();
+  },[requestDetails, i18n.language]);
 
   const downloadODRL = async (policy: ODRLPolicy | undefined, owner: {name: string, email: string, status: string}) => {
     if (!policy) {
