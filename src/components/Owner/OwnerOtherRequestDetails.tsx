@@ -18,6 +18,7 @@ import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
 import { useTranslation } from "react-i18next";
 import { getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
+import { Ontology } from "../Interfaces/Ontology";
 
 function OwnerOtherRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -36,7 +37,7 @@ function OwnerOtherRequestsDetails() {
     
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await getOntologies();
+      let ontologies = await getOntologies() as Ontology[];
       if (requestDetails?.selectedOntologies) {
         ontologies = ontologies.concat(requestDetails.selectedOntologies);
       }
