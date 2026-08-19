@@ -180,11 +180,11 @@ router.get('/', async (req, res) => {
       const userOntologies = await userOntologiesQuery.toArray();
       
       // Add default ontology if it exists
-      const allAvailableOntologies = [...userOntologies];
+      let allAvailableOntologies = [...userOntologies];
 
       console.log(`Default ontologies: ${defaultOntologyDocs}`)
       if (defaultOntologyDocs) {
-        allAvailableOntologies.concat(defaultOntologyDocs);
+        allAvailableOntologies = allAvailableOntologies.concat(defaultOntologyDocs);
       }
 
       allAvailableOntologies.forEach(async value => {
