@@ -38,7 +38,7 @@ function OwnerOtherRequestsDetails() {
   useEffect(() => {
     const loadLabels = async () => {
       let ontologies = await getOntologies() as Ontology[];
-      if (requestDetails?.selectedOntologies) {
+      if (requestDetails && requestDetails?.selectedOntologies) {
         ontologies = ontologies.concat(requestDetails.selectedOntologies);
       }
       const store = await loadGraph(ontologies);
