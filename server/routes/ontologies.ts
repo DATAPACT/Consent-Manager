@@ -181,6 +181,8 @@ router.get('/', async (req, res) => {
       
       // Add default ontology if it exists
       const allAvailableOntologies = [...userOntologies];
+
+      console.log(`Default ontologies: ${defaultOntologyDocs}`)
       if (defaultOntologyDocs) {
         allAvailableOntologies.concat(defaultOntologyDocs);
       }
