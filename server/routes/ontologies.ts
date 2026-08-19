@@ -197,7 +197,7 @@ router.get('/', async (req, res) => {
       });
     } else {
       // No user specified - return all ontologies
-      const ontologies = await db.collection('ontologies').find().toArray();
+      const ontologies = await db.collection('ontologies').find({'isDefault': {$eq: true}}).toArray();
 
       res.json({
         success: true,

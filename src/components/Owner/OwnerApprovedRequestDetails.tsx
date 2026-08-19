@@ -1,7 +1,7 @@
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getRequest } from "../../services/api";
+import { getOntologies, getRequest } from "../../services/api";
 import { Request } from "../Interfaces/Requests";
 
 // components
@@ -46,8 +46,10 @@ function OwnerApprovedRequestsDetails() {
   
   useEffect(() => {
     const loadDropdownValues = async () => {
+      let ontologies = await getOntologies();
       if (requestDetails?.selectedOntologies) {
-        const store = await loadGraph(requestDetails?.selectedOntologies);
+        ontologies = ontologies.concat(requestDetails.selectedOntologies);
+        const store = await loadGraph(ontologies);
         const actions = await getFeatureDropdownValue(
           store,
           "action"

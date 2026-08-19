@@ -1,7 +1,7 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getRequest, getAllOwners } from "../../services/api";
+import { getRequest, getAllOwners, getOntologies } from "../../services/api";
 import { useIframe } from "../../IframeContext";
 import { Request } from "../Interfaces/Requests";
 import { ODRLPolicy } from "../Interfaces/ODRL";
@@ -32,10 +32,12 @@ function RequesterSentRequestsDetails() {
   const { t, i18n } = useTranslation();
   const [labels, setLabels] = useState<any>();
     
-    useEffect(() => {
+  useEffect(() => {
       const loadDropdownValues = async () => {
+        let ontologies = await getOntologies();
         if (requestDetails?.selectedOntologies) {
-          const store = await loadGraph(requestDetails?.selectedOntologies);
+          ontologies = ontologies.concat(requestDetails.selectedOntologies);
+          const store = await loadGraph(ontologies);
           const actions = await getFeatureDropdownValue(
             store,
             "action"

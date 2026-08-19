@@ -10,6 +10,7 @@ import {
   redirectToNegotiationDisplay,
   createContractAPI,
   getRequests,
+  getOntologies,
 } from "../../services/api";
 import log from "loglevel";
 
@@ -42,27 +43,27 @@ function OwnerPendingRequestDetails() {
   const [labels, setLabels] = useState<any>();
 
   useEffect(() => {
-    const loadDropdownValues = async () => {
-      if (requestDetails?.selectedOntologies) {
-        const store = await loadGraph(requestDetails?.selectedOntologies);
-        const actions = await getFeatureDropdownValue(
-          store,
-          "action"
-        );
-        const purposes = await getFeatureDropdownValue(
-          store,
-          "purpose"
-        );
-        // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
-        const refinements = await getAttributeDropdownValue(store);
-        const labels = actions.concat(purposes).concat(refinements);
-        setLabels(labels);
-      }
-    
-  };
-  
-  loadDropdownValues();
-  },[requestDetails, i18n.language]);
+      const loadDropdownValues = async () => {
+        let ontologies = await getOntologies();
+        if (requestDetails?.selectedOntologies) {
+          ontologies = ontologies.concat(requestDetails.selectedOntologies);
+          const store = await loadGraph(ontologies);
+          const actions = await getFeatureDropdownValue(
+            store,
+            "action"
+          );
+          const purposes = await getFeatureDropdownValue(
+            store,
+            "purpose"
+          );
+          // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
+          const refinements = await getAttributeDropdownValue(store);
+          const labels = actions.concat(purposes).concat(refinements);
+          setLabels(labels);
+        }
+      };
+      loadDropdownValues();
+    },[requestDetails, i18n.language]);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
