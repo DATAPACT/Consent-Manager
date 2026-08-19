@@ -157,8 +157,8 @@ export function parseConstraints(
     }
 
     return {
-      leftOperand: extractReadableName(leftOperand),
-      operator: extractReadableOperator(operator),
+      leftOperand,
+      operator,
       rightOperand,
       description,
     };
@@ -206,8 +206,8 @@ export function parseAssignees(
 
     result.refinements = [
       {
-        leftOperand: extractReadableName(leftOperand),
-        operator: extractReadableName(operator),
+        leftOperand,
+        operator,
         rightOperand,
         description,
       },
@@ -227,12 +227,8 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
 
   return policy["odrl:permission"].map((permission) => {
     // Extract basic permission components generically
-    const action = extractReadableName(
-      permission["odrl:action"]["rdf:value"]["@id"]
-    );
-    const dataset = extractReadableName(
-      permission["odrl:target"]["odrl:source"]["@id"]
-    );
+    const action = permission["odrl:action"]["rdf:value"]["@id"];
+    const dataset = permission["odrl:target"]["odrl:source"]["@id"];
 
     const actionRefinements = parseConstraints(permission["odrl:action"]["odrl:refinement"]);
 
@@ -261,7 +257,7 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
             return rightOp["@list"]
               .map((p: any) => {
                 if (typeof p === "object" && p["@id"])
-                  return extractReadableName(p["@id"]);
+                  return p["@id"];
                 if (typeof p === "object" && p["@value"]) return p["@value"];
                 return String(p);
               })
@@ -273,7 +269,7 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
             return rightOp
               .map((p) => {
                 if (typeof p === "object" && p["@id"])
-                  return extractReadableName(p["@id"]);
+                  return p["@id"];
                 if (typeof p === "object" && p["@value"]) return p["@value"];
                 return String(p);
               })
@@ -282,7 +278,7 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
 
           // Handle single object with @id
           if (typeof rightOp === "object" && rightOp["@id"]) {
-            return extractReadableName(rightOp["@id"]);
+            return rightOp["@id"];
           }
 
           // Handle single object with @value
@@ -294,15 +290,15 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
           return String(rightOp);
         })
         .join(", ");
-      purpose = extractReadableName(purposeValues) || "General use";
+      purpose = purposeValues || "General use";
     }
 
     return {
       dataset,
       action,
       purpose,
-      datasetRefinements: datasetRefinements,
-      actionRefinements: actionRefinements,
+      datasetRefinements: datasetRefinements || [],
+      actionRefinements: actionRefinements || [],
       purposeRefinements: [],
       constraintRefinements: [],
       constraints, // Generic constraint info
