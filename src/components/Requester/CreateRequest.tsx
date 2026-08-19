@@ -13,6 +13,7 @@ import {
   fetchOntologies,
   Ontology,
   Option,
+  loadGraph,
 } from "../../helperFunctions/RequestDropdowns";
 
 // permissions utils
@@ -61,9 +62,9 @@ function CreateRequest() {
         const data = await fetchOntologies(user.uid);
         setOntologies(data);
 
-        const defaultOntology = data.find((o) => o._id === "default");
+        const defaultOntology = data.filter((o) => o.default === true);
         if (defaultOntology) {
-          setSelectedOntologies([defaultOntology]);
+          setSelectedOntologies(defaultOntology);
         }
       } catch (err: any) {
         setError(err.message);
@@ -77,16 +78,17 @@ function CreateRequest() {
   useEffect(() => {
     console.log("Loading actions and purposes for ontologies.");
     const loadDropdownValues = async () => {
+      const store = await loadGraph(selectedOntologies);
       const actions = await getFeatureDropdownValue(
-        selectedOntologies,
+        store,
         "action"
       );
       const purposes = await getFeatureDropdownValue(
-        selectedOntologies,
+        store,
         "purpose"
       );
       // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
-      const actionRefinements = await getAttributeDropdownValue(selectedOntologies);
+      const actionRefinements = await getAttributeDropdownValue(store);
       const purposeRefinements = actionRefinements;
       const datasetRefinements = actionRefinements;
       const generalRefinements = actionRefinements;

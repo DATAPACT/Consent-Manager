@@ -175,20 +175,19 @@ router.get('/', async (req, res) => {
       const userOntologiesQuery = db.collection('ontologies').find({'uploadedBy': {$eq: requesterUid}});
       
       // Get the default ontology by ID
-      const defaultOntologyDoc = await db.collection('ontologies').findOne({'default': {$eq: true}});
+      const defaultOntologyDocs = await db.collection('ontologies').find({'default': {$eq: true}}).toArray();
       
       const userOntologies = await userOntologiesQuery.toArray();
       
       // Add default ontology if it exists
       const allAvailableOntologies = [...userOntologies];
-      if (defaultOntologyDoc) {
-        allAvailableOntologies.push(defaultOntologyDoc);
+      if (defaultOntologyDocs) {
+        allAvailableOntologies.concat(defaultOntologyDocs);
       }
 
       allAvailableOntologies.forEach(async value => {
         console.log(value);
-      }
-      )
+      })
       
       res.json({
         success: true,

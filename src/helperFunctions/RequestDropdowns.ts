@@ -12,6 +12,7 @@ export type Ontology = {
   _id: string;
   name: string;
   content: string;
+  default?: boolean;
 };
 
 export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]> => {
@@ -80,13 +81,8 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
 //   return result;
 // };
 
-export const getFeatureDropdownValue = async (
-  ontologies: Ontology[],
-  type: "action" | "purpose"
-): Promise<Option[]> => {
+export const loadGraph = async (ontologies: Ontology[]): Promise<rdflib.Store> => {
   const store = rdflib.graph();
-  const language = localStorage.getItem("language") || "en"; 
-
   for (const ontology of ontologies) {
       const textStream = JSON.stringify(ontology.content); //This is now guaranteed to be in JSON-LD.
       try {
@@ -110,6 +106,14 @@ export const getFeatureDropdownValue = async (
         console.error("Failed to parse ontology:", ontology.name, e);
       }
   }
+  return store;
+}
+
+export const getFeatureDropdownValue = async (
+  store: rdflib.Store,
+  type: "action" | "purpose"
+): Promise<Option[]> => {
+  const language = localStorage.getItem("language") || "en"; 
   console.log("Language:", language);
 
   if (type === "action") {
@@ -170,34 +174,8 @@ export const getFeatureDropdownValue = async (
 };
 
 export const getAttributeDropdownValue = async (
-  ontologies: Ontology[],
+  store: rdflib.Store,
 ): Promise<Option[]> => {
-  const store = rdflib.graph();
-
-  for (const ontology of ontologies) {
-      const textStream = JSON.stringify(ontology.content); //This is now guaranteed to be in JSON-LD.
-      try {
-        await new Promise<void>((resolve, reject) => {
-          rdflib.parse(
-            textStream,
-            store,
-            "http://example.org/base#",
-            "application/ld+json",
-            (error) => {
-              if (error) {
-                reject(error);
-                return;
-              }
-              console.log("Parsing successful:", ontology.name);
-              resolve();
-            }
-          );
-        });
-      } catch (e) {
-        console.error("Failed to parse ontology:", ontology.name, e);
-      }
-  }
-
   const sparql_left_operands_query = `
     SELECT ?value 
     WHERE {
