@@ -29,7 +29,7 @@ function EditDraftRequest() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { requestId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState(0);
@@ -140,7 +140,7 @@ function EditDraftRequest() {
     };
 
     loadDropdownValues();
-  }, [selectedOntologies]);
+  }, [selectedOntologies, i18n.language]);
 
   const handleDoubleClick = (id: string) => {
     const existing = selectedOntologies.find((o) => o._id === id);

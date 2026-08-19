@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 
 function CreateRequest() {
   const navigate = useNavigate(); // Initialize navigate
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
 
   // steps
@@ -102,7 +102,7 @@ function CreateRequest() {
     };
     
     loadDropdownValues();
-  }, [selectedOntologies]);
+  }, [selectedOntologies, i18n.language]);
 
   const handleDoubleClick = (id: string) => {
     const existing = selectedOntologies.find((o) => o._id === id);
