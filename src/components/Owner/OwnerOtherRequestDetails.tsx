@@ -6,7 +6,6 @@ import {
   getRequest,
   getNegotiationByRequestId,
   redirectToNegotiationDisplay,
-  getOntologies,
 } from "../../services/api";
 import { Request } from "../Interfaces/Requests";
 
@@ -17,7 +16,7 @@ import styles from "../../css/Ontology.module.css";
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
 import { useTranslation } from "react-i18next";
-import { getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
+import { fetchOntologies, getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
 import { Ontology } from "../Interfaces/Ontology";
 
 function OwnerOtherRequestsDetails() {
@@ -37,7 +36,7 @@ function OwnerOtherRequestsDetails() {
     
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await getOntologies() as Ontology[];
+      let ontologies = await fetchOntologies() as Ontology[];
       if (requestDetails && requestDetails?.selectedOntologies) {
         ontologies = ontologies.concat(requestDetails.selectedOntologies);
       }

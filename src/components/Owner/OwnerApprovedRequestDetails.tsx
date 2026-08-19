@@ -1,14 +1,14 @@
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getOntologies, getRequest } from "../../services/api";
+import { getRequest } from "../../services/api";
 import { Request } from "../Interfaces/Requests";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
 import { useTranslation } from "react-i18next";
-import { getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
+import { fetchOntologies, getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
 import { Ontology } from "../Interfaces/Ontology";
 
 // ✅ Helper: sanitize ODRL -> flatten rdf:value, @id, remove odrl:/rdf: prefixes
@@ -47,7 +47,7 @@ function OwnerApprovedRequestsDetails() {
   
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await getOntologies() as Ontology[];
+      let ontologies = await fetchOntologies() as Ontology[];
       if (requestDetails && requestDetails?.selectedOntologies) {
         ontologies = ontologies.concat(requestDetails.selectedOntologies);
       }

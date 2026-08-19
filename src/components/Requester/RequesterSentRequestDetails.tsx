@@ -1,7 +1,7 @@
 import styles from "../../css/CreateRequest.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getRequest, getAllOwners, getOntologies } from "../../services/api";
+import { getRequest, getAllOwners } from "../../services/api";
 import { useIframe } from "../../IframeContext";
 import { Request } from "../Interfaces/Requests";
 import { ODRLPolicy } from "../Interfaces/ODRL";
@@ -10,7 +10,7 @@ import { ODRLPolicy } from "../Interfaces/ODRL";
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
 import { useTranslation } from "react-i18next";
-import { getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
+import { fetchOntologies, getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
 import { Ontology } from "../Interfaces/Ontology";
 
 function RequesterSentRequestsDetails() {
@@ -35,7 +35,7 @@ function RequesterSentRequestsDetails() {
     
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await getOntologies() as Ontology[];
+      let ontologies = await fetchOntologies() as Ontology[];
       if (requestDetails && requestDetails?.selectedOntologies) {
         ontologies = ontologies.concat(requestDetails.selectedOntologies);
       }

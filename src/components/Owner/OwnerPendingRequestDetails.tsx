@@ -10,7 +10,6 @@ import {
   redirectToNegotiationDisplay,
   createContractAPI,
   getRequests,
-  getOntologies,
 } from "../../services/api";
 import log from "loglevel";
 
@@ -24,7 +23,7 @@ import styles from "../../css/Ontology.module.css";
 import LoadingSpinner from "../LoadingSpinner";
 import renderPermissions from "../../utils/renderPermissions";
 import { useTranslation } from "react-i18next";
-import { getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
+import { fetchOntologies, getAttributeDropdownValue, getFeatureDropdownValue, loadGraph } from "../../helperFunctions/RequestDropdowns";
 import { Ontology } from "../Interfaces/Ontology";
 
 function OwnerPendingRequestDetails() {
@@ -45,8 +44,8 @@ function OwnerPendingRequestDetails() {
 
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await getOntologies() as Ontology[];
-      if (requestDetails && requestDetails?.selectedOntologies) {
+      let ontologies = await fetchOntologies() as Ontology[];
+      if (requestDetails?.selectedOntologies) {
         ontologies = ontologies.concat(requestDetails.selectedOntologies);
       }
       const store = await loadGraph(ontologies);
