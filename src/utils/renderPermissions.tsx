@@ -7,7 +7,15 @@ import { TFunction } from "i18next";
 function formatOperand(operand: any, labels: Option[]): string {
     if (!operand) return "";
 
-    if (typeof operand === "string") return operand;
+    if (typeof operand === "string") {
+      const entry = labels.find((o) => o.value === operand);
+      if (entry) {
+        return entry.label;
+      }
+      else {
+        return operand;
+      }
+    }
 
     // JSON-LD object with @id
     if (operand["@id"]) {
@@ -49,12 +57,12 @@ export default function renderPermissions(requestDetails: Request, t: TFunction,
         <h5>{t("permission")} {ruleIndex + 1}</h5>
         <h5 className="mt-4">{t("render_permissions_text_1_prefix")} {t("render_permissions_text_1_suffix")}</h5>
         <p>
-          <strong>{t("dataset")}:</strong> {t("render_permissions_text_2_prefix")} 
-          <strong>{permission.dataset}</strong>{t("render_permissions_text_2_suffix")}
+          <strong>{t("dataset")}:</strong> {t("render_permissions_text_2_prefix")}{" "} 
+          <strong>{formatOperand(permission.dataset, labels)}</strong> {t("render_permissions_text_2_suffix")}
         </p>
         <p>
-          <strong>{t("action")}:</strong> {t("render_permissions_text_3_prefix")}{" "}
-          <strong>{permission.action}</strong> {t("render_permissions_text_3_suffix")}
+          <strong>{t("action")}:</strong> {t("render_permissions_text_3_prefix")}{" "} 
+          <strong>{formatOperand(permission.action, labels)}</strong> {t("render_permissions_text_3_suffix")}
         </p>
         <p>
           <strong>{t("purpose")}:</strong> {t("render_permissions_text_4_prefix")}{" "}
@@ -169,15 +177,15 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
         <h5>{t("permission")} {ruleIndex + 1}</h5>
         <h5 className="mt-4">{t("render_permissions_text_1_prefix")} {t("render_permissions_text_1_suffix")}</h5>
         <p>
-          <strong>{t("dataset")}:</strong> {t("render_permissions_text_2_prefix")} 
+          <strong>{t("dataset")}:</strong> {t("render_permissions_text_2_prefix")}{" "} 
           <strong>{formatOperand(permission.dataset, labels)}</strong> {t("render_permissions_text_2_suffix")}
         </p>
         <p>
-          <strong>{t("action")}:</strong> {t("render_permissions_text_3_prefix")}
+          <strong>{t("action")}:</strong> {t("render_permissions_text_3_prefix")}{" "} 
           <strong>{formatOperand(permission.action, labels)}</strong> {t("render_permissions_text_3_suffix")}
         </p>
         <p>
-          <strong>{t("purpose")}:</strong> {t("render_permissions_text_4_prefix")}
+          <strong>{t("purpose")}:</strong> {t("render_permissions_text_4_prefix")}{" "}
           <strong>{formatOperand(permission.purpose, labels)}</strong> {t("render_permissions_text_4_suffix")}
         </p>
 
