@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getRequest } from "../../services/api";
 import { Request } from "../Interfaces/Requests";
+import * as rdflib from "rdflib";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -44,29 +45,27 @@ function OwnerApprovedRequestsDetails() {
   const [contractError, setContractError] = useState<string>("");
   const { t, i18n } = useTranslation();
   const [labels, setLabels] = useState<any>();
+  const [graph, setGraph] = useState<rdflib.Store>();
   
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await fetchOntologies() as Ontology[];
-      if (requestDetails && requestDetails?.selectedOntologies) {
-        ontologies = ontologies.concat(requestDetails.selectedOntologies);
+      if (graph){
+        const actions = await getFeatureDropdownValue(
+          graph,
+          "action"
+        );
+        const purposes = await getFeatureDropdownValue(
+          graph,
+          "purpose"
+        );
+        // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
+        const refinements = await getAttributeDropdownValue(graph);
+        const labels = actions.concat(purposes).concat(refinements);
+        setLabels(labels);
       }
-      const store = await loadGraph(ontologies);
-      const actions = await getFeatureDropdownValue(
-        store,
-        "action"
-      );
-      const purposes = await getFeatureDropdownValue(
-        store,
-        "purpose"
-      );
-      // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
-      const refinements = await getAttributeDropdownValue(store);
-      const labels = actions.concat(purposes).concat(refinements);
-      setLabels(labels);
     };
     loadLabels();
-  },[requestDetails, i18n.language]);
+  },[graph, i18n.language]);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -82,6 +81,12 @@ function OwnerApprovedRequestsDetails() {
         if (result.success) {
           const req = result.data as Request;
           setRequestDetails(req);
+          let ontologies = await fetchOntologies() as Ontology[];
+          if (requestDetails?.selectedOntologies) {
+            ontologies = ontologies.concat(requestDetails.selectedOntologies);
+          }
+          const store = await loadGraph(ontologies);
+          setGraph(store);
         } else {
           setError("Request not found.");
         }

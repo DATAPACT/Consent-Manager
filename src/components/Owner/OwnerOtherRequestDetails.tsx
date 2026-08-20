@@ -11,6 +11,7 @@ import { Request } from "../Interfaces/Requests";
 
 // css
 import styles from "../../css/Ontology.module.css";
+import * as rdflib from "rdflib";
 
 // components
 import LoadingSpinner from "../LoadingSpinner";
@@ -33,29 +34,27 @@ function OwnerOtherRequestsDetails() {
     useState<boolean>(false);
   const { t, i18n } = useTranslation();
   const [labels, setLabels] = useState<any>();
+  const [graph, setGraph] = useState<rdflib.Store>();
     
   useEffect(() => {
     const loadLabels = async () => {
-      let ontologies = await fetchOntologies() as Ontology[];
-      if (requestDetails && requestDetails?.selectedOntologies) {
-        ontologies = ontologies.concat(requestDetails.selectedOntologies);
+      if (graph){
+        const actions = await getFeatureDropdownValue(
+          graph,
+          "action"
+        );
+        const purposes = await getFeatureDropdownValue(
+          graph,
+          "purpose"
+        );
+        // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
+        const refinements = await getAttributeDropdownValue(graph);
+        const labels = actions.concat(purposes).concat(refinements);
+        setLabels(labels);
       }
-      const store = await loadGraph(ontologies);
-      const actions = await getFeatureDropdownValue(
-        store,
-        "action"
-      );
-      const purposes = await getFeatureDropdownValue(
-        store,
-        "purpose"
-      );
-      // NOTE: Currently, we load all left operands for all refinements. In the future, we might want to retrieve left operands that are valid with respect to the current ODRL element.
-      const refinements = await getAttributeDropdownValue(store);
-      const labels = actions.concat(purposes).concat(refinements);
-      setLabels(labels);
     };
     loadLabels();
-  },[requestDetails, i18n.language]);
+  },[graph, i18n.language]);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -70,6 +69,12 @@ function OwnerOtherRequestsDetails() {
 
         if (result.success) {
           setRequestDetails(result.data as Request);
+          let ontologies = await fetchOntologies() as Ontology[];
+          if (requestDetails?.selectedOntologies) {
+            ontologies = ontologies.concat(requestDetails.selectedOntologies);
+          }
+          const store = await loadGraph(ontologies);
+          setGraph(store);
 
           // Check if there's an existing negotiation for this request
           try {
