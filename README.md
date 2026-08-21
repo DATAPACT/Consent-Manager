@@ -146,7 +146,7 @@ const response = await fetch(`${API_BASE_URL}/requests/{id}`, {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify(
-        { "user_emails": user_emails }
+        { "user_details": user_details }
       ),
     });
 ```
