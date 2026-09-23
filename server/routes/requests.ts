@@ -718,6 +718,9 @@ router.post("/:id/send", async (req, res) => {
     let ownersAccepted : Array<string> = requestDoc.ownersAccepted;
     let ownersRejected : Array<string> = requestDoc.ownersRejected;
 
+    console.log(`User docs: ${userDocs}`);
+    console.log(`Unregistered owners: ${unregisteredOwners}`);
+
     for (const userDoc of userDocs) {
       const userId = userDoc._id.toString();
 
