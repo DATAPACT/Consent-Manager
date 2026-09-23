@@ -87,7 +87,8 @@ if response.ok:
         exit()
 
     user_emails = args.user_email
-    print(f"User emails: {user_emails}")
+    user_details = [{'email': email} for email in user_emails]
+    print(f"User details: {user_details}")
 
     if request_id is not None:
         response = session.post(
@@ -97,7 +98,7 @@ if response.ok:
                 "Authorization": f"Bearer {access_token}"
             },
             json={
-                "user_emails": user_emails
+                "user_details": user_details,
             }
         )
 

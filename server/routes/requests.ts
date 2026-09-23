@@ -661,7 +661,7 @@ router.post("/:id/send", async (req, res) => {
       userDocs = userDocs.concat(await db.collection("users").find({'email': {$in: user_emails}}).toArray());
       unregisteredOwners = userDocs && userDocs.length > 0 ? user_details.filter((o: UserInputData) => !userDocs?.some((doc) => doc.email === o.email)) : user_details;
     }
-    if (!req.body.ownersPending && !req.body.user_emails) {
+    if (!req.body.ownersPending && !req.body.user_details) {
       console.error("Request body has no owners pending or user emails.")
       return res.status(400).json({
         success: false,

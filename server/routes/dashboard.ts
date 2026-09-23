@@ -97,7 +97,7 @@ router.get('/owner/:uid', async (req, res) => {
     const ownerData = ownerDoc.data()!;
 
     const requestsSnapshot = await db.collection('requests')
-    .find({ 'owners': {$elemMatch: { $eq: uid }}})
+    .find({ 'owners': uid})
     .toArray();
 
     let pendingCount = 0;
@@ -176,7 +176,7 @@ router.get('/requests/approved-owner/:uid', async (req, res) => {
     const { uid } = req.params;
 
     const querySnapshot = db.collection('requests')
-      .find({'ownersAccepted': {$elemMatch: { $eq: uid }}});
+      .find({'ownersAccepted': uid}).project({_id: 1});
 
     const approvedRequests = await querySnapshot.toArray();
 
