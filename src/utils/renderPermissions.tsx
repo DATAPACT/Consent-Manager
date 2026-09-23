@@ -8,6 +8,9 @@ function formatOperand(operand: any, labels: Option[]): string {
     if (!operand) return "";
 
     if (typeof operand === "string") {
+      if (!labels) {
+        return operand;
+      }
       const entry = labels.find((o) => o.value === operand);
       if (entry) {
         return entry.label;

@@ -82,6 +82,7 @@ export const fetchOntologies = async (requesterUid?: string): Promise<Ontology[]
 export const loadGraph = async (ontologies: Ontology[]): Promise<rdflib.Store> => {
   const store = rdflib.graph();
   for (const ontology of ontologies) {
+    if (ontology.content) {
       const textStream = JSON.stringify(ontology.content); //This is now guaranteed to be in JSON-LD.
       try {
         await new Promise<void>((resolve, reject) => {
@@ -103,6 +104,7 @@ export const loadGraph = async (ontologies: Ontology[]): Promise<rdflib.Store> =
       } catch (e) {
         console.error("Failed to parse ontology:", ontology.name, e);
       }
+    }
   }
   return store;
 }
