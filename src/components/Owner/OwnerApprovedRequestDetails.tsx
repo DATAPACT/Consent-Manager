@@ -82,8 +82,8 @@ function OwnerApprovedRequestsDetails() {
           const req = result.data as Request;
           setRequestDetails(req);
           let ontologies = await fetchOntologies() as Ontology[];
-          if (requestDetails?.selectedOntologies) {
-            ontologies = ontologies.concat(requestDetails.selectedOntologies);
+          if (req?.selectedOntologies) {
+            ontologies = ontologies.concat(req.selectedOntologies);
           }
           const store = await loadGraph(ontologies);
           setGraph(store);
