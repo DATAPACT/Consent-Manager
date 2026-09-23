@@ -59,8 +59,13 @@ export const login = async (email: string, password: string): Promise<KeycloakTo
     });
 
     if (!response.ok) {
-        console.error("Error with login:",response.statusText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Error with login:", {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText,
+        });
+        throw new Error(`Keycloak login failed: ${response.status}`);
     }
 
     return (await response.json()) as KeycloakTokenResponse;
