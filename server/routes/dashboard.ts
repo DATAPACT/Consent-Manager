@@ -148,8 +148,11 @@ router.get('/requests/pending-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
+    // const querySnapshot = db.collection('requests')
+    //   .find({'ownersPending': {$elemMatch: { $eq: uid }}}).project({_id: 1});
+
     const querySnapshot = db.collection('requests')
-      .find({'ownersPending': {$elemMatch: { $eq: uid }}});
+      .find({'ownersPending': uid}).project({_id: 1});
 
     const pendingRequests = await querySnapshot.toArray();
 
