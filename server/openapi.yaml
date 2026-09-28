@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   description: API documentation for the Consent Manager service.
 servers:
-  - url: http://localhost:8019
-
+  - url: https://dips.soton.ac.uk/datapact/consent-manager-api
+  
 paths:
   /health:
     get:
@@ -471,9 +471,77 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /api/requests:
+    get:
+      summary: Get consent requests
+      description: Retrieves consent requests sent by a data consumer or received by a data provider, optionally with a particular status.
+      tags:
+        - Requests
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: uid
+          in: query
+          required: true
+          description: ID of the user whose requests should be retrieved.
+          schema:
+            type: string
+          example: "123456789"
+
+        - name: role
+          in: query
+          required: true
+          description: Role of the user.
+          schema:
+            type: string
+            enum:
+              - owner
+              - requester
+          example: requester
+
+        - name: status
+          in: query
+          required: false
+          description: Filter requests by status.
+          schema:
+            type: string
+          example: pending
+
+      responses:
+        "200":
+          description: Requests successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - requests
+                  - success
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      type: object
+                  success:
+                    type: boolean
+                    example: true
+
+        "401":
+          description: Authentication or authorisation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "500":
+          description: Error fetching requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       summary: Create a new request
-      description: Allows a consumer to create a new data request.
+      description: Allows a consumer to create a new data request. Note that either permissions or policy must be supplied.
       tags:
         - Requests
       requestBody:
@@ -1241,6 +1309,70 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/dashboard/pending-owner/{uid}:
+    get:
+      summary: Retrieve pending requests
+      description: Retrieves the list of pending requests for this user.
+      tags:
+        - Dashboard
+      parameters:
+      - name: uid
+        in: path
+        required: true
+        description: The MongoDB ObjectId of the user.
+        schema:
+          type: string
+          example: "6866c6ddd5b8974f1090781d"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Retrieved pending requests for user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RequestData"
+        "500":
+          description: Failed to fetch pending requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/dashboard/approved-owner/{uid}:
+      get:
+        summary: Retrieve approved requests
+        description: Retrieves the list of requests approved by this user.
+        tags:
+          - Dashboard
+        parameters:
+        - name: uid
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the user.
+          schema:
+            type: string
+            example: "6866c6ddd5b8974f1090781d"
+        security:
+          - bearerAuth: []
+        responses:
+          "200":
+            description: Retrieved requests approved by user.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/RequestData"
+          "500":
+            description: Failed to fetch approved requests
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1333,12 +1465,8 @@ components:
       type: object
       required:
         - requestName
-        - permissions
-        - selectedOntologies
-        - owners
-        - ownersPending
-        - ownersAccepted
-        - ownersRejected
+        - requester
+        - policy
       properties:
         requestName:
           type: string
@@ -1370,7 +1498,7 @@ components:
           $ref: "#/components/schemas/Requester"
 
         policy:
-          type: object
+          $ref: "#/components/schemas/ODRLPolicy"
           additionalProperties: true
           description: ODRL policy JSON.
 

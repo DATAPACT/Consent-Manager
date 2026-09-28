@@ -1,6 +1,7 @@
 import express from 'express';
 import { ObjectId } from "mongodb";
 import { db } from "../config/database.service.ts";
+import { verify } from '../config/keycloak.ts';
 
 const router = express.Router();
 
@@ -8,6 +9,39 @@ const router = express.Router();
 router.get('/requester/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
+
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing bearer token",
+      });
+    }
+
+    const token = req.headers.authorization.substring(7);
+
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
+    if (verification.uid !== uid) {
+      return res.status(401).json({
+          error: "Token does not belong to this user.",
+          success: false,
+        });
+    }
 
     const requesterCollection = db.collection('users');
     const requesterData = await requesterCollection.findOne({_id:new ObjectId(uid)});
@@ -86,6 +120,39 @@ router.get('/owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing bearer token",
+      });
+    }
+
+    const token = req.headers.authorization.substring(7);
+
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
+    if (verification.uid !== uid) {
+      return res.status(401).json({
+          error: "Token does not belong to this user.",
+          success: false,
+        });
+    }
+
     const ownerDoc = await db.collection('owners').findOne({_id:new ObjectId(uid), 'type': "provider"});
     if (!ownerDoc) {
       return res.status(404).json({
@@ -148,6 +215,39 @@ router.get('/requests/pending-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
 
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing bearer token",
+      });
+    }
+
+    const token = req.headers.authorization.substring(7);
+
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
+    if (verification.uid !== uid) {
+      return res.status(401).json({
+          error: "Token does not belong to this user.",
+          success: false,
+        });
+    }
+
     // const querySnapshot = db.collection('requests')
     //   .find({'ownersPending': {$elemMatch: { $eq: uid }}}).project({_id: 1});
 
@@ -174,6 +274,39 @@ router.get('/requests/pending-owner/:uid', async (req, res) => {
 router.get('/requests/approved-owner/:uid', async (req, res) => {
   try {
     const { uid } = req.params;
+
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing bearer token",
+      });
+    }
+
+    const token = req.headers.authorization.substring(7);
+
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
+    if (verification.uid !== uid) {
+      return res.status(401).json({
+          error: "Token does not belong to this user.",
+          success: false,
+        });
+    }
 
     const querySnapshot = db.collection('requests')
       .find({'ownersAccepted': uid}).project({_id: 1});

@@ -87,6 +87,7 @@ router.post("/", async (req, res) => {
     let odrlPolicy = null;
     if (data.policy) {
       odrlPolicy = data.policy;
+      // TODO: Verify if the policy is valid ODRL
     }
     else {
       odrlPolicy = permissionsToODRLPolicy("", "", data.requester.requesterId, data.permissions);
@@ -135,13 +136,47 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     console.log("GET /api/requests/:id called with id:", id);
+
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
     const docRef = db.collection("requests");
-    const docSnap = await docRef.findOne({'_id':new ObjectId(id)});
+    const docSnap = await docRef.findOne({'_id':new ObjectId(id)}) as RequestData;
 
     if (!docSnap) {
       console.error("Request document NOT found for id:", id);
       return res.status(404).json({
         error: "Request not found",
+        success: false,
+      });
+    }
+
+    if (verification.uid !== docSnap.requester?.requesterId && !docSnap.owners.some((owner) => owner === verification.uid)) {
+      console.error("Token owner is not allowed to retrieve this document.")
+      return res.status(401).json({
+        error: "Unauthorised",
         success: false,
       });
     }
@@ -168,9 +203,34 @@ router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const {_id, ...updateData} = req.body;
 
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
     // Check if request exists
     const docRef = db.collection("requests");
-    const docSnap = await docRef.updateOne({'_id':new ObjectId(id)}, {$set: updateData});
+    const docSnap = await docRef.findOne({'_id':new ObjectId(id)});
 
     if (!docSnap) {
       return res.status(404).json({
@@ -178,6 +238,16 @@ router.put("/:id", async (req, res) => {
         success: false,
       });
     }
+
+    if (verification.uid !== docSnap.requester?.requesterId) {
+      console.error("User is not allowed to update this document.")
+      return res.status(401).json({
+        error: "Unauthorised",
+        success: false,
+      });
+    }
+
+    await docRef.updateOne({'_id':new ObjectId(id)}, {$set: updateData});
 
     res.json({
       id,
@@ -953,7 +1023,7 @@ router.delete("/:id", async (req, res) => {
 
     // Check if request exists
     const docRef = db.collection("requests");
-    const docSnap = await docRef.findOne({'_id':new ObjectId(id)});
+    const docSnap = await docRef.findOne({'_id':new ObjectId(id)}) as RequestData;
 
     if (!docSnap) {
       return res.status(404).json({
@@ -962,7 +1032,7 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    if (docSnap._id.toString() !== verification.uid) {
+    if (docSnap.requester?.requesterId !== verification.uid) {
       return res.status(403).json({
         error: "Request does not belong to this user.",
         success: false,

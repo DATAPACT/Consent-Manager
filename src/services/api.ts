@@ -450,7 +450,12 @@ export const deleteOntology = async (id: string, requesterUid: string) => {
 // Dashboard API
 export const getRequesterDashboard = async (uid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard/requester/${uid}`);
+    const response = await fetch(`${API_BASE_URL}/dashboard/requester/${uid}`, {
+      method: "GET",
+      headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -465,7 +470,12 @@ export const getRequesterDashboard = async (uid: string) => {
 
 export const getOwnerDashboard = async (uid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard/owner/${uid}`);
+    const response = await fetch(`${API_BASE_URL}/dashboard/owner/${uid}`, {
+      method: "GET",
+      headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -481,8 +491,13 @@ export const getOwnerDashboard = async (uid: string) => {
 export const getPendingRequestsForOwner = async (uid: string) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/dashboard/requests/pending-owner/${uid}`
-    );
+      `${API_BASE_URL}/dashboard/requests/pending-owner/${uid}`, 
+    {
+      method: "GET",
+      headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -498,8 +513,13 @@ export const getPendingRequestsForOwner = async (uid: string) => {
 export const getApprovedRequestsForOwner = async (uid: string) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/dashboard/requests/approved-owner/${uid}`
-    );
+      `${API_BASE_URL}/dashboard/requests/approved-owner/${uid}`,
+    {
+      method: "GET",
+      headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
