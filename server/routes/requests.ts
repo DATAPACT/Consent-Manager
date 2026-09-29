@@ -830,6 +830,8 @@ router.post("/:id/send", async (req, res) => {
         .setExpirationTime("7d")
         .sign(secret);
 
+        console.log(`Email token for registered user: ${email_token}`);
+
         const email_content = RequestEmail(requestDoc, userId, email_token, lang);
 
         const email_details = {
