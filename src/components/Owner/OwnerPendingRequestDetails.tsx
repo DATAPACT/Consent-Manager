@@ -10,6 +10,8 @@ import {
   redirectToNegotiationDisplay,
   createContractAPI,
   getRequests,
+  acceptRequest as apiAcceptRequest,
+  rejectRequest as apiRejectRequest
 } from "../../services/api";
 import log from "loglevel";
 import * as rdflib from "rdflib";
@@ -647,11 +649,7 @@ function OwnerPendingRequestDetails() {
       ];
 
       // Update request with new ownersPending, ownersRejected, and status
-      const result = await updateRequest(requestId!, {
-        ownersPending: updatedOwnersPending,
-        ownersRejected: updatedOwnersRejected,
-        // status: "rejected", // ✅ mark request as rejected
-      });
+      const result = await apiRejectRequest(requestId!);
 
       if (result.success) {
         // Update the state with the new values
@@ -718,11 +716,7 @@ function OwnerPendingRequestDetails() {
       ];
 
       // Update request with new arrays AND status
-      const result = await updateRequest(requestId!, {
-        ownersPending: updatedOwnersPending,
-        ownersAccepted: updatedOwnersAccepted,
-        status: "accepted",
-      });
+      const result = await apiAcceptRequest(requestId!);
 
       if (result.success) {
         const updatedRequest = {

@@ -10,6 +10,7 @@ parser.add_argument("--password", required=True)
 parser.add_argument("--odrl")
 parser.add_argument("--requestId")
 parser.add_argument("--user_email", action="append")
+parser.add_argument("--language")
 args = parser.parse_args()
 
 consent_manager_api_url = "https://dips.soton.ac.uk/datapact/consent-manager-api/api"
@@ -35,6 +36,11 @@ response = session.post(
     headers=headers,
     data=params
 )
+
+language = "en"
+
+if args.language is not None:
+    language = args.language
 
 if response.ok:
     response_data = response.json()
@@ -99,6 +105,7 @@ if response.ok:
             },
             json={
                 "user_details": user_details,
+                "language": language,
             }
         )
 

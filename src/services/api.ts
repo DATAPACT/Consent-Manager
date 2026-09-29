@@ -309,6 +309,48 @@ export const updateRequest = async (id: string, data: any) => {
   }
 };
 
+export const acceptRequest = async (id: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${id}/accept`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error accepting request:", error);
+    throw error;
+  }
+};
+
+export const rejectRequest = async (id: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/requests/${id}/reject`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error rejecting request:", error);
+    throw error;
+  }
+};
+
 export const sendRequest = async (id: string, data: any) => {
   try {
     const response = await fetch(`${API_BASE_URL}/requests/${id}/send`, {

@@ -1070,6 +1070,10 @@ paths:
                     - email: bob@example.com
                       name: Bob
                       id: "456"
+                language:
+                  type: string
+                  example:
+                    - "en"
 
       parameters:
         - name: id
