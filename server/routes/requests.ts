@@ -269,6 +269,7 @@ router.get("/:id/accept/:token" , async (req, res) => {
     const { id, token } = req.params;
     let verification = null;
     let userId = null;
+    console.log(`Token is ${token}`);
 
     try {
       const { payload } = await jwtVerify(token, secret);
@@ -295,7 +296,7 @@ router.get("/:id/accept/:token" , async (req, res) => {
     }
     catch (error) {
       return res.status(401).json({
-        error: "Unexpected error in verification.",
+        error: `Unexpected error in verification.`,
         success: false,
       });
     }  
