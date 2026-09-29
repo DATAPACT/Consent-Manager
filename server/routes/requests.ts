@@ -832,7 +832,7 @@ router.post("/:id/send", async (req, res) => {
 
         console.log(`Email token for registered user: ${email_token}`);
 
-        const email_content = RequestEmail(requestDoc, userId, email_token, lang);
+        const email_content = RequestEmail(requestDoc, email_token, lang);
 
         const email_details = {
             from: email_sender,

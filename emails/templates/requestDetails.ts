@@ -227,9 +227,9 @@ export function VerificationEmail(requestDetails: RequestData, token: string, la
   </html>`);
 }
 
-export function RequestEmail(requestDetails: RequestData, userId: string, token: string, lang?: string) {
-    const acceptUrl = `${baseUrl}/requests/${requestDetails._id}/accept/${userId}${token ? `/?token=${token}` : ""}`;
-    const rejectUrl = `${baseUrl}/requests/${requestDetails._id}/reject/${userId}${token ? `/?token=${token}` : ""}`;
+export function RequestEmail(requestDetails: RequestData, token: string, lang?: string) {
+    const acceptUrl = `${baseUrl}/requests/${requestDetails._id}/accept/${token}`;
+    const rejectUrl = `${baseUrl}/requests/${requestDetails._id}/reject/${token}`;
     let t = en;
     switch (lang){
       case "en":
