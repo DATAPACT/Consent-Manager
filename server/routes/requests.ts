@@ -274,7 +274,7 @@ router.get("/:id/accept/:token" , async (req, res) => {
       const { payload } = await jwtVerify(token, secret);
       if (!payload) {
         return res.status(401).json({
-          error: "Invalid token",
+          error: "No payload after verification.",
           success: false,
         });
       }
@@ -295,14 +295,14 @@ router.get("/:id/accept/:token" , async (req, res) => {
     }
     catch (error) {
       return res.status(401).json({
-        error: "Invalid token",
+        error: "Unexpected error in verification.",
         success: false,
       });
     }  
 
     if (!verification) {
       return res.status(401).json({
-        error: "Invalid token",
+        error: "Verification failed.",
         success: false,
       });
     }
