@@ -7,9 +7,6 @@ import jwt
 parser = argparse.ArgumentParser()
 parser.add_argument("--email", required=True)
 parser.add_argument("--password", required=True)
-parser.add_argument("--odrl")
-parser.add_argument("--requestId")
-parser.add_argument("--user_email", action="append")
 args = parser.parse_args()
 
 consent_manager_api_url = "https://dips.soton.ac.uk/datapact/consent-manager-api/api"
@@ -67,9 +64,10 @@ if response.ok:
 
     response_data = response.json()
     requestSet = response_data.get("requests")
+    print(f"Raw JSON: {response_data}")
 
     aggregatedOwners = [{'requestId': request["_id"], 'ownersPending': request["ownersPending"], 'ownersAccepted': request["ownersAccepted"]} for request in requestSet]
-    print(aggregatedOwners)
+    print(f"Aggregated results: {aggregatedOwners}")
 
 else:
     print(f"Login failed. Error code: {response.status_code} {response.text}")

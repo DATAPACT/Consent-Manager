@@ -271,6 +271,7 @@ export default {
 
     //EDIT REQUEST
     error_updating_request: "Error updating request.",
+    update_request: "Update request",
     update_request_details: "Update your request details below.",
     update_request_text_1: "Before you update your request, ensure all values are accurate. Incorrect information may cause rejection by the data owner.",
 

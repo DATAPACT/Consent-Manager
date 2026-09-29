@@ -271,6 +271,7 @@ export default {
 
     //EDIT REQUEST
     error_updating_request: "Error actualizando la solicitud.",
+    update_request: "Actualizar solicitud",
     update_request_details: "Actualice los datos de la solicitud.",
     update_request_text_1: "Revise sus permisos atentamente antes de actualizar la solicitud.",
 

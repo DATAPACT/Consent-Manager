@@ -650,7 +650,7 @@ function OwnerPendingRequestDetails() {
       const result = await updateRequest(requestId!, {
         ownersPending: updatedOwnersPending,
         ownersRejected: updatedOwnersRejected,
-        status: "rejected", // ✅ mark request as rejected
+        // status: "rejected", // ✅ mark request as rejected
       });
 
       if (result.success) {
@@ -661,7 +661,7 @@ function OwnerPendingRequestDetails() {
               ...prev,
               ownersPending: updatedOwnersPending,
               ownersRejected: updatedOwnersRejected,
-              status: "rejected", // ✅ update local state too
+              // status: "rejected", // ✅ update local state too
             }
         );
 
