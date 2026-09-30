@@ -344,5 +344,6 @@ export default {
     reset_password_text_1: "Click on the button to reset your password.",
     expired_reset_password_text_1: "",
     agree_to_use_system: "Agree to use the Consent Manager",
+    go_to_request: "Go to Request",
 
 }

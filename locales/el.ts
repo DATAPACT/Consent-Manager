@@ -346,6 +346,6 @@ export default {
     reset_password_text_1: "Κάντε κλικ στο κουμπί για να επαναφέρετε τον κωδικό πρόσβασής σας.",
     expired_reset_password_text_1: "",
     agree_to_use_system: "Συμφωνήστε στη χρήση του Consent Manager",
-
+    go_to_request: "Προβολή αιτήματος",
 }
 //Translated with DeepL.com (free version)

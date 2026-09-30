@@ -1138,6 +1138,16 @@ router.get("/verify/:token", async (req, res) => {
     }
 
     const lang = verification.language || "en";
+    const redirect_url = process.env.FRONTEND_URL || "https://dips.soton.ac.uk/consent-manager"
+
+    if (owner.id) { // Case where the user has an existing account. We redirect the user to login then the request details.
+      await db.collection("tokens").updateOne({token: {$eq: decoded_token.token}}, {$set: {used: true}}); //Mark the token as used.
+      const encodedRedirectURL = encodeURIComponent(`${redirect_url}/ownerBase/ownerPendingRequestsDetails/${requestId}`);
+      res.redirect(
+        `${redirect_url}/login?redirect=${encodedRedirectURL}`
+      )
+      return;
+    }
 
     console.log("Creating new user");
     try {
@@ -1218,8 +1228,6 @@ router.get("/verify/:token", async (req, res) => {
             "External API login successful:",
             access_token.substring(0, 50)
           );
-
-          const redirect_url = process.env.FRONTEND_URL || "https://dips.soton.ac.uk/consent-manager"
 
 
           const userData = {

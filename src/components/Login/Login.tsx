@@ -27,7 +27,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (user && role) {
       if (redirect) {
-        navigate(redirect);
+        navigate(decodeURIComponent(redirect));
       }
       else if (role === "owner") {
         navigate("/ownerBase/ownerDashboard");

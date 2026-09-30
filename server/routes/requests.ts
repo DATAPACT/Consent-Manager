@@ -732,7 +732,7 @@ router.post("/:id/send", async (req, res) => {
     if (req.body.user_details) {
       const user_details = req.body.user_details;
       console.log(`User details: ${user_details}`);
-      const user_emails = user_details.map((user: UserInputData) => user.email);
+      const user_emails = user_details.map((user: UserInputData) => user.email.toLowerCase());
       userDocs = userDocs.concat(await db.collection("users").find({'email': {$in: user_emails}}).toArray());
       unregisteredOwners = userDocs && userDocs.length > 0 ? user_details.filter((o: UserInputData) => !userDocs?.some((doc) => doc.email === o.email)) : user_details;
     }
@@ -821,30 +821,43 @@ router.post("/:id/send", async (req, res) => {
         continue;
       }
       else {
-        const email_token = await new SignJWT({
-          userId,
+        console.log(`Attempting to send email to user ${userId}`);
+        const random_token = crypto.randomBytes(32).toString("hex");
+        const token_payload = {
+          owner: {'id': userId, 'name': userDoc.name, 'email': userDoc.email} as UserInputData,
           requestId: id,
-          action: "decide"
-        }).setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("7d")
-        .sign(secret);
+          language: lang,
+          action: "confirm",
+          token: random_token,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          used: false
+        }
+        const email_token = await new SignJWT(token_payload)
+          .setProtectedHeader({alg: "HS256"})
+          .sign(secret);
+
+        const insert_token = await db.collection("tokens").insertOne(token_payload);
 
         console.log(`Email token for registered user: ${email_token}`);
 
-        const email_content = RequestEmail(requestDoc, email_token, lang);
+        if (insert_token) {
+          const email_content = RequestEmail(requestDoc, email_token, lang);
 
-        const email_details = {
-            from: email_sender,
-            to: userDoc.email,
-            subject: 'Consent Request',
-            html: email_content,
-          }
-        const email_result = await sendTestEmail(email_details);
-        console.log("Email result:", email_result.url);
-        test_email_urls.push(email_result.url);
-        owners.push(userId);
-        ownersPending.push(userId);
+          const email_details = {
+              from: email_sender,
+              to: userDoc.email,
+              subject: 'Consent Request',
+              html: email_content,
+            }
+          const email_result = await sendTestEmail(email_details);
+          test_email_urls.push(email_result.url);
+          owners.push(userId);
+          ownersPending.push(userId);
+        }
+        else{
+          console.log("Unable to insert new token.");
+        }
       }
     }
 
@@ -883,7 +896,6 @@ router.post("/:id/send", async (req, res) => {
               html: email_content,
             }
           const email_result = await sendTestEmail(email_details);
-          console.log("Email result:", email_result.url);
           test_email_urls.push(email_result.url);
         }
         else{

@@ -228,8 +228,7 @@ export function VerificationEmail(requestDetails: RequestData, token: string, la
 }
 
 export function RequestEmail(requestDetails: RequestData, token: string, lang?: string) {
-    const acceptUrl = `${baseUrl}/requests/${requestDetails._id}/accept/${token}`;
-    const rejectUrl = `${baseUrl}/requests/${requestDetails._id}/reject/${token}`;
+    const acceptUrl = `${baseUrl}/auth/verify/${token}`;
     let t = en;
     switch (lang){
       case "en":
@@ -315,19 +314,7 @@ export function RequestEmail(requestDetails: RequestData, token: string, lang?: 
               margin-right:12px;
             "
           >
-            ${t.accept}
-          </a>
-
-          <a
-            href="${rejectUrl}"
-            class="dangerButton"
-            style="
-              display:inline-block;
-              padding:12px 20px;
-              text-decoration:none;
-            "
-          >
-            ${t.reject}
+            ${t.go_to_request}
           </a>
         </div>
       </div>
