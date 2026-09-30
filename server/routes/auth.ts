@@ -1143,6 +1143,8 @@ router.get("/verify/:token", async (req, res) => {
     if (owner.id) { // Case where the user has an existing account. We redirect the user to login then the request details.
       await db.collection("tokens").updateOne({token: {$eq: decoded_token.token}}, {$set: {used: true}}); //Mark the token as used.
       const encodedRedirectURL = encodeURIComponent(`${redirect_url}/ownerBase/ownerPendingRequestsDetails/${requestId}`);
+      console.log(`Encoded redirect URL is ${encodedRedirectURL}`);
+      console.log(`Redirecting to ${redirect_url}/login?redirect=${encodedRedirectURL}`);
       res.redirect(
         `${redirect_url}/login?redirect=${encodedRedirectURL}`
       )
