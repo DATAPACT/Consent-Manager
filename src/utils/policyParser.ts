@@ -87,17 +87,17 @@ export function extractReadableOperator(id: string): string {
   const operators = [
     { value: "", label: "Choose an operator" },
     { value: "odrl:eq", label: "equals" },
-    { value: "odrl:gt", label: "greater than" },
-    { value: "odrl:gteq", label: "greater than or equal to" },
-    { value: "odrl:hasPart", label: "has part" },
-    { value: "odrl:isA", label: "is a" },
-    { value: "odrl:isAllOf", label: "is all of" },
-    { value: "odrl:isAnyOf", label: "is any of" },
-    { value: "odrl:isNoneOf", label: "is none of" },
-    { value: "odrl:isPartOf", label: "is part of" },
-    { value: "odrl:lt", label: "less than" },
-    { value: "odrl:lteq", label: "less than or equal to" },
-    { value: "odrl:neq", label: "not equal to" },
+    { value: "odrl:gt", label: "gt" },
+    { value: "odrl:gteq", label: "geq" },
+    { value: "odrl:hasPart", label: "hasPart" },
+    { value: "odrl:isA", label: "isA" },
+    { value: "odrl:isAllOf", label: "isAllOf" },
+    { value: "odrl:isAnyOf", label: "isAnyOf" },
+    { value: "odrl:isNoneOf", label: "isNoneOf" },
+    { value: "odrl:isPartOf", label: "isPartOf" },
+    { value: "odrl:lt", label: "lt" },
+    { value: "odrl:lteq", label: "leq" },
+    { value: "odrl:neq", label: "neq" },
   ];
 
     const operator_string = operators.filter(element => element.value === id);
