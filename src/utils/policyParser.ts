@@ -123,6 +123,7 @@ export function parseConstraints(
     const leftOperand = typeof constraint["odrl:leftOperand"] === "string" ? constraint["odrl:leftOperand"] : constraint["odrl:leftOperand"]?.["@id"] || "Unknown";
     const operator = typeof constraint["odrl:operator"] === "string" ? constraint["odrl:operator"] : constraint["odrl:operator"]?.["@id"] || "Unknown";
     const rightOperand = constraint["odrl:rightOperand"];
+    let normalisedRightOperand = null;
 
     // Create human-readable description
     let description = `${extractReadableName(
@@ -136,6 +137,7 @@ export function parseConstraints(
         if (typeof r === "object" && r["@value"]) return r["@value"];
         return String(r);
       });
+      normalisedRightOperand = values;
       description += ` ${values.join(", ")}`;
     } else if (typeof rightOperand === "object") {
       // Handle @list structure
@@ -146,20 +148,24 @@ export function parseConstraints(
           if (typeof r === "object" && r["@value"]) return r["@value"];
           return String(r);
         });
+        normalisedRightOperand = values;
         description += ` ${values.join(", ")}`;
       } else if (rightOperand["@id"]) {
-        description += ` ${extractReadableName(rightOperand["@id"])}`;
+        normalisedRightOperand = extractReadableName(rightOperand["@id"]);
+        description += ` ${normalisedRightOperand}`;
       } else if (rightOperand["@value"]) {
-        description += ` ${rightOperand["@value"]}`;
+        normalisedRightOperand = rightOperand["@value"];
+        description += ` ${normalisedRightOperand}`;
       } else {
-        description += ` ${JSON.stringify(rightOperand)}`;
+        normalisedRightOperand = JSON.stringify(rightOperand);
+        description += ` ${normalisedRightOperand}`;
       }
     }
 
     return {
       leftOperand,
       operator,
-      rightOperand,
+      rightOperand: normalisedRightOperand,
       description,
     };
   });
