@@ -118,7 +118,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction,
             <ul className="list-unstyled">
               {permission.datasetRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {t(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -131,7 +131,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction,
             <ul className="list-unstyled">
               {permission.actionRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {t(ref.operator)} <strong> {ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -144,8 +144,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction,
             <ul className="list-unstyled">
               {permission.purposeRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong>{" "}
-                  {t(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -158,8 +157,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction,
             <ul className="list-unstyled">
               {permission.constraintRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {t(ref.operator)}{" "}
-                  <strong>{ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -216,7 +214,7 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
             <ul className="list-unstyled">
               {permission.datasetRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {t(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -229,7 +227,7 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
             <ul className="list-unstyled">
               {permission.actionRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {t(ref.operator)} <strong> {ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -242,8 +240,7 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
             <ul className="list-unstyled">
               {permission.purposeRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong>{" "}
-                  {t(ref.operator)} <strong>{ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>
@@ -256,8 +253,7 @@ export function renderPermissionsPreview(requestDetails: RequestForm, t: TFuncti
             <ul className="list-unstyled">
               {permission.constraintRefinements.map((ref, i) => (
                 <li key={i}>
-                  <strong>{ref.leftOperand}</strong> {ref.operator}{" "}
-                  <strong>{ref.rightOperand}</strong>.
+                  <strong>{formatOperand(ref.leftOperand, labels)}</strong> {t(ref.operator)} <strong>{formatOperand(ref.rightOperand, labels)}</strong>.
                 </li>
               ))}
             </ul>

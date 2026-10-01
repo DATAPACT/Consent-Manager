@@ -123,6 +123,7 @@ export function parseConstraints(
     const leftOperand = typeof constraint["odrl:leftOperand"] === "string" ? constraint["odrl:leftOperand"] : constraint["odrl:leftOperand"]?.["@id"] || "Unknown";
     const operator = typeof constraint["odrl:operator"] === "string" ? constraint["odrl:operator"] : constraint["odrl:operator"]?.["@id"] || "Unknown";
     const rightOperand = constraint["odrl:rightOperand"];
+    const normalisedOperator = extractReadableOperator(operator);
     let normalisedRightOperand = null;
 
     // Create human-readable description
@@ -164,7 +165,7 @@ export function parseConstraints(
 
     return {
       leftOperand,
-      operator,
+      operator: normalisedOperator,
       rightOperand: normalisedRightOperand,
       description,
     };
