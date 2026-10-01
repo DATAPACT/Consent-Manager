@@ -81,7 +81,7 @@ export default function renderPermissions(requestDetails: Request, t: TFunction,
                 <li key={i} className="mb-1">
                   <small className="text-muted">
                     • {formatOperand(constraint.leftOperand, labels)}{" "}
-                    {formatOperand(constraint.operator, labels)}{" "}
+                    {t(constraint.operator)}{" "}
                     {formatOperand(constraint.rightOperand, labels)}
                   </small>
                 </li>
