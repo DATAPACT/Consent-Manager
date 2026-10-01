@@ -67,12 +67,7 @@ function RequesterSentRequestsDetails() {
       policy["odrl:permission"].forEach(permission => {
         delete permission["odrl:assignee"];
         if (owner) {
-          if (permission["odrl:assigner"]){
-            permission["odrl:assigner"]["odrl:source"]["@id"] = owner.email;
-          }
-          else{
-            permission["odrl:assigner"] = {"odrl:source": {"@id": owner.email}};
-          }
+          permission["odrl:assigner"] = {"odrl:source": {"@id": owner.email}};
         }
       })
       console.log("policy is: ", policy);
