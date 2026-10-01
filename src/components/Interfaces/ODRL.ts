@@ -6,21 +6,15 @@ export interface ODRLPermission {
     "odrl:refinement"?: ODRLConstraint[];
   };
   "odrl:target": string | {
-    "odrl:source": {
-      "@id": string;
-    };
+    "odrl:source": string;
     "odrl:refinement"?: ODRLConstraint[];
   };
   "odrl:assignee"?: string | {
-    "odrl:source": {
-      "@id": string;
-    };
+    "odrl:source": string;
     "odrl:refinement"?: ODRLConstraint
   };
   "odrl:assigner"?: string | {
-    "odrl:source": {
-      "@id": string;
-    };
+    "odrl:source": string;
     "odrl:refinement"?: ODRLConstraint
   };
   "odrl:constraint"?: Array<ODRLConstraint>;
