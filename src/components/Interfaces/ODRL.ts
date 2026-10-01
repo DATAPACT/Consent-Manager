@@ -1,69 +1,39 @@
 export interface ODRLPermission {
-  "odrl:action": {
+  "odrl:action": string | {
     "rdf:value": {
       "@id": string;
     };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string;
-    }[];
+    "odrl:refinement"?: ODRLConstraint[];
   };
-  "odrl:target": {
+  "odrl:target": string | {
     "odrl:source": {
       "@id": string;
     };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string;
-    }[];
+    "odrl:refinement"?: ODRLConstraint[];
   };
-  "odrl:assignee"?: {
+  "odrl:assignee"?: string | {
     "odrl:source": {
       "@id": string;
     };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string;
-    };
+    "odrl:refinement"?: ODRLConstraint
   };
-  "odrl:assigner"?: {
+  "odrl:assigner"?: string | {
     "odrl:source": {
       "@id": string;
     };
-    "odrl:refinement"?: {
-      "odrl:leftOperand": {
-        "@id": string;
-      };
-      "odrl:operator": {
-        "@id": string;
-      };
-      "odrl:rightOperand": string;
-    };
+    "odrl:refinement"?: ODRLConstraint
   };
-  "odrl:constraint"?: Array<{
-    "odrl:leftOperand": {
+  "odrl:constraint"?: Array<ODRLConstraint>;
+}
+
+interface ODRLConstraint {
+  "odrl:leftOperand": string | {
       "@id": string;
     };
-    "odrl:operator": {
+    "odrl:operator": string | {
       "@id": string;
     };
     "odrl:rightOperand": any;
-  }>;
 }
 
 export interface ODRLPolicy {

@@ -120,8 +120,8 @@ export function parseConstraints(
   if (!constraints) return [];
 
   return constraints.map((constraint) => {
-    const leftOperand = constraint["odrl:leftOperand"]?.["@id"] || "Unknown";
-    const operator = constraint["odrl:operator"]?.["@id"] || "Unknown";
+    const leftOperand = typeof constraint["odrl:leftOperand"] === "string" ? constraint["odrl:leftOperand"] : constraint["odrl:leftOperand"]?.["@id"] || "Unknown";
+    const operator = typeof constraint["odrl:operator"] === "string" ? constraint["odrl:operator"] : constraint["odrl:operator"]?.["@id"] || "Unknown";
     const rightOperand = constraint["odrl:rightOperand"];
 
     // Create human-readable description
@@ -179,7 +179,7 @@ export function parseAssignees(
     description: string;
   }>;
 }> {
-  if (!assignee) return [];
+  if (!assignee || typeof assignee === "string") return [];
 
   const source = assignee["odrl:source"]?.["@id"] || "Unknown";
 
@@ -190,8 +190,8 @@ export function parseAssignees(
 
   if (assignee["odrl:refinement"]) {
     const refinement = assignee["odrl:refinement"];
-    const leftOperand = refinement["odrl:leftOperand"]?.["@id"] || "Unknown";
-    const operator = refinement["odrl:operator"]?.["@id"] || "Unknown";
+    const leftOperand = typeof refinement["odrl:leftOperand"] === "string" ? refinement["odrl:leftOperand"] : refinement["odrl:leftOperand"]?.["@id"] || "Unknown";
+    const operator = typeof refinement["odrl:operator"] === "string" ? refinement["odrl:operator"] : refinement["odrl:operator"]?.["@id"] || "Unknown";
     const rightOperand = refinement["odrl:rightOperand"];
 
     let description = `${extractReadableName(
@@ -227,12 +227,11 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
 
   return policy["odrl:permission"].map((permission) => {
     // Extract basic permission components generically
-    const action = permission["odrl:action"]["rdf:value"]["@id"];
-    const dataset = permission["odrl:target"]["odrl:source"]["@id"];
+    const action = typeof permission["odrl:action"] === "string" ? permission["odrl:action"] : permission["odrl:action"]["rdf:value"]["@id"];
+    const dataset = typeof permission["odrl:target"] === "string" ? permission["odrl:target"] : permission["odrl:target"]["odrl:source"]["@id"];
 
-    const actionRefinements = parseConstraints(permission["odrl:action"]["odrl:refinement"]);
-
-    const datasetRefinements = parseConstraints(permission["odrl:target"]["odrl:refinement"]);
+    const actionRefinements = typeof permission["odrl:action"] === "string" ? [] : parseConstraints(permission["odrl:action"]["odrl:refinement"]);
+    const datasetRefinements = typeof permission["odrl:target"] === "string" ? [] : parseConstraints(permission["odrl:target"]["odrl:refinement"]);
 
     // Parse constraints generically (excluding purpose)
     const constraints = parseConstraints(permission["odrl:constraint"]).filter((o) => !o.leftOperand.toLowerCase().includes("purpose"));
