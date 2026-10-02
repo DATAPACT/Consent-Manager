@@ -36,3 +36,18 @@ export interface ODRLPolicy {
   "@type": string;
   "odrl:permission": ODRLPermission[];
 }
+
+export interface ODRLValidationResult {
+  "result": {
+    "ODRL_graph_size": number,
+    "errors": string[],
+    "warnings": string[],
+    "info": string[],
+    "is_valid_RDF": boolean,
+    "file_format": string,
+    "contains_ODRL": boolean,
+    "is_valid_ODRL": boolean,
+    "shacl_validation_report": string,
+    "shacl_validation_report_explanation": string
+  }
+}

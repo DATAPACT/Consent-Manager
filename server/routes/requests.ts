@@ -7,10 +7,12 @@ import { RequestEmail, VerificationEmail } from "../../emails/templates/requestD
 import { sendTestEmail } from "../config/nodemailer.ts";
 import { jwtVerify, SignJWT } from "jose";
 import { RequestData } from "../../src/components/Interfaces/Requests.ts";
+import { ODRLValidationResult } from "../../src/components/Interfaces/ODRL.ts";
 import crypto from "crypto";
 
 const router = express.Router();
 const secret = new TextEncoder().encode(process.env.EMAIL_LINK_SECRET!);
+const ODRL_VALIDATION_URL = process.env.ODRL_VALIDATION_URL || "https://dips.soton.ac.uk/odrl-engine/api"
 
 interface UserInputData {
   email: string,
@@ -73,8 +75,6 @@ router.post("/", async (req, res) => {
       }
     }
 
-    console.log("Request payload is: ", data);
-
     // If requester info is not provided in the request body,
     // you'll need to implement authentication middleware
     if (!data.requester) {
@@ -86,6 +86,32 @@ router.post("/", async (req, res) => {
 
     let odrlPolicy = null;
     if (data.policy) {
+      const validation_request_payload = {
+        'atomic_only': false,
+        'odrl': data.policy
+      };
+      const odrl_validation = await fetch(`${ODRL_VALIDATION_URL}/validate_ODRL`,
+        {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(validation_request_payload)
+        }
+      )
+
+      if (odrl_validation.ok) {
+        const odrl_validation_response = await odrl_validation.json() as ODRLValidationResult;
+        if (odrl_validation_response.result.is_valid_ODRL) {
+          console.log("ODRL is valid.");
+        }
+        else {
+          console.log("ODRL is not valid.");
+        }
+      }
+      else {
+        console.log("ODRL validation failed.");
+      }
       odrlPolicy = data.policy;
       // TODO: Verify if the policy is valid ODRL
     }
@@ -94,11 +120,19 @@ router.post("/", async (req, res) => {
     }
   
     const requestWithDefaults = {
-      ...data,
+      requestName: data.requestName,
+      description: data.description || "",
+      extraTerms: data.extraTerms || "",
+      extraText: data.extraText || "",
+      emailText: data.emailText || "",
+      permissions: data.permissions,
       selectedOntologies: data.selectedOntologies? data.selectedOntologies.map(({ _id, name }) => ({
         _id,
         name,
       })) : [],
+      requester: data.requester,
+      policy: odrlPolicy,
+      metadata: data.metadata || "",
       createdAt: `${days[now.getDay()]} ${now
         .getDate()
         .toString()
@@ -108,7 +142,6 @@ router.post("/", async (req, res) => {
         .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
       sentAt: "",
       status: "draft",
-      policy: odrlPolicy,
       owners: [],
       ownersAccepted: [],
       ownersRejected: [],
