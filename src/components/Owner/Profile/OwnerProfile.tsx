@@ -1,14 +1,14 @@
 // libraries
 import { useAuth } from "../../../AuthContext"; // Use AuthContext
 import { useEffect, useState } from "react";
-import { updateUser } from "../../../services/api";
+import { deleteUser, updateUser } from "../../../services/api";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 // css
 import styles from "../../../css/CreateRequest.module.css";
 import { useTranslation } from "react-i18next";
 
 function OwnerProfile() {
-  const { userData, user } = useAuth(); // Get user and logout function from context
+  const { userData, user, logout } = useAuth(); // Get user and logout function from context
   let navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -57,35 +57,23 @@ function OwnerProfile() {
       }
   };
 
-  // const handleDelete = async (e: React.FormEvent) => {
-  //     e.preventDefault();
+  const handleDelete = async (e: React.FormEvent) => {
+      e.preventDefault();
       
-  //     if (!user) {
-  //       alert(t("user_not_authenticated"));
-  //       return;
-  //     }
+      if (!user || !user.email) {
+        alert(t("user_not_authenticated"));
+        return;
+      }
 
-  //     if (formData.new_password !== formData.confirm_password){
-  //       alert(t("new_passwords_do_not_match"));
-  //       return;
-  //     }
-
-  //     console.log("Something is happening.");
-
-  //     const result = await updateUser({
-  //       ...formData,
-  //       password: formData.current_password,
-  //       uid: user.uid,
-  //       role: user.role
-  //     });
+      const result = await deleteUser({email: user.email});
       
-  //     if (result.success) {
-  //       alert(t("password_changed_successfully"));
-  //       navigate(`/ownerBase/OwnerProfile/${user.uid}`);
-  //     } else {
-  //       alert(t("error_updating_password"));
-  //     }
-  // };
+      if (result.success) {
+        alert(t("user_deleted_successfully"));
+        logout()
+      } else {
+        alert(t("error_deleting_user"));
+      }
+  };
 
   useEffect(() => {
       let email = window.localStorage.getItem('emailForSignIn');
@@ -196,10 +184,52 @@ function OwnerProfile() {
             </div>
           </form>
         </div>
-        <div className="text-center mt-4">
-          <a className="text-danger text-decoration-none" href="#">
-            {t("delete_account")}
-          </a>
+        <button
+          className={`${styles.dangerButton} btn ms-3`}
+          data-bs-toggle="modal"
+          data-bs-target={`#deleteOwnerModal`}
+        >
+          {t("delete_account")}
+        </button>
+        <div
+          className="modal fade"
+          id={`deleteOwnerModal`}
+          tabIndex={-1}
+          aria-labelledby={`deleteOwnerLabel`}
+          aria-hidden="true"
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{t("delete_user")}</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  {t("delete_user_text_1")}
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className={`${styles.secondaryButton} btn`}
+                  data-bs-dismiss="modal"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  className={`${styles.dangerButton} btn`}
+                  data-bs-dismiss="modal"
+                  onClick={handleDelete} // Call revoke handler on confirmation
+                >
+                  {t("delete_account")}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>

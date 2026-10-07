@@ -154,6 +154,30 @@ export const updateUser = async (userData: {
   }
 };
 
+export const deleteUser = async (userData: {
+  email: string;
+}) => {
+  try {
+    
+    const response = await fetch(`${API_BASE_URL}/auth/user/${userData.email}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw error;
+  }
+}
+
 export const registerTemporaryUser = async (userData: {
   email: string;
   name: string;

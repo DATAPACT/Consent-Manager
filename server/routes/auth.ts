@@ -957,7 +957,6 @@ router.get("/owners", async (_req, res) => {
 router.delete("/user/:email", async (req, res) => {
   try {
     const { email } = req.params;
-    const { masterPassword } = req.body;
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
           return res.status(401).json({
@@ -983,6 +982,17 @@ router.delete("/user/:email", async (req, res) => {
       });
     }
 
+    const userDoc = await db.collection("users").findOne({email: email});
+
+    if (!userDoc) {
+      return res.status(200).json({
+        success: true,
+        message: "User deletion completed"
+      })
+    }
+
+    const userId = userDoc._id.toString();
+    const userType = userDoc.type;
     console.log("Deleting user:", email);
 
     // Delete from external API first (if it exists there)
@@ -991,19 +1001,16 @@ router.delete("/user/:email", async (req, res) => {
       const externalApiUrl =
         process.env.EXTERNAL_API_BASE_URL ||
         "https://dips.soton.ac.uk/negotiation-api";
-      const masterPasswordParam =
-        masterPassword ||
-        process.env.EXTERNAL_API_MASTER_PASSWORD;
-      const encodedMasterPassword = encodeURIComponent(masterPasswordParam);
 
       // First, get the user ID from external API by email (we may need to login first to get user ID)
       // For now, we'll try to delete by email directly if the API supports it
       const deleteResponse = await fetch(
-        `${externalApiUrl}/user/${email}?master_password_input=${encodedMasterPassword}`,
+        `${externalApiUrl}/user/delete/${userId}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
         }
       );
@@ -1016,6 +1023,45 @@ router.delete("/user/:email", async (req, res) => {
       if (deleteResponse.ok) {
         console.log("User deleted from external API successfully");
         externalApiDeleteSuccess = true;
+        if (userType === "provider") {
+          const updateRequests = await db.collection("requests").updateMany(
+            { owners: userId },
+            { $pull: { 
+              owners: userId,
+              ownersPending: userId,
+              ownersAccepted: userId,
+              ownersRejected: userId
+            } } as any
+          );
+
+          if (!updateRequests) {
+            res.json({
+              success: true,
+              message: "User deletion completed",
+              details: {
+                externalApiDeleted: externalApiDeleteSuccess,
+              },
+            });
+          }
+        }
+        else if (userType === "consumer") {
+          const deleteRequests = await db.collection("requests").deleteMany({
+            "requester.requesterId" : userId 
+          });
+
+          if (!deleteRequests) {
+            console.log(`Request deletion completed for ${userId}`);
+            res.json({
+              success: true,
+              message: "Request deletion completed",
+              details: {
+                externalApiDeleted: externalApiDeleteSuccess,
+              },
+            });
+          }
+        }
+        
+
       } else {
         const errorText = await deleteResponse.text();
         console.log("External API delete failed:", errorText);
