@@ -998,9 +998,7 @@ router.delete("/user/:email", async (req, res) => {
     // Delete from external API first (if it exists there)
     let externalApiDeleteSuccess = false;
     try {
-      const externalApiUrl =
-        process.env.EXTERNAL_API_BASE_URL ||
-        "https://dips.soton.ac.uk/negotiation-api";
+      const externalApiUrl = process.env.USER_MANAGEMENT_SERVICE_API_URL || ""
 
       // First, get the user ID from external API by email (we may need to login first to get user ID)
       // For now, we'll try to delete by email directly if the API supports it
