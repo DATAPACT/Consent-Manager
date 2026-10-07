@@ -62,9 +62,7 @@ export interface ODRLPermission {
     }[];
   };
   "odrl:assignee"?: {
-    "odrl:source": {
-      "@id": string;
-    };
+    "odrl:source": string;
     "odrl:refinement"?: {
       "odrl:leftOperand": {
         "@id": string;
@@ -76,9 +74,7 @@ export interface ODRLPermission {
     };
   };
   "odrl:assigner"?: {
-    "odrl:source": {
-      "@id": string;
-    };
+    "odrl:source": string;
     "odrl:refinement"?: {
       "odrl:leftOperand": {
         "@id": string;
@@ -146,8 +142,8 @@ export function permissionsToODRLPolicy(requestId: string, ownerId: string, requ
                         return constraint
                         }
                       )},
-      "odrl:assignee": {"odrl:source": {"@id": requesterId}},
-      "odrl:assigner": {"odrl:source": {"@id": ownerId}},
+      "odrl:assignee": {"odrl:source": requesterId},
+      "odrl:assigner": {"odrl:source": ownerId},
       "odrl:constraint": constraints.map(constraint => {
         return {
         "odrl:leftOperand": {"@id": constraint.leftOperand},
@@ -286,7 +282,7 @@ export function parseAssignees(
 }> {
   if (!assignee) return [];
 
-  const source = assignee["odrl:source"]?.["@id"] || "Unknown";
+  const source = assignee["odrl:source"] || "Unknown";
 
   const result = {
     source: extractReadableName(source),
