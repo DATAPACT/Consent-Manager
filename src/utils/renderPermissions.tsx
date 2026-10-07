@@ -22,7 +22,7 @@ function formatOperand(operand: any, labels: Option[]): string {
 
     // JSON-LD object with @id
     if (operand["@id"]) {
-      if (labels.find((o) => o.value === operand["@id"])) {
+      if (labels && labels.find((o) => o.value === operand["@id"])) {
         return labels.find((o) => o.value === operand["@id"])?.label || operand["@id"].replace(/^.*:/, "");
       }
       else {
