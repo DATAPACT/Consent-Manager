@@ -57,35 +57,35 @@ function OwnerProfile() {
       }
   };
 
-  const handleDelete = async (e: React.FormEvent) => {
-      e.preventDefault();
+  // const handleDelete = async (e: React.FormEvent) => {
+  //     e.preventDefault();
       
-      if (!user) {
-        alert(t("user_not_authenticated"));
-        return;
-      }
+  //     if (!user) {
+  //       alert(t("user_not_authenticated"));
+  //       return;
+  //     }
 
-      if (formData.new_password !== formData.confirm_password){
-        alert(t("new_passwords_do_not_match"));
-        return;
-      }
+  //     if (formData.new_password !== formData.confirm_password){
+  //       alert(t("new_passwords_do_not_match"));
+  //       return;
+  //     }
 
-      console.log("Something is happening.");
+  //     console.log("Something is happening.");
 
-      const result = await updateUser({
-        ...formData,
-        password: formData.current_password,
-        uid: user.uid,
-        role: user.role
-      });
+  //     const result = await updateUser({
+  //       ...formData,
+  //       password: formData.current_password,
+  //       uid: user.uid,
+  //       role: user.role
+  //     });
       
-      if (result.success) {
-        alert(t("password_changed_successfully"));
-        navigate(`/ownerBase/OwnerProfile/${user.uid}`);
-      } else {
-        alert(t("error_updating_password"));
-      }
-  };
+  //     if (result.success) {
+  //       alert(t("password_changed_successfully"));
+  //       navigate(`/ownerBase/OwnerProfile/${user.uid}`);
+  //     } else {
+  //       alert(t("error_updating_password"));
+  //     }
+  // };
 
   useEffect(() => {
       let email = window.localStorage.getItem('emailForSignIn');
