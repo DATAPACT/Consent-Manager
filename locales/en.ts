@@ -26,6 +26,7 @@ export default {
     home_text_7: "Try the beta version now and experience how simple user consent management can be.",
     //GET STARTED
     get_started: "Get Started",
+    loading: "Loading",
     //LOGIN
     login_to_your_account: "Login to your account",
     dont_have_an_account: "Don't have an account?",
@@ -76,6 +77,11 @@ export default {
     change_password: "Change password",
     delete_account: "Delete account",
     back: "Back",
+    user_deleted_successfully: "User deleted successfully!",
+    delete_user_text_1: "By clicking on 'Delete user' your account, along with any associated requests, will be permanently deleted. This cannot be undone.",
+    delete_user: "Delete user",
+    error_deleting_user: "Unable to delete user.",
+
 
     //OWNER APPROVED REQUESTS
     approved_requests: "Approved requests",
@@ -290,6 +296,7 @@ export default {
     already_sent: "Already sent to",
     invalid_email_warning: "Please input a valid email address.",
     send_request_warning_1: "Please add at least one valid owner.",
+    existing_owner_warning: "A user with this email has already been added.",
     request_id_missing: "Request ID is missing.",
     request_sent_successfully: "Request sent successfully!",
     error_sending_request: "Error sending request. Please try again.",

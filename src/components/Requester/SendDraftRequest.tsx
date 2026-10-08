@@ -214,7 +214,12 @@ const validateEmail = (email: string) => {
     name?: string;
   }) => {
     if (validateEmail(owner.email)){
-      setSelectedOwners((prev) => [...prev, owner]);
+      if (selectedOwners.concat(allOwners).some((prev) => prev.email === owner.email)) {
+        alert(t("existing_owner_warning"));
+      }
+      else {
+        setSelectedOwners((prev) => [...prev, owner]);
+      }
       setEmailInput("");
       setFilteredOwners([]);
       setShowDropdown(false);

@@ -26,7 +26,7 @@ export default {
     home_text_7: "Δοκιμάστε τώρα την έκδοση beta και ανακαλύψτε πόσο απλή μπορεί να είναι η διαχείριση της συγκατάθεσης των χρηστών.",
     //GET_STARTED
     get_started: "Ξεκινήστε",
-
+    loading: "Φόρτωση",
     //LOGIN
     login_to_your_account: "Σύνδεση στον λογαριασμό σας",
     dont_have_an_account: "Δεν έχετε λογαριασμό;",
@@ -78,6 +78,10 @@ export default {
     change_password: "Αλλαγή κωδικού πρόσβασης",
     delete_account: " Διαγραφή λογαριασμού",
     back: "Πίσω",
+    user_deleted_successfully: "Ο χρήστης διαγράφηκε επιτυχώς!",
+    delete_user_text_1: "Κάνοντας κλικ στο 'Διαγραφή χρήστη', ο λογαριασμός σας, καθώς και τυχόν σχετικά αιτήματα, θα διαγραφούν οριστικά. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    delete_user: "Διαγραφή χρήστη",
+    error_deleting_user: "Αδυναμία διαγραφής χρήστη.",
 
     //OWNER APPROVED REQUESTS
     approved_requests: "Εγκεκριμένες αιτήσεις",
@@ -292,6 +296,7 @@ export default {
     already_sent: "Έχει ήδη σταλεί σε",
     invalid_email_warning: "Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email.",
     send_request_warning_1: "Παρακαλώ προσθέστε τουλάχιστον έναν έγκυρο κάτοχο.",
+    existing_owner_warning: "Ένας χρήστης με αυτό το email έχει ήδη προστεθεί.",
     request_id_missing: "Λείπει το αναγνωριστικό αιτήματος.",
     request_sent_successfully: "Το αίτημα στάλθηκε με επιτυχία!",
     error_sending_request: "Σφάλμα κατά την αποστολή του αιτήματος. Παρακαλώ δοκιμάστε ξανά.",
