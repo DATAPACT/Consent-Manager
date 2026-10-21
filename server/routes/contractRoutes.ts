@@ -240,7 +240,7 @@ router.get(
   async (req: AuthRequest, res: Response) => {
     try {
       const { requestId, contractId } = req.params;
-      console.log(`Request headers: ${req.headers}`)
+      console.log(`Request headers: ${JSON.stringify(req.headers)}`)
 
       // --- Fetch the request to verify existence and ownership ---
       const requestData = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
