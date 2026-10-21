@@ -124,7 +124,7 @@ export function parseConstraints(
     const operator = typeof constraint["odrl:operator"] === "string" ? constraint["odrl:operator"] : constraint["odrl:operator"]?.["@id"] || "Unknown";
     const rightOperand = constraint["odrl:rightOperand"];
     const normalisedOperator = extractReadableOperator(operator);
-    let normalisedRightOperand = null;
+    let normalisedRightOperand = rightOperand;
 
     // Create human-readable description
     let description = `${extractReadableName(
@@ -158,7 +158,7 @@ export function parseConstraints(
         normalisedRightOperand = rightOperand["@value"];
         description += ` ${normalisedRightOperand}`;
       } else {
-        normalisedRightOperand = extractReadableName(rightOperand);
+        normalisedRightOperand = JSON.stringify(rightOperand);
         description += ` ${normalisedRightOperand}`;
       }
     }
