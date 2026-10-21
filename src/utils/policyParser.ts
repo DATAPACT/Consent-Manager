@@ -158,7 +158,7 @@ export function parseConstraints(
         normalisedRightOperand = rightOperand["@value"];
         description += ` ${normalisedRightOperand}`;
       } else {
-        normalisedRightOperand = JSON.stringify(rightOperand);
+        normalisedRightOperand = extractReadableName(rightOperand);
         description += ` ${normalisedRightOperand}`;
       }
     }
