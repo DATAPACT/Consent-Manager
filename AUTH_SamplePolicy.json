@@ -1,0 +1,50 @@
+{
+  "@context": {
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "dpv": "https://w3id.org/dpv/owl#",
+    "auth": "https://www.auth.gr/ont/vocabulary/",
+    "ent": "https://www.auth.gr/ont/entities/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+
+  "@id": "ent:POLICY1",
+  "@type": "odrl:Policy",
+
+  "odrl:permission": {
+    "odrl:assigner": "ent:PATIENT1",
+    "odrl:assignee": "auth:AUTH",
+    "odrl:action": "dpv:Analyse",
+
+    "odrl:target": {
+      "odrl:source": "ent:medicalDataset",
+
+      "odrl:refinement": [{
+        "odrl:leftOperand": "auth:part",
+        "odrl:operator": "odrl:isPartOf",
+        "odrl:rightOperand": {
+          "@list": [
+            "auth:VitalSigns",
+            "auth:Assessments",
+            "auth:Questionnaires"
+          ]
+        }
+      }]
+    },
+
+    "odrl:constraint": [
+      {
+        "odrl:leftOperand": "odrl:Purpose",
+        "odrl:operator": "odrl:eq",
+        "odrl:rightOperand": "dpv:AcademicResearch"
+      },
+      {
+        "odrl:leftOperand": "odrl:dateTime",
+        "odrl:operator": "odrl:lteq",
+        "odrl:rightOperand": {
+          "@value": "2027-10-31",
+          "@type": "xsd:date"
+        }
+      }
+    ]
+  }
+}

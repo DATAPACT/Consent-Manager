@@ -799,6 +799,8 @@ router.post("/register", async (req, res) => {
         organization: additionalData?.organization || [fallback],
       };
 
+      console.log(`Registration payload: ${JSON.stringify(registrationPayload)}`);
+
       const apiResponse = await fetch(
         `${externalApiUrl}/user/register?master_password_input=${encodedMasterPassword}`,
         {
@@ -819,7 +821,7 @@ router.post("/register", async (req, res) => {
         console.log("API registration successful:", successData);
 
       } else {
-        const errorData = await apiResponse.json();
+        const errorData = await apiResponse.json() || "";
         console.error("External API registration failed:", {
           status: apiResponse.status,
           statusText: apiResponse.statusText,
@@ -910,8 +912,7 @@ router.get("/user/:uid", async (req, res) => {
       success: true,
       user: {
         uid,
-        role,
-        userData,
+        role
       },
     });
   } catch (error: any) {
@@ -953,7 +954,7 @@ router.get("/owners", async (_req, res) => {
   }
 });
 
-// DELETE /api/auth/user/:email - Delete user from both Firebase and external API
+// DELETE /api/auth/user/:email - Delete user from external API
 router.delete("/user/:email", async (req, res) => {
   try {
     const { email } = req.params;

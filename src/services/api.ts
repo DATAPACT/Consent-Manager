@@ -228,20 +228,20 @@ export const logout = async () => {
   }
 };
 
-export const getUserDetails = async (uid: string) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/user/${uid}`);
+// export const getUserDetails = async (uid: string) => {
+//   try {
+//     const response = await fetch(`${API_BASE_URL}/auth/user/${uid}`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
 
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching user details:", error);
-    throw error;
-  }
-};
+//     return await response.json();
+//   } catch (error) {
+//     console.error("Error fetching user details:", error);
+//     throw error;
+//   }
+// };
 
 export const getAllOwners = async () => {
   try {

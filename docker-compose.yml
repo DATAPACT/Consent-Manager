@@ -1,18 +1,188 @@
+volumes:
+  mongo-data:
 services:
-  app:
+# User Management Service - FastAPI for user CRUD without auth endpoints
+  user-management-api:
+    build:
+      context: ../User-Management
+      dockerfile: Dockerfile
+    ports:
+      - "8800:8800"
+    volumes:
+      - ../User-Management:/app
+    environment:
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MASTER_PASSWORD=${MASTER_PASSWORD}
+      - KEYCLOAK_BASE_URL=${KEYCLOAK_HOST_ADDR}
+      - KEYCLOAK_CLIENT_ID=user-management-api
+      - KEYCLOAK_ISSUER=${KEYCLOAK_HOST_ADDR}/realms/${KEYCLOAK_REALM}
+      - KEYCLOAK_JWKS_URL=${KEYCLOAK_HOST_ADDR}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
+      - KEYCLOAK_AUDIENCE=user-management-api
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_ADMIN_REALM=master
+      - KEYCLOAK_ADMIN_CLIENT_ID=admin-cli
+      - KEYCLOAK_ADMIN_CLIENT_SECRET=
+      - KEYCLOAK_ADMIN_USERNAME=${KEYCLOAK_ADMIN_USERNAME:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    container_name: user-management-api-local
+    restart: unless-stopped
+    networks:
+      - dips-local
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8800/health', timeout=3).read(1)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # MongoDB for Negotiation Plugin
+  mongo:
+    image: mongo:8.0
+    container_name: mongo-local
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-admin}
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - dips-local
+    command: ["--auth"]
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "mongosh --quiet --username \"$${MONGO_INITDB_ROOT_USERNAME}\" --password \"$${MONGO_INITDB_ROOT_PASSWORD}\" --authenticationDatabase admin --eval \"quit(db.adminCommand('ping').ok ? 0 : 2)\""
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+
+  # Mongo Express - Web UI for MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express-local
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER:-root}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD:-admin}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-admin}@mongo:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    networks:
+      - dips-local
+  contract-service:
+    build:
+      context: ../Contract_Service
+      dockerfile: Dockerfile
+    ports:
+      - "8866:8866"
+    volumes:
+      - ../Contract_Service:/app
+    environment:
+      - MONGO_USER=${MONGO_USER:-root}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-admin}
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_AUTH_SOURCE=admin
+      - KEYCLOAK_ISSUER=${KEYCLOAK_HOST_ADDR}:9090/realms/${REALMS_NAME}
+      - KEYCLOAK_JWKS_URL=${KEYCLOAK_HOST_ADDR}:9090/realms/${REALMS_NAME}/protocol/openid-connect/certs
+      - KEYCLOAK_AUDIENCE=contract-service
+      - KEYCLOAK_CLIENT_ID=contract-service
+      - KEYCLOAK_ALGORITHMS=RS256
+      - API_USER_MANAGEMENT_URL=http://user-management-api:8800
+      - API_CONTRACT_SERVICE_URL=http://contract-service:8866
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_NAME=gpt-4o-mini
+    depends_on:
+      mongo:
+        condition: service_healthy
+    container_name: contract-service-local
+    restart: unless-stopped
+    networks:
+      - dips-local
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8866/docs', timeout=3).read(1)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+  consent-manager:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.frontend
       args:
-        VITE_API_BASE_URL: https://dips.soton.ac.uk/consent-manager-api/api
-        VITE_NEGOTIATION_BASE_URL: https://dips.soton.ac.uk/negotiation/organization/negotiation
-        VITE_USE_EMULATOR: "false"
+        VITE_API_BASE_URL: http://localhost:8019/api
+        VITE_NEGOTIATION_FRONTEND_URL: ${VITE_NEGOTIATION_FRONTEND_URL:-https://dips.soton.ac.uk/datapact/negotiation}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/consent-manager}
+        VITE_USE_EMULATOR: ${VITE_USE_EMULATOR:-false}
     ports:
-      - "5173:5173"
+      - "5173:5173"  # Frontend static server
     volumes:
-      - ./firebase-admin-key.json:/app/firebase-admin-key.json
+      - .env:/app/.env:ro
+      # Mount source code for hot reload
       - ./src:/app/src
+    container_name: consent-manager-local
+    restart: unless-stopped
+    depends_on:
+      - consent-manager-api
     env_file:
-      - ./.env
-    container_name: consent-react
-    restart: always
+      - .env
+    networks:
+      - dips-local
+    command: ["sh", "-c", "npm run serve-static"]
+    
+  consent-manager-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        VITE_API_BASE_URL: http://consent-manager-api:8019/api
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/consent-manager} 
+    ports:
+      - "8019:8019"  # API server
+      - "3000:3000"  # Email
+    volumes:
+      - .env:/app/.env:ro
+      # Mount source code for hot reload
+      - ./server:/app/server
+      - ./emails:/app/emails
+    container_name: consent-manager-api
+    depends_on:
+      contract-service:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      user-management-api:
+        condition: service_healthy
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - dips-local
+    command: ["sh", "-c", "npm run server"]
+
+networks:
+  dips-local:
+    name: dips-local
+    driver: bridge

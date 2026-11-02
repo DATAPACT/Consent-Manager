@@ -1,0 +1,61 @@
+import requests
+import json
+import argparse
+from pathlib import Path
+import jwt
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--email", required=True)
+parser.add_argument("--password", required=True)
+args = parser.parse_args()
+
+consent_manager_api_url = "https://dips.soton.ac.uk/datapact/consent-manager-api/api"
+
+email = args.email
+password = args.password
+
+access_token = ""
+
+params = {
+        "email": email,
+        "password": password,
+    }
+
+headers = {
+    "Content-Type": "application/x-www-form-urlencoded"
+}
+
+session = requests.Session()
+
+response = session.post(
+    f"{consent_manager_api_url}/auth/login",
+    headers=headers,
+    data=params
+)
+
+if response.ok:
+    response_data = response.json()
+    token_data = response_data["user"]["apiToken"]
+    access_token = token_data.get("access_token")
+    uid = response_data.get("user")["uid"]
+    decoded_token = jwt.decode(access_token, options={"verify_signature": False})
+    print(f"Decoded access token: {decoded_token}")
+
+    requesterId = response_data.get("user")["uid"]
+    print(f"Owner ID is: {requesterId}")
+
+    requester_data = {
+        "requesterId": response_data.get("user")["uid"],
+        "requesterName": response_data.get("user")["userData"]["name"],
+        "requesterEmail": email
+    }
+
+    response = session.get(
+        f"{consent_manager_api_url}/dashboard/requests/pending-owner/{uid}",
+        headers= {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        },
+    )
+
+    print(response)

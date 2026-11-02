@@ -115,8 +115,14 @@ router.post("/", async (req, res) => {
       odrlPolicy = data.policy;
       // TODO: Verify if the policy is valid ODRL
     }
-    else {
+    else if (data.permissions) {
       odrlPolicy = permissionsToODRLPolicy("", "", data.requester.requesterId, data.permissions);
+    }
+    else {
+      return res.status(400).json({
+        error: "Either an ODRL policy or permissions object is required.",
+        success: false,
+      });
     }
   
     const requestWithDefaults = {
@@ -234,7 +240,7 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const {_id, ...updateData} = req.body;
+    const {_id, owners, ownersPending, ownersAccepted, ownersRejected, requester, ...updateData} = req.body;
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
           return res.status(401).json({
@@ -274,6 +280,14 @@ router.put("/:id", async (req, res) => {
 
     if (verification.uid !== docSnap.requester?.requesterId) {
       console.error("User is not allowed to update this document.")
+      return res.status(401).json({
+        error: "Unauthorised",
+        success: false,
+      });
+    }
+
+    if (docSnap.status !== "draft" || docSnap.owners.length > 0) {
+      console.error("Request has already been sent and can no longer be updated.")
       return res.status(401).json({
         error: "Unauthorised",
         success: false,

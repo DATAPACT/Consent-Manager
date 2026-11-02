@@ -43,7 +43,6 @@ function OwnerApprovedRequests() {
         const result = await getRequests({
           uid: user.uid,
           role: "owner",
-          status: "accepted",
         });
 
         if (result.success) {
