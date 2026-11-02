@@ -1,7 +1,7 @@
 import styles from "../../css/OwnerPendingRequestsDetails.module.css";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getRequest } from "../../services/api";
+import { getContract, getRequest, downloadContract as apiDownloadContract } from "../../services/api";
 import { Request } from "../Interfaces/Requests";
 import * as rdflib from "rdflib";
 
@@ -155,43 +155,14 @@ function OwnerApprovedRequestsDetails() {
     };
   };
 
-  const downloadContract = async (contractId: string | undefined) => {
-    if (!contractId) {
+  const downloadContract = async () => {
+    if (!requestId) {
       alert(t("contract_id_not_found"));
       return;
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const API_BASE_URL =
-        import.meta.env.VITE_API_BASE_URL ||
-        "http://localhost:8019/api";
-
-      const response = await fetch(
-        `${API_BASE_URL}/requests/${requestId}/downloadContract/${contractId}`,
-        {
-          method: "GET",
-          headers: {
-            "x-api-token": token || "",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to download contract: ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `contract_${contractId}.pdf`; // filename
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      console.log("Contract downloaded successfully.");
+      await apiDownloadContract(requestId);
     } catch (err) {
       console.error("Error downloading contract:", err);
     }
@@ -203,8 +174,7 @@ function OwnerApprovedRequestsDetails() {
       return;
     }
 
-    const contractId = requestDetails?.contractId;
-    if (!contractId) {
+    if (!requestId) {
       alert(t("contract_id_not_found"));
       return;
     }
@@ -214,27 +184,7 @@ function OwnerApprovedRequestsDetails() {
     setContractError("");
 
     try {
-      const token = localStorage.getItem("token");
-      const API_BASE_URL =
-        import.meta.env.VITE_API_BASE_URL ||
-        "http://localhost:8019/api";
-      console.log("api base url is: ", API_BASE_URL);
-
-      const response = await fetch(
-        `${API_BASE_URL}/requests/${requestId}/GetContract/${contractId}`,
-        {
-          method: "GET",
-          headers: {
-            "x-api-token": token || "",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch contract: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await getContract(requestId);
       setContractDetails(data);
     } catch (err: any) {
       console.error("Error fetching contract details:", err);
@@ -280,7 +230,7 @@ function OwnerApprovedRequestsDetails() {
         <div className="d-flex gap-3">
           <button
             className={`${styles.primaryButton} btn`}
-            onClick={() => downloadContract(requestDetails?.contractId)}
+            onClick={() => downloadContract()}
           >
             {t("download_contract")}
           </button>

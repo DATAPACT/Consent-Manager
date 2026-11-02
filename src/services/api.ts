@@ -978,3 +978,102 @@ export async function createContractAPI(request: ContractRequest) {
     throw error;
   }
 }
+
+export async function getContract(requestId: string) {
+  try {
+      const token = localStorage.getItem("token");
+      const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL ||
+        "http://localhost:8019/api";
+      console.log("api base url is: ", API_BASE_URL);
+
+      const response = await fetch(
+        `${API_BASE_URL}/requests/${requestId}/contract`,
+        {
+          method: "GET",
+          headers: {
+            "x-api-token": token || "",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch contract ID: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const contractId = data.contractId;
+
+      const response2 = await fetch(
+        `${API_BASE_URL}/requests/${requestId}/GetContract/${contractId}`,
+        {
+          method: "GET",
+          headers: {
+            "x-api-token": token || "",
+          },
+        }
+      );
+
+      if (!response2.ok) {
+        throw new Error(`Failed to fetch contract: ${response.status}`);
+      }    
+      
+      return await response2.json();
+    } catch (err: any) {
+      console.error("Error fetching contract details:", err);
+    }
+  }
+
+  export async function downloadContract(requestId: string) {
+    try {
+      const token = localStorage.getItem("token");
+      const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL ||
+        "http://localhost:8019/api";
+
+      const response = await fetch(
+        `${API_BASE_URL}/requests/${requestId}/contract`,
+        {
+          method: "GET",
+          headers: {
+            "x-api-token": token || "",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch contract ID: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const contractId = data.contractId;
+
+      const response2 = await fetch(
+        `${API_BASE_URL}/requests/${requestId}/downloadContract/${contractId}`,
+        {
+          method: "GET",
+          headers: {
+            "x-api-token": token || "",
+          },
+        }
+      );
+
+      if (!response2.ok) {
+        throw new Error(`Failed to download contract: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `contract_${contractId}.pdf`; // filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log("Contract downloaded successfully.");
+    } catch (err) {
+      console.error("Error downloading contract:", err);
+    }
+  }

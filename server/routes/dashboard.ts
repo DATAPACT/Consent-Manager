@@ -45,7 +45,7 @@ router.get('/requester/:uid', async (req, res) => {
 
     const requesterCollection = db.collection('users');
     const requesterData = await requesterCollection.findOne({_id:new ObjectId(uid)});
-    console.log("Requester doc is:",requesterData);
+    
     if (!requesterData) {
       return res.status(404).json({
         error: 'Requester not found',

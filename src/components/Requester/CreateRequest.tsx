@@ -169,11 +169,15 @@ function CreateRequest() {
     updateConstraintsRefinement,
   } = usePermissions();
 
+  //TODO: Make sure any constraints are filled.
   const allFieldsFilled = permissions.every(
     (permission) =>
       permission.dataset.trim() !== "" &&
       permission.action.trim() !== "" &&
-      permission.purpose.trim() !== ""
+      permission.purpose.trim() !== "" &&
+      (permission.actionRefinements.length === 0 || permission.actionRefinements.every((constraint) => constraint.leftOperand && constraint.operator && constraint.rightOperand)) &&
+      (permission.purposeRefinements.length === 0 || permission.purposeRefinements.every((constraint) => constraint.leftOperand && constraint.operator && constraint.rightOperand)) &&
+      (permission.datasetRefinements.length === 0 || permission.datasetRefinements.every((constraint) => constraint.leftOperand && constraint.operator && constraint.rightOperand))
   );
 
   return (

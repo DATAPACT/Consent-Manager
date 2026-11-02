@@ -146,11 +146,13 @@ router.post(
 
       const contacts: Record<string, any> = {};
 
+      contacts.consumer = {
+        _id: requesterUid
+      }
+
       //add another items, which is not retrieved form Negotiation!
       contacts.provider = {
-        ...contacts.provider,
-        citizen: "UK (this is a fixed value, need to be set according to payload, will be fixing)",
-        passport_id: "NO222222 (this is a fixed value, need to be set according to payload)",
+        _id: providerUid
       };
 
       // Assign the provider's unique id to the policy as an ODRL assigner.
@@ -162,16 +164,19 @@ router.post(
 
       console.log("Resolved contacts for contract payload:", contacts);
 
+      const validity_period = process.env.CONTRACT_VALIDITY_PERIOD || 12;
+      const notice_period = process.env.CONTRACT_NOTICE_PERIOD || 0;
+
       // --- Prepare payload for external contract API ---
       const payload = {
         _id: requestId,
         client_optional_info: {
           consent_id: requestId,
         },
-        cactus_format: 1,
+        cactus_format: null,
         contract_type: "pda",
-        validity_period: 12,
-        notice_period: 0,
+        validity_period: validity_period,
+        notice_period: notice_period,
         contacts: contacts,
         resource_description: {},
         definitions: {},
@@ -226,10 +231,61 @@ router.get(
   authorizeRequest,
   async (req: AuthRequest, res) => {
     const { requestId } = req.params; // matches middleware
-    const requestSnap = await db.collection("requests").findOne({_id: {$eq: new ObjectId(requestId)}});
-    const contractId = requestSnap?.contractId || null;
-
-    res.json({ success: true, contractId });
+    const uid = req.user.uid;
+    if (req.user.role === "requester") {
+      const requestDoc = await db.collection("requests").findOne({_id: new ObjectId(requestId)});
+      if (requestDoc) {
+        if (requestDoc._id.toString !== uid) {
+          console.log("User is not allowed to get contracts for this request.");
+          return res.status(401).json({
+            success: false,
+            error: "User is not allowed to get contracts for this request.",
+          });
+        }
+      }
+      else {
+        console.log("Invalid request ID.")
+        return res.status(403).json({
+          success: false,
+          error: "Invalid request ID"
+        });
+      }
+      const contractDocs = (await db.collection("contracts").find({"client_optional_info.client_pid": new ObjectId(requestId) }).toArray()).map((doc) => doc._id);
+      if (contractDocs) {
+        return res.json({
+          success: true,
+          contractIds: contractDocs
+        });
+      }
+      else {
+        return res.status(404).json({
+          success: false,
+          error: "No contract found for this request ID."
+        });
+      }
+    }
+    else if (req.user.role === "owner") {
+      const contractDoc = await db.collection("contracts").findOne({"client_optional_info.client_pid": new ObjectId(requestId), owner_user_id: new ObjectId(uid)});
+      if (contractDoc) {
+        return res.json({
+          success: true, 
+          contractId: contractDoc._id
+        });
+      }
+      else {
+        return res.status(404).json({
+          success: false,
+          error: "No contract found for this request and user pair."
+        });
+      }
+    }
+    else {
+      console.log("Invalid user role.");
+      return res.status(500).json({
+        success: false,
+        error: "Invalid user role."
+      });
+    }
   }
 );
 

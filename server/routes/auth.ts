@@ -67,30 +67,29 @@ router.post("/login", async (req, res) => {
           access_token.substring(0, 50)
         );
         console.log("Decoded token:",keycloak.jwt.decode(access_token));
-
-          try {
-            const detailsForm = new URLSearchParams({user_email: email});
-            const userManagementServiceURL = process.env.USER_MANAGEMENT_SERVICE_API_URL || "";
-            const userDetailsResponse = await fetch(
-              `${userManagementServiceURL}/user/details/?${detailsForm}`,
-              {
-                method: "GET",
-                headers: { Authorization: `Bearer ${access_token.token}` },
-              }
-            );
-
-            const userDoc = await db.collection("users").findOne({email: {$eq: email}});
-
-            console.log("User details response:",userDetailsResponse);
-            console.log("User doc: ", userDoc);
-
-            if (userDetailsResponse.ok) {
-              userData = (await userDetailsResponse.json()) as UserRecord;
-              userUid = userData._id;
+        try {
+          const detailsForm = new URLSearchParams({user_email: email});
+          const userManagementServiceURL = process.env.USER_MANAGEMENT_SERVICE_API_URL || "";
+          const userDetailsResponse = await fetch(
+            `${userManagementServiceURL}/user/details/?${detailsForm}`,
+            {
+              method: "GET",
+              headers: { Authorization: `Bearer ${access_token}` },
             }
-            else if (userDoc !== null) {
-              userData = userDoc;
+          );
+
+          console.log("User details response:",userDetailsResponse);
+
+          if (userDetailsResponse.ok) {
+            userData = (await userDetailsResponse.json()) as UserRecord;
+            userUid = userData._id;
+          }
+          else {
+            const userDoc = await db.collection("users").findOne({email: {$eq: email}});
+            if (userDoc !== null) {
+              userData = { password: null, type: userDoc.type, name: userDoc.name, ...userDoc };
               userUid = userDoc._id.toString();
+              console.log("User doc: ", userDoc);
             }
             else {
               console.warn("Error fetching user details:", userDetailsResponse.statusText);
@@ -98,14 +97,15 @@ router.post("/login", async (req, res) => {
                 error:  userDetailsResponse.statusText,
                 success: false,
               });
-            }
-          } catch (userDetailsError) {
-            console.warn("Error fetching user details:", userDetailsError);
-            return res.status(401).json({
-                error:  userDetailsError,
-                success: false,
-              });
+            } 
           }
+        } catch (userDetailsError) {
+          console.warn("Error fetching user details:", userDetailsError);
+          return res.status(401).json({
+              error:  userDetailsError,
+              success: false,
+            });
+        }
       }
     } catch (apiError) {
       console.log("External API login failed:", apiError);
@@ -136,8 +136,6 @@ router.post("/login", async (req, res) => {
         req.session.userUid = userUid;
       }
     }
-
-    console.log("User data is:",userData);
 
     if (userData.type === 'consumer'){
       role = "requester";
@@ -263,6 +261,7 @@ router.post("/create", async (req, res) => { //TODO: add authentication
 
       const fallback = "unknown";
 
+      //TODO: Make the password actually random and unique per registration.
       const registrationPayload = {
         email: email,
         username: email.includes("@") ? email.split("@")[0] : email,
@@ -890,7 +889,6 @@ router.get("/user/:uid", async (req, res) => {
     const userDoc = await db.collection("users").findOne({_id: {$eq: new ObjectId(uid)}});
 
     let role = "unknown";
-    let userData = null;
 
     if (userDoc) {
       if (userDoc.type === "consumer") {
@@ -899,7 +897,6 @@ router.get("/user/:uid", async (req, res) => {
       else if (userDoc.type === "provider") {
         role = "owner";
       }
-      userData = userDoc;
     }
     else {
       return res.status(404).json({

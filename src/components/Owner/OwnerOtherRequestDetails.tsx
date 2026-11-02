@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAuth } from "../../AuthContext";
+// import { useAuth } from "../../AuthContext";
 import { useIframe } from "../../IframeContext";
 import {
   getRequest,
-  getNegotiationByRequestId,
-  redirectToNegotiationDisplay,
+  // getNegotiationByRequestId,
+  // redirectToNegotiationDisplay,
 } from "../../services/api";
 import { Request } from "../Interfaces/Requests";
 
@@ -22,16 +22,17 @@ import { Ontology } from "../Interfaces/Ontology";
 
 function OwnerOtherRequestsDetails() {
   const { requestId } = useParams<{ requestId: string }>();
-  const { isIframeMode, notifyParent } = useIframe();
+  const { isIframeMode } = useIframe();
+  // const { isIframeMode, notifyParent } = useIframe();
   const [requestDetails, setRequestDetails] = useState<Request | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [updating] = useState<boolean>(false);
-  const [negotiationInfo, setNegotiationInfo] = useState<any>(null);
-  const [checkingNegotiation, setCheckingNegotiation] =
-    useState<boolean>(false);
-  const [autoRedirectAttempted, setAutoRedirectAttempted] =
-    useState<boolean>(false);
+  const [negotiationInfo] = useState<any>(null);
+  // const [checkingNegotiation, setCheckingNegotiation] =
+  //   useState<boolean>(false);
+  // const [autoRedirectAttempted, setAutoRedirectAttempted] =
+  //   useState<boolean>(false);
   const { t, i18n } = useTranslation();
   const [labels, setLabels] = useState<any>();
   const [graph, setGraph] = useState<rdflib.Store>();
@@ -77,75 +78,75 @@ function OwnerOtherRequestsDetails() {
           setGraph(store);
 
           // Check if there's an existing negotiation for this request
-          try {
-            const negotiationResult = await getNegotiationByRequestId(
-              requestId
-            );
-            if (negotiationResult.success && negotiationResult.negotiationId) {
-              setNegotiationInfo(negotiationResult);
-              console.log("📋 Found existing negotiation:", negotiationResult);
+          // try {
+          //   const negotiationResult = await getNegotiationByRequestId(
+          //     requestId
+          //   );
+          //   if (negotiationResult.success && negotiationResult.negotiationId) {
+          //     setNegotiationInfo(negotiationResult);
+          //     console.log("📋 Found existing negotiation:", negotiationResult);
 
-              // Debug iframe and redirect conditions
-              console.log("🔍 Auto-redirect conditions check:", {
-                isIframeMode,
-                autoRedirectAttempted,
-                hasNegotiationId: !!negotiationResult.negotiationId,
-                userExists: !!user,
-                hasMongoUserId: !!user?.userData?.mongoUserId,
-                shouldAutoRedirect: isIframeMode && !autoRedirectAttempted,
-              });
+          //     // Debug iframe and redirect conditions
+          //     console.log("🔍 Auto-redirect conditions check:", {
+          //       isIframeMode,
+          //       autoRedirectAttempted,
+          //       hasNegotiationId: !!negotiationResult.negotiationId,
+          //       userExists: !!user,
+          //       hasMongoUserId: !!user?.userData?.mongoUserId,
+          //       shouldAutoRedirect: isIframeMode && !autoRedirectAttempted,
+          //     });
 
-              // Auto-redirect to negotiation in iframe mode (only if not already attempted)
-              if (isIframeMode && !autoRedirectAttempted) {
-                console.log(
-                  "🔄 Auto-redirecting to existing negotiation in iframe mode..."
-                );
-                setAutoRedirectAttempted(true);
+          //     // Auto-redirect to negotiation in iframe mode (only if not already attempted)
+          //     if (isIframeMode && !autoRedirectAttempted) {
+          //       console.log(
+          //         "🔄 Auto-redirecting to existing negotiation in iframe mode..."
+          //       );
+          //       setAutoRedirectAttempted(true);
 
-                // Get user info and redirect immediately
-                const authUser = user;
-                if (authUser && authUser.userData?.mongoUserId) {
-                  const accessToken =
-                    authUser?.apiToken || localStorage.getItem("token");
+          //       // Get user info and redirect immediately
+          //       const authUser = user;
+          //       if (authUser && authUser.userData?.mongoUserId) {
+          //         const accessToken =
+          //           authUser?.apiToken || localStorage.getItem("token");
 
-                  if (accessToken) {
-                    console.log(
-                      "🚀 Auto-redirecting with provider token in iframe mode"
-                    );
-                    const userType =
-                      authUser.role === "owner" ? "provider" : "consumer";
+          //         if (accessToken) {
+          //           console.log(
+          //             "🚀 Auto-redirecting with provider token in iframe mode"
+          //           );
+          //           const userType =
+          //             authUser.role === "owner" ? "provider" : "consumer";
 
-                    try {
-                      await redirectToNegotiationDisplay(
-                        negotiationResult.negotiationId,
-                        accessToken,
-                        authUser.userData.mongoUserId,
-                        userType
-                      );
+          //           try {
+          //             await redirectToNegotiationDisplay(
+          //               negotiationResult.negotiationId,
+          //               accessToken,
+          //               authUser.userData.mongoUserId,
+          //               userType
+          //             );
 
-                      // Notify parent that we're redirecting
-                      notifyParent({
-                        action: "negotiation_redirect",
-                        negotiationId: negotiationResult.negotiationId,
-                        requestId: requestId,
-                      });
+          //             // Notify parent that we're redirecting
+          //             notifyParent({
+          //               action: "negotiation_redirect",
+          //               negotiationId: negotiationResult.negotiationId,
+          //               requestId: requestId,
+          //             });
 
-                      return; // Exit early since we're redirecting
-                    } catch (redirectError) {
-                      console.error("❌ Auto-redirect failed:", redirectError);
-                      // Continue with normal flow if redirect fails
-                    }
-                  } else {
-                    console.warn("⚠️ No token available for auto-redirect");
-                  }
-                } else {
-                  console.warn("⚠️ No user info available for auto-redirect");
-                }
-              }
-            }
-          } catch (negotiationError) {
-            console.log("ℹ️ No existing negotiation found for this request");
-          }
+          //             return; // Exit early since we're redirecting
+          //           } catch (redirectError) {
+          //             console.error("❌ Auto-redirect failed:", redirectError);
+          //             // Continue with normal flow if redirect fails
+          //           }
+          //         } else {
+          //           console.warn("⚠️ No token available for auto-redirect");
+          //         }
+          //       } else {
+          //         console.warn("⚠️ No user info available for auto-redirect");
+          //       }
+          //     }
+          //   }
+          // } catch (negotiationError) {
+          //   console.log("ℹ️ No existing negotiation found for this request");
+          // }
         } else {
           setError("Request not found.");
         }
@@ -160,151 +161,151 @@ function OwnerOtherRequestsDetails() {
     fetchRequestDetails();
   }, [requestId]);
 
-  const { user } = useAuth();
+  // const { user } = useAuth();
 
   // Separate effect for auto-redirect when user and negotiation info are both available
-  useEffect(() => {
-    // Add small delay to ensure iframe mode is properly detected
-    const checkAndRedirect = () => {
-      if (isIframeMode && negotiationInfo && user && !autoRedirectAttempted) {
-        console.log("🔄 Triggering auto-redirect effect...");
-        console.log("🔍 Auto-redirect conditions check (separate effect):", {
-          isIframeMode,
-          hasNegotiationInfo: !!negotiationInfo,
-          hasUser: !!user,
-          hasMongoUserId: !!user?.userData?.mongoUserId,
-          autoRedirectAttempted,
-          negotiationId: negotiationInfo.negotiationId,
-        });
+  // useEffect(() => {
+  //   // Add small delay to ensure iframe mode is properly detected
+  //   const checkAndRedirect = () => {
+  //     if (isIframeMode && negotiationInfo && user && !autoRedirectAttempted) {
+  //       console.log("🔄 Triggering auto-redirect effect...");
+  //       console.log("🔍 Auto-redirect conditions check (separate effect):", {
+  //         isIframeMode,
+  //         hasNegotiationInfo: !!negotiationInfo,
+  //         hasUser: !!user,
+  //         hasMongoUserId: !!user?.userData?.mongoUserId,
+  //         autoRedirectAttempted,
+  //         negotiationId: negotiationInfo.negotiationId,
+  //       });
 
-        setAutoRedirectAttempted(true);
+  //       setAutoRedirectAttempted(true);
 
-        const performAutoRedirect = async () => {
-          if (user.userData?.mongoUserId) {
-            const accessToken = user?.apiToken || localStorage.getItem("token");
+  //       const performAutoRedirect = async () => {
+  //         if (user.userData?.mongoUserId) {
+  //           const accessToken = user?.apiToken || localStorage.getItem("token");
 
-            if (accessToken) {
-              console.log(
-                "🚀 Performing auto-redirect with provider token in iframe mode"
-              );
-              const userType = user.role === "owner" ? "provider" : "consumer";
+  //           if (accessToken) {
+  //             console.log(
+  //               "🚀 Performing auto-redirect with provider token in iframe mode"
+  //             );
+  //             const userType = user.role === "owner" ? "provider" : "consumer";
 
-              try {
-                // Notify parent that we're opening negotiation in new tab
-                notifyParent({
-                  action: "negotiation_opened",
-                  negotiationId: negotiationInfo.negotiationId,
-                  requestId: requestId,
-                  method: "new_tab",
-                });
+  //             try {
+  //               // Notify parent that we're opening negotiation in new tab
+  //               notifyParent({
+  //                 action: "negotiation_opened",
+  //                 negotiationId: negotiationInfo.negotiationId,
+  //                 requestId: requestId,
+  //                 method: "new_tab",
+  //               });
 
-                // Small delay to ensure parent gets the message
-                await new Promise((resolve) => setTimeout(resolve, 500));
+  //               // Small delay to ensure parent gets the message
+  //               await new Promise((resolve) => setTimeout(resolve, 500));
 
-                await redirectToNegotiationDisplay(
-                  negotiationInfo.negotiationId,
-                  accessToken,
-                  user.userData.mongoUserId,
-                  userType
-                );
-              } catch (redirectError) {
-                console.error("❌ Auto-redirect failed:", redirectError);
-                setAutoRedirectAttempted(false); // Allow retry
+  //               await redirectToNegotiationDisplay(
+  //                 negotiationInfo.negotiationId,
+  //                 accessToken,
+  //                 user.userData.mongoUserId,
+  //                 userType
+  //               );
+  //             } catch (redirectError) {
+  //               console.error("❌ Auto-redirect failed:", redirectError);
+  //               setAutoRedirectAttempted(false); // Allow retry
 
-                // Show error message if tab was blocked
-                if (
-                  typeof redirectError === "object" &&
-                  redirectError !== null &&
-                  "message" in redirectError
-                ) {
-                  if (
-                    (redirectError as { message: string }).message.includes(
-                      "blocked"
-                    )
-                  ) {
-                    setError(
-                      'Please click "Open Negotiation Manually" below or check your browser\'s pop-up blocker settings.'
-                    );
-                  }
-                }
-              }
-            } else {
-              console.warn("⚠️ No token available for auto-redirect");
-            }
-          } else {
-            console.warn("⚠️ No MongoDB user ID available for auto-redirect");
-          }
-        };
+  //               // Show error message if tab was blocked
+  //               if (
+  //                 typeof redirectError === "object" &&
+  //                 redirectError !== null &&
+  //                 "message" in redirectError
+  //               ) {
+  //                 if (
+  //                   (redirectError as { message: string }).message.includes(
+  //                     "blocked"
+  //                   )
+  //                 ) {
+  //                   setError(
+  //                     'Please click "Open Negotiation Manually" below or check your browser\'s pop-up blocker settings.'
+  //                   );
+  //                 }
+  //               }
+  //             }
+  //           } else {
+  //             console.warn("⚠️ No token available for auto-redirect");
+  //           }
+  //         } else {
+  //           console.warn("⚠️ No MongoDB user ID available for auto-redirect");
+  //         }
+  //       };
 
-        performAutoRedirect();
-      }
-    };
+  //       performAutoRedirect();
+  //     }
+  //   };
 
-    // Use a small timeout to ensure all context is ready
-    const timeoutId = setTimeout(checkAndRedirect, 100);
+  //   // Use a small timeout to ensure all context is ready
+  //   const timeoutId = setTimeout(checkAndRedirect, 100);
 
-    return () => clearTimeout(timeoutId);
-  }, [
-    isIframeMode,
-    negotiationInfo,
-    user,
-    autoRedirectAttempted,
-    requestId,
-    notifyParent,
-  ]);
+  //   return () => clearTimeout(timeoutId);
+  // }, [
+  //   isIframeMode,
+  //   negotiationInfo,
+  //   user,
+  //   autoRedirectAttempted,
+  //   requestId,
+  //   notifyParent,
+  // ]);
 
   // Function to redirect to negotiation display
-  const viewNegotiation = async () => {
-    if (!negotiationInfo?.negotiationId || !user) {
-      console.error("❌ Missing negotiation ID or user info");
-      return;
-    }
+  // const viewNegotiation = async () => {
+  //   if (!negotiationInfo?.negotiationId || !user) {
+  //     console.error("❌ Missing negotiation ID or user info");
+  //     return;
+  //   }
 
-    setCheckingNegotiation(true);
+  //   setCheckingNegotiation(true);
 
-    try {
-      // Get the auth token from provider's context instead of localStorage
-      const accessToken = user?.apiToken || localStorage.getItem("token");
+  //   try {
+  //     // Get the auth token from provider's context instead of localStorage
+  //     const accessToken = user?.apiToken || localStorage.getItem("token");
 
-      if (!accessToken) {
-        setError("No authentication token found for provider");
-        setCheckingNegotiation(false);
-        return;
-      }
+  //     if (!accessToken) {
+  //       setError("No authentication token found for provider");
+  //       setCheckingNegotiation(false);
+  //       return;
+  //     }
 
-      console.log("🔑 Using provider token for negotiation view");
+  //     console.log("🔑 Using provider token for negotiation view");
 
-      // Get MongoDB user ID (we know the user has one since they can approve)
-      const mongoUserId = user.userData?._id;
+  //     // Get MongoDB user ID (we know the user has one since they can approve)
+  //     const mongoUserId = user.userData?._id;
 
-      if (!mongoUserId) {
-        setError("MongoDB user ID not found. Please contact support.");
-        setCheckingNegotiation(false);
-        return;
-      }
+  //     if (!mongoUserId) {
+  //       setError("MongoDB user ID not found. Please contact support.");
+  //       setCheckingNegotiation(false);
+  //       return;
+  //     }
 
-      // Determine user type based on role
-      const userType = user.role === "owner" ? "provider" : "consumer";
+  //     // Determine user type based on role
+  //     const userType = user.role === "owner" ? "provider" : "consumer";
 
-      console.log("🔗 Redirecting to negotiation with:", {
-        negotiationId: negotiationInfo.negotiationId,
-        mongoUserId,
-        userType,
-      });
+  //     console.log("🔗 Redirecting to negotiation with:", {
+  //       negotiationId: negotiationInfo.negotiationId,
+  //       mongoUserId,
+  //       userType,
+  //     });
 
-      // Redirect to negotiation display (now async)
-      await redirectToNegotiationDisplay(
-        negotiationInfo.negotiationId,
-        accessToken,
-        mongoUserId,
-        userType
-      );
-    } catch (error) {
-      console.error("❌ Error redirecting to negotiation:", error);
-      setError("Failed to open negotiation. Please try again.");
-      setCheckingNegotiation(false);
-    }
-  };
+  //     // Redirect to negotiation display (now async)
+  //     await redirectToNegotiationDisplay(
+  //       negotiationInfo.negotiationId,
+  //       accessToken,
+  //       mongoUserId,
+  //       userType
+  //     );
+  //   } catch (error) {
+  //     console.error("❌ Error redirecting to negotiation:", error);
+  //     setError("Failed to open negotiation. Please try again.");
+  //     setCheckingNegotiation(false);
+  //   }
+  // };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-danger">{error}</div>;
@@ -357,7 +358,7 @@ function OwnerOtherRequestsDetails() {
                   {negotiationInfo.negotiationId})
                 </small>
               </div>
-              {!isIframeMode && (
+              {/*!isIframeMode && (
                 <button
                   className={`${styles.secondaryButton} btn`}
                   onClick={viewNegotiation}
@@ -365,7 +366,7 @@ function OwnerOtherRequestsDetails() {
                 >
                   {checkingNegotiation ? `${t("loading")}...` : t("view_negotiation")}
                 </button>
-              )}
+              )*/}
             </div>
           </div>
         )}
@@ -421,7 +422,7 @@ function OwnerOtherRequestsDetails() {
                 <i className="fa-solid fa-circle-info me-1"></i>
                 {t("new_tab_troubleshoot")}
               </p>
-              <button
+              {/* <button
                 className={`${styles.primaryButton} btn btn-sm mt-2`}
                 onClick={viewNegotiation}
                 disabled={checkingNegotiation}
@@ -429,7 +430,7 @@ function OwnerOtherRequestsDetails() {
                 {checkingNegotiation
                   ? `${t("opening")}...`
                   : t("opening_negotiation_manually")}
-              </button>
+              </button> */}
             </div>
           </div>
         )}
