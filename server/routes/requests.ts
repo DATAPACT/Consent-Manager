@@ -985,7 +985,7 @@ router.get("/", async (req, res) => {
     console.log("Request is:",`${uid}, ${role}`);
 
     let requestsCollection: Collection = db.collection("requests");
-    let requestsQuery = {};
+    let requestsQuery: any = {};
 
     if (!req.headers.authorization?.startsWith("Bearer ")) {
       console.error("Missing bearer token.")
@@ -1032,17 +1032,16 @@ router.get("/", async (req, res) => {
       });
     }
 
-    if (uid && role === "requester") {
-      //requestsQuery = requestsQuery.find("requester.requesterId", "==", uid);
-      requestsQuery = { 'requester.requesterId': {$eq: uid}}
-    }
-    if (uid && role === "owner") {
-      //requestsQuery = requestsQuery.where("owners", "array-contains", uid);
-      requestsQuery = { 'owners': {$in: [uid]}}
-    }
-    if (status) {
-      //requestsQuery = requestsQuery.where("status", "==", status);
-      requestsQuery = { 'status': {$eq: status}}
+    if (uid && role) {
+      if (role === "requester") {
+        requestsQuery = { 'requester.requesterId': uid }
+      }
+      if (role === "owner") {
+        requestsQuery = { 'owners': uid }
+      }  
+      if (status) {
+        requestsQuery["status"] = status;
+      }
     }
 
     const querySnapshot = requestsCollection.find(requestsQuery);
