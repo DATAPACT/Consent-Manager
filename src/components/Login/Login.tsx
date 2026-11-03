@@ -27,7 +27,8 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (user && role) {
       if (redirect) {
-        navigate(redirect);
+        const safeRedirect = redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/";
+        navigate(safeRedirect);
       }
       else if (role === "owner") {
         navigate("/ownerBase/ownerDashboard");

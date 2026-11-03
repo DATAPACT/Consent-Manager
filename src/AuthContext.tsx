@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { login as apiLogin, logout as apiLogout, emailLogin as apiEmailLogin } from "./services/api";
+import { redirectToLogin, registerTokenExpiredHandler } from "./services/authExpiration";
 
 // --- Define user profile type ---
 interface UserProfile {
@@ -131,6 +132,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuthState();
+  }, []);
+
+  useEffect(() => {
+    registerTokenExpiredHandler(() => {
+      // Clear React authentication state
+      setUser(null);
+      setRole(null);
+      setUserData(null);
+
+      // Clear localStorage
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+
+      // Redirect to login
+      redirectToLogin();
+    });
   }, []);
 
   const login = async (email: string, password: string) => {

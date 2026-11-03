@@ -31,7 +31,7 @@ const Ontologies: React.FC = () => {
         if (result.success) {
           // Filter out default ontology and any ontologies without names
           const userOntologies = result.ontologies
-            .filter((ontology: any) => ontology._id !== "default" && ontology.name);
+            .filter((ontology: any) => !ontology.isDefault && ontology.name);
           
           setOntologies(userOntologies);
         } else {

@@ -1,6 +1,7 @@
 // API service to interact with the Express backend
 
 import type { RequestForm } from "../helperFunctions/PermissionsUtils";
+import { handleTokenExpired } from "./authExpiration";
 
 // const API_BASE_URL =
   // import.meta.env.VITE_API_BASE_URL || "http://localhost:8019/api";
@@ -46,6 +47,18 @@ interface ContractRequest {
 //   password.sort(() => 0.5 - Math.random());
 //   return password.join("");
 // } 
+
+const fetchWithAuth = async (url: string, options?: RequestInit ): Promise<Response> => {
+    const response = await fetch(url, options);
+
+    const data = await response.clone().json().catch(() => null);
+
+    if (data?.error === "TOKEN_EXPIRED") {
+      handleTokenExpired();
+    }
+
+    return response;
+};
 
 // Authentication API
 export const login = async (email: string, password: string) => {
@@ -159,7 +172,7 @@ export const deleteUser = async (userData: {
 }) => {
   try {
     
-    const response = await fetch(`${API_BASE_URL}/auth/user/${userData.email}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/auth/user/${userData.email}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -186,7 +199,7 @@ export const registerTemporaryUser = async (userData: {
 }) => {
   try {
     const newUser = {...userData}
-    const response = await fetch(`${API_BASE_URL}/auth/create`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/auth/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -198,9 +211,6 @@ export const registerTemporaryUser = async (userData: {
     const api_response = await response.json();
 
     if (!response.ok) {
-      if (response.status === 401 && api_response.error === "TOKEN_EXPIRED") {
-        throw new Error("TOKEN_EXPIRED");
-      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -261,7 +271,7 @@ export const getAllOwners = async () => {
 // Requests API
 export const createRequest = async (data: RequestForm) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -288,7 +298,7 @@ export const createRequest = async (data: RequestForm) => {
 
 export const getRequest = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -313,7 +323,7 @@ export const getRequest = async (id: string) => {
 
 export const updateRequest = async (id: string, data: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -335,7 +345,7 @@ export const updateRequest = async (id: string, data: any) => {
 
 export const acceptRequest = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}/accept`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}/accept`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -356,7 +366,7 @@ export const acceptRequest = async (id: string) => {
 
 export const rejectRequest = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}/reject`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}/reject`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -377,7 +387,7 @@ export const rejectRequest = async (id: string) => {
 
 export const sendRequest = async (id: string, data: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}/send`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}/send`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -411,7 +421,7 @@ export const getRequests = async (
       if (value) params.append(key, value);
     });
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/requests?${params.toString()}`, {
         method: "GET",
         headers: {
@@ -516,7 +526,7 @@ export const deleteOntology = async (id: string, requesterUid: string) => {
 // Dashboard API
 export const getRequesterDashboard = async (uid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard/requester/${uid}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/dashboard/requester/${uid}`, {
       method: "GET",
       headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -536,7 +546,7 @@ export const getRequesterDashboard = async (uid: string) => {
 
 export const getOwnerDashboard = async (uid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard/owner/${uid}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/dashboard/owner/${uid}`, {
       method: "GET",
       headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -556,7 +566,7 @@ export const getOwnerDashboard = async (uid: string) => {
 
 export const getPendingRequestsForOwner = async (uid: string) => {
   try {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/dashboard/requests/pending-owner/${uid}`, 
     {
       method: "GET",
@@ -578,7 +588,7 @@ export const getPendingRequestsForOwner = async (uid: string) => {
 
 export const getApprovedRequestsForOwner = async (uid: string) => {
   try {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/dashboard/requests/approved-owner/${uid}`,
     {
       method: "GET",
@@ -600,7 +610,7 @@ export const getApprovedRequestsForOwner = async (uid: string) => {
 
 export const deleteRequest = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}`, {
       method: "DELETE",
       headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -625,7 +635,7 @@ export const deleteRequest = async (id: string) => {
 
 export const revokeRequest = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/requests/${id}/reject`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/requests/${id}/reject`, {
       method: "POST",
       headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
@@ -656,7 +666,7 @@ export const createNegotiationFromRequest = async (
   token: string
 ) => {
   try {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/negotiations/create-with-initial`,
       {
         method: "POST",
@@ -697,7 +707,7 @@ export const createAcceptedNegotiationFromRequest = async (
   token: string
 ) => {
   try {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/negotiations/create-accepted`,
       {
         method: "POST",
@@ -728,7 +738,7 @@ export const createAcceptedNegotiationFromRequest = async (
 // Get external users list
 export const getExternalUsers = async (token: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/external/users`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/external/users`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -761,7 +771,7 @@ export const getExternalUserDetails = async (
       ? `${API_BASE_URL}/external/user-details?user_id=${userId}`
       : `${API_BASE_URL}/external/user-details`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithAuth(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -787,7 +797,7 @@ export const getExternalUserDetails = async (
 // Get negotiation ID by consent request ID
 export const getNegotiationByRequestId = async (requestId: string) => {
   try {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/negotiations/by-request/${requestId}`,
       {
         method: "GET",
@@ -901,7 +911,7 @@ export async function decodeToken(token: string) {
   try {
     console.log("Token received:", token);
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/auth/${token}/createContract`,
       {
         method: "GET",
@@ -952,7 +962,7 @@ export async function createContractAPI(request: ContractRequest) {
       tokenLength: token?.length || 0,
     });
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_BASE_URL}/requests/${request.id}/createContract`,
       {
         method: "POST",
@@ -987,7 +997,7 @@ export async function getContract(requestId: string) {
         "http://localhost:8019/api";
       console.log("api base url is: ", API_BASE_URL);
 
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}/requests/${requestId}/contract`,
         {
           method: "GET",
@@ -1004,7 +1014,7 @@ export async function getContract(requestId: string) {
       const data = await response.json();
       const contractId = data.contractId;
 
-      const response2 = await fetch(
+      const response2 = await fetchWithAuth(
         `${API_BASE_URL}/requests/${requestId}/GetContract/${contractId}`,
         {
           method: "GET",
@@ -1031,7 +1041,7 @@ export async function getContract(requestId: string) {
         import.meta.env.VITE_API_BASE_URL ||
         "http://localhost:8019/api";
 
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE_URL}/requests/${requestId}/contract`,
         {
           method: "GET",
@@ -1048,7 +1058,7 @@ export async function getContract(requestId: string) {
       const data = await response.json();
       const contractId = data.contractId;
 
-      const response2 = await fetch(
+      const response2 = await fetchWithAuth(
         `${API_BASE_URL}/requests/${requestId}/downloadContract/${contractId}`,
         {
           method: "GET",
