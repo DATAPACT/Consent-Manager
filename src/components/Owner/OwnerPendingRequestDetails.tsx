@@ -859,7 +859,7 @@ function OwnerPendingRequestDetails() {
           </div>
         )} */}
 
-{/*         {/* Hide buttons in iframe mode if negotiation exists (user will be auto-redirected)
+{/* Hide buttons in iframe mode if negotiation exists (user will be auto-redirected) */}
         {!negotiationInfo && (
           <div className="d-flex mt-4">
             <div>
@@ -871,7 +871,7 @@ function OwnerPendingRequestDetails() {
                 {t("accept")}
               </button>
             </div>
-            <div className="ms-3">
+            {/* <div className="ms-3">
               <button
                 className={`${styles.secondaryButton} btn`}
                 data-bs-toggle="modal"
@@ -880,7 +880,7 @@ function OwnerPendingRequestDetails() {
               >
                 {updating ? `${t("processing")}...` : t("negotiate")}
               </button>
-            </div>
+            </div> */}
 
             <div className="ms-auto">
               <button

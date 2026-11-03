@@ -1072,7 +1072,7 @@ export async function getContract(requestId: string) {
         throw new Error(`Failed to download contract: ${response.status}`);
       }
 
-      const blob = await response.blob();
+      const blob = await response2.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

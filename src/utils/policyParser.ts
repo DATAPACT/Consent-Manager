@@ -245,7 +245,9 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
     const datasetRefinements = typeof permission["odrl:target"] === "string" ? [] : parseConstraints(permission["odrl:target"]["odrl:refinement"]);
 
     // Parse constraints generically (excluding purpose)
-    const constraints = parseConstraints(permission["odrl:constraint"]).filter((o) => !o.leftOperand.toLowerCase().includes("purpose"));
+    const constraints = parseConstraints(permission["odrl:constraint"]);
+
+    const nonPurposeConstraints = constraints.filter((o) => !o.leftOperand.toLowerCase().includes("purpose"));
 
     // Parse assignees generically
     const assignees = parseAssignees(permission["odrl:assignee"]);
@@ -311,7 +313,7 @@ export function parseODRLPolicy(policy: ODRLPolicy | null): Permission[] {
       actionRefinements: actionRefinements || [],
       purposeRefinements: [],
       constraintRefinements: [],
-      constraints, // Generic constraint info
+      constraints: nonPurposeConstraints, // Generic constraint info
       assignees, // Generic assignee info
     };
   });
@@ -332,11 +334,6 @@ export function hasODRLPolicy(request: any): boolean {
  * Get permissions from either ODRL policy or legacy permissions array
  */
 export function getRequestPermissions(request: any): Permission[] {
-  // If request has ODRL policy, parse it
-  if (hasODRLPolicy(request)) {
-    return parseODRLPolicy(request.policy);
-  }
-
   // Fallback to legacy permissions array
   if (request.permissions && Array.isArray(request.permissions)) {
     return request.permissions.map((perm: any) => ({
@@ -348,6 +345,11 @@ export function getRequestPermissions(request: any): Permission[] {
       purposeRefinements: perm.purposeRefinements || [],
       constraintRefinements: perm.constraintRefinements || [],
     }));
+  }
+
+  // If request has ODRL policy, parse it
+  if (hasODRLPolicy(request)) {
+    return parseODRLPolicy(request.policy);
   }
 
   return [];}

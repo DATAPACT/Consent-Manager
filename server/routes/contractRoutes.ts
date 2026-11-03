@@ -250,7 +250,7 @@ router.get(
           error: "Invalid request ID"
         });
       }
-      const contractDocs = (await db.collection("contracts").find({"client_optional_info.client_pid": new ObjectId(requestId) }).toArray()).map((doc) => doc._id);
+      const contractDocs = (await db.collection("contracts").find({"client_optional_info.client_pid": requestId }).toArray()).map((doc) => doc._id);
       if (contractDocs) {
         return res.json({
           success: true,
@@ -265,7 +265,7 @@ router.get(
       }
     }
     else if (req.user.role === "owner") {
-      const contractDoc = await db.collection("contracts").findOne({"client_optional_info.client_pid": new ObjectId(requestId), owner_user_id: new ObjectId(uid)});
+      const contractDoc = await db.collection("contracts").findOne({"client_optional_info.client_pid": requestId, owner_user_id: uid});
       if (contractDoc) {
         return res.json({
           success: true, 
