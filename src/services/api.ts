@@ -449,14 +449,18 @@ export const uploadOntology = async (data: {
   ontologyFile: File;
 }) => {
   try {
+    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("requesterUid", data.requesterUid);
     formData.append("ontologyName", data.ontologyName);
     formData.append("ontologyDescription", data.ontologyDescription);
     formData.append("ontologyFile", data.ontologyFile);
 
-    const response = await fetch(`${API_BASE_URL}/ontologies`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/ontologies`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: formData, // Don't set Content-Type, let browser set it for multipart/form-data
     });
 
@@ -474,7 +478,13 @@ export const uploadOntology = async (data: {
 export const getOntologies = async (requesterUid?: string) => {
   try {
     const params = requesterUid ? `?requesterUid=${requesterUid}` : "";
-    const response = await fetch(`${API_BASE_URL}/ontologies${params}`);
+    const token = localStorage.getItem("token");
+    const response = await fetchWithAuth(`${API_BASE_URL}/ontologies${params}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -489,7 +499,13 @@ export const getOntologies = async (requesterUid?: string) => {
 
 export const getOntology = async (id: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/ontologies/${id}`);
+    const token = localStorage.getItem("token");
+    const response = await fetchWithAuth(`${API_BASE_URL}/ontologies/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -504,10 +520,12 @@ export const getOntology = async (id: string) => {
 
 export const deleteOntology = async (id: string, requesterUid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/ontologies/${id}`, {
+    const token = localStorage.getItem("token");
+    const response = await fetchWithAuth(`${API_BASE_URL}/ontologies/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ requesterUid }),
     });

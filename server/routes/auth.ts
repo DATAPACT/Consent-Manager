@@ -190,11 +190,19 @@ router.post("/create", async (req, res) => { //TODO: add authentication
     const token = req.headers.authorization.substring(7);
     const verification = await verify(token);
 
-    if (!verification) {
-      return res.status(401).json({
-        error: "Invalid token",
-        success: false,
-      });
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
     }
 
     if (!email || !role) {

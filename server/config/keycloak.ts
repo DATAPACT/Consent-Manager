@@ -90,7 +90,6 @@ export const verify = async (token: string): Promise<VerificationResponse> => {
         }
     }
     catch(error) {
-        console.log("Verifying error:",error);
         if (error instanceof JWTExpired) {
             return {success: false, reason: "Token expired"}
         }

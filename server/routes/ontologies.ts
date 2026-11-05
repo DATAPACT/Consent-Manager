@@ -3,6 +3,7 @@ import multer from 'multer';
 import { db } from "../config/database.service.ts";
 import * as rdf from "rdflib";
 import { ObjectId } from 'mongodb';
+import { verify } from '../config/keycloak.ts';
 
 const router = express.Router();
 
@@ -67,7 +68,40 @@ const extensionToMimetype = (extension: string | undefined) => {
 // POST /api/ontologies - Upload a new ontology
 router.post('/', upload.single('ontologyFile'), async (req, res) => {
   try {
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
+
     const { requesterUid, ontologyName, ontologyDescription } = req.body;
+
+    if (verification.uid !== requesterUid) {
+      return res.status(403).json({
+        success: false,
+        error: "Token user id mismatch."
+      })
+    };
+
     const file = req.file;
     const fileExtension = file?.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
     const fileContent = req.file?.buffer.toString();
@@ -133,6 +167,30 @@ router.post('/', upload.single('ontologyFile'), async (req, res) => {
 // GET /api/ontologies/:id - Get a specific ontology
 router.get('/:id', async (req, res) => {
   try {
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
     const { id } = req.params;
     const ontologyDoc = await db.collection('ontologies').findOne({'_id': {$eq: new ObjectId(id)}});
 
@@ -143,6 +201,14 @@ router.get('/:id', async (req, res) => {
       });
       return;
     }
+
+    if (ontologyDoc.uploadedBy !== verification.uid) {
+      console.log("This ontology does not belong to this user.");
+      res.status(403).json({
+        success: false,
+        error: "This ontology does not belong to this user."
+      })
+    };
 
     res.json({
       success: true,
@@ -166,11 +232,43 @@ router.get('/:id', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const { requesterUid } = req.query;
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
 
     if (requesterUid) {
       // Get ontologies for this user:
       // 1. Ontologies they uploaded (have uploadedBy field matching their UID)
       // 2. The default ontology (id === 'default')
+
+      if (verification.uid !== requesterUid) {
+        console.log("Token user id mismatch.");
+        return res.status(401).json({
+          success: false,
+          error: "Token user id mismatch"
+        });
+      }
       
       const userOntologiesQuery = db.collection('ontologies').find({'uploadedBy': {$eq: requesterUid}});
       
@@ -196,7 +294,7 @@ router.get('/', async (req, res) => {
         ontologies: allAvailableOntologies
       });
     } else {
-      // No user specified - return all ontologies
+      // No user specified - return only default ontologies.
       const ontologies = await db.collection('ontologies').find({'isDefault': {$eq: true}}).toArray();
 
       res.json({
@@ -219,6 +317,31 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { requesterUid } = req.body;
+
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
 
     const ontologyDoc = await db.collection('ontologies').findOne({'_id': {$eq: new ObjectId(id)}});
     
@@ -272,6 +395,30 @@ router.delete('/:id', async (req, res) => {
 router.get('/user/:uid/count', async (req, res) => {
   try {
     const { uid } = req.params;
+    if (!req.headers.authorization?.startsWith("Bearer ")) {
+          return res.status(401).json({
+            success: false,
+            error: "Missing bearer token",
+          });
+        }
+    
+    const token = req.headers.authorization.substring(7);
+    const verification = await verify(token);
+
+    if (!verification?.success) {
+      if (verification?.reason === "Token expired") {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          success: false,
+        })
+      }
+      else{
+        return res.status(401).json({
+          error: "Invalid token",
+          success: false,
+        });
+      }
+    }
     
     const ontologiesQuery = db.collection('ontologies')
       .find({'uploadedBy': {$eq: uid}});
