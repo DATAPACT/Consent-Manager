@@ -353,6 +353,13 @@ router.delete('/:id', async (req, res) => {
       return;
     }
 
+    if (verification.uid !== requesterUid) {
+      res.status(401).json({
+        success: false,
+        error: "Token user id mismatch.",
+      });
+    }
+
     if (ontologyDoc.uploadedBy !== requesterUid) {
       res.status(403).json({
         error: 'Unauthorized to delete this ontology',

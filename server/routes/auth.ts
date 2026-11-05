@@ -991,9 +991,9 @@ router.delete("/user/:email", async (req, res) => {
     const userDoc = await db.collection("users").findOne({email: email});
 
     if (!userDoc) {
-      return res.status(200).json({
-        success: true,
-        message: "User deletion completed"
+      return res.status(400).json({
+        success: false,
+        message: "User deletion failed."
       })
     }
 
@@ -1040,11 +1040,8 @@ router.delete("/user/:email", async (req, res) => {
 
           if (!updateRequests) {
             res.json({
-              success: true,
-              message: "User deletion completed",
-              details: {
-                externalApiDeleted: externalApiDeleteSuccess,
-              },
+              success: false,
+              message: "User deletion failed.",
             });
           }
         }
@@ -1058,9 +1055,6 @@ router.delete("/user/:email", async (req, res) => {
             res.json({
               success: true,
               message: "Request deletion completed",
-              details: {
-                externalApiDeleted: externalApiDeleteSuccess,
-              },
             });
           }
         }
