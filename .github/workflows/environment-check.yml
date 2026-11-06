@@ -1,0 +1,140 @@
+name: Consent-Manager environment auto-checking
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [consent-manager-environment-setup]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cm-environment-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  environment:
+    name: Build and check environment
+    # using 22.04 is okay, 24.04 is wrong
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # show the OS and Docker kenal
+      - name: Show runner OS and Docker kernel
+        run: |
+          cat /etc/os-release
+          uname -a
+          docker info --format 'Docker kernel: {{.KernelVersion}}; OS: {{.OperatingSystem}}; architecture: {{.Architecture}}'
+          docker compose version
+
+      - name: Check out CI scripts
+        uses: actions/checkout@v7.0.1
+        with:
+          path: consent-manager-ci
+          persist-credentials: false
+
+      - name: Check CI configuration helpers
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s consent-manager-ci/ci -p 'test_*.py' -v
+
+      - name: Read dependency versions and verify repository token
+        id: dependencies
+        env:
+          REPO_TOKEN: ${{ secrets.CI_REPO_READ_TOKEN }}
+        run: |
+          if [ -z "$REPO_TOKEN" ]; then
+            echo '::error::Set CI_REPO_READ_TOKEN with read access to the four dependency repositories listed in ci/dependencies.json.'
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          dependencies = json.loads(Path('consent-manager-ci/ci/dependencies.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for name in ('environment', 'users', 'contracts', 'negotiation'):
+                  entry = dependencies[name]
+                  assert re.fullmatch(r'[\w.-]+/[\w.-]+', entry['repository'])
+                  assert re.fullmatch(r'[0-9a-f]{40}', entry['ref'])
+                  print(f'{name}_repository={entry["repository"]}', file=output)
+                  print(f'{name}_ref={entry["ref"]}', file=output)
+          PY
+
+      # Check out the parent first: a later parent checkout could clean nested repos.
+      - name: Check out environment
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: ${{ steps.dependencies.outputs.environment_repository }}
+          ref: ${{ steps.dependencies.outputs.environment_ref }}
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          path: dips-local-dev
+          persist-credentials: false
+
+      - name: Check out Consent-Manager revision under test
+        uses: actions/checkout@v7.0.1
+        with:
+          path: dips-local-dev/Consent-Manager
+          persist-credentials: false
+
+      - name: Check out User Management
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: ${{ steps.dependencies.outputs.users_repository }}
+          ref: ${{ steps.dependencies.outputs.users_ref }}
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          path: dips-local-dev/User-Management
+          persist-credentials: false
+
+      - name: Check out Contract Service
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: ${{ steps.dependencies.outputs.contracts_repository }}
+          ref: ${{ steps.dependencies.outputs.contracts_ref }}
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          path: dips-local-dev/Contract_Service
+          persist-credentials: false
+
+      - name: Check out Negotiation Tool
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: ${{ steps.dependencies.outputs.negotiation_repository }}
+          ref: ${{ steps.dependencies.outputs.negotiation_ref }}
+          token: ${{ secrets.CI_REPO_READ_TOKEN }}
+          path: dips-local-dev/Negotiation-Tool
+          persist-credentials: false
+
+      - name: Generate disposable environment and validate Compose
+        run: |
+          python3 consent-manager-ci/ci/environment.py prepare --root "$GITHUB_WORKSPACE/dips-local-dev"
+          python3 consent-manager-ci/ci/environment.py validate --root "$GITHUB_WORKSPACE/dips-local-dev"
+
+      - name: Build and start Keycloak and application dependencies
+        run: python3 consent-manager-ci/ci/environment.py start --root "$GITHUB_WORKSPACE/dips-local-dev"
+
+      - name: Check environment readiness
+        run: python3 consent-manager-ci/ci/environment.py check --root "$GITHUB_WORKSPACE/dips-local-dev"
+
+      # Add Jaime's test command here when the automated test suite is available.
+      - name: Collect diagnostic logs
+        if: always()
+        run: |
+          if [ -f consent-manager-ci/ci/environment.py ]; then
+            python3 consent-manager-ci/ci/environment.py logs --root "$GITHUB_WORKSPACE/dips-local-dev"
+          fi
+
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: cm-environment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dips-local-dev/.cm-ci/artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Remove disposable containers and volumes
+        if: always()
+        run: |
+          if [ -f consent-manager-ci/ci/environment.py ]; then
+            python3 consent-manager-ci/ci/environment.py stop --root "$GITHUB_WORKSPACE/dips-local-dev"
+          fi

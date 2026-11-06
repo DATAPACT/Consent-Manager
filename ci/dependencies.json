@@ -1,0 +1,18 @@
+{
+  "environment": {
+    "repository": "DIPS-Tools/dips-local-dev",
+    "ref": "fadb8437e6092ba68828a81ef05e78419966eb5d"
+  },
+  "users": {
+    "repository": "DATAPACT/User-Management",
+    "ref": "1d0350a5e87d8eff1a26a2b3e8ca540a61cfc50e"
+  },
+  "contracts": {
+    "repository": "DATAPACT/Contract_Service",
+    "ref": "201f0bfee9fada981421a766ef61409087ab539d"
+  },
+  "negotiation": {
+    "repository": "DATAPACT/Negotiation-Tool",
+    "ref": "baa6faed403a8acf03a8aeb781be028281fca5a2"
+  }
+}
