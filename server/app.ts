@@ -7,6 +7,7 @@ import fs from "fs";
 import path from "path";
 import YAML from "yaml";
 import { fileURLToPath } from "url";
+import { connectToDatabase } from "./config/database.service.js";
 
 // Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -103,6 +104,7 @@ import dashboardRouter from "./routes/dashboard.js";
 import externalApiRouter from "./routes/external-api.js";
 import contractRoutes from "./routes/contractRoutes.js";
 import negotiationRouter from "./routes/negotiations.js";
+
 // import emailRouter from "./routes/email.js";
 
 // API Routes
@@ -120,11 +122,22 @@ app.use("/api/requests", contractRoutes);
 app.use("/api/negotiations", negotiationRouter);
 // app.use("/api/email", emailRouter);
 
-// Start server
-app.listen(parseInt(PORT), '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`Swagger docs: http://localhost:${PORT}/docs`);
-});
+async function startServer() {
+  try {
+    await connectToDatabase();
+
+    // Start server
+    app.listen(parseInt(PORT), '0.0.0.0', () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/health`);
+      console.log(`Swagger docs: http://localhost:${PORT}/docs`);
+    });
+  } catch (error) {
+    console.error("Application startup failed:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 export default app;

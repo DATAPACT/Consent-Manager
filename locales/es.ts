@@ -77,6 +77,7 @@ export default {
     change_password: "Change password",
     delete_account: "Delete account",
     back: "Back",
+    delete: "Borrar",
     user_deleted_successfully: "User deleted successfully!",
     delete_user_text_1: "By clicking on 'Delete user' your account, along with any associated requests, will be permanently deleted. This cannot be undone.",
     delete_user: "Delete user",
